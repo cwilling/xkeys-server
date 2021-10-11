@@ -1,0 +1,28 @@
+{
+  "name": "xkeys-server",
+  "version": "0.0.1",
+  "description": "Web service for SuperFlyTv's xkeys library",
+  "main": "src/scripts/xkeys-server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git@gitlab.com/chris.willing/xkeys-server.git"
+  },
+  "keywords": [
+    "xkeys",
+    "x-keys"
+  ],
+  "dependencies": {
+    "mqtt": "^4.2.8",
+    "usb-detection": "^4.10.0",
+    "xkeys": "^2.2.1"
+  },
+  "author": "Christoph Willing",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/chris.willing/xkeys-server/issues"
+  },
+  "homepage": "https://gitlab.com/chris.willing/xkeys-server#readme"
+}
