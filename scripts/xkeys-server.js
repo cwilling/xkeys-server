@@ -8,10 +8,18 @@ const { PRODUCTS } = require('@xkeys-lib/core/dist/products');
 /* An XKeysWatcher */
 let watcher;
 
-/*
-	Local record of discovered devices keyed by UniqueId
-*/
+/* Local record of discovered devices keyed by UniqueId */
 let xkeys_devices = {};
+
+/* Reverse lookup of PRODUCTS keys (short name ids), indexed by hidDevice number */
+let xkeys_products = {};
+Object.entries(PRODUCTS).forEach(entry => {
+	const [key, value] = entry;
+	value.hidDevices.forEach(hidDev => {
+		xkeys_products[hidDev[0]] = key;
+	});
+
+});
 
 /*
 Proposed Topic heirarchy:
@@ -52,9 +60,9 @@ client.on('error', (error) => {
 })
 
 client.on('connect', () => {
-    console.log('connected')
+    console.log('connected');
     startWatcher();
-    client.publish('/xkeys/server', 'Hello from Xkeys device server')
+    client.publish('/xkeys/server', JSON.stringify({"request":"hello","data":"Hello from Xkeys device server"}));
     client.subscribe('/xkeys/node/#', function (err) {
     	if (!err) {
       	    console.log('subscribed OK')
@@ -85,6 +93,7 @@ client.on('connect', () => {
 				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
 				//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 				metadata["type"] = "down";
+				metadata["shortnam"] = xkeys_products[pid.toString()];
 				client.publish('/xkeys/server/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 			xkeysPanel.on('up', (btnIndex, metadata) => {
@@ -93,6 +102,7 @@ client.on('connect', () => {
 				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
 				//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 				metadata["type"] = "up";
+				metadata["shortnam"] = xkeys_products[pid.toString()];
 				client.publish('/xkeys/server/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 			xkeysPanel.on('jog', (index, deltaPos, metadata) => {
@@ -102,9 +112,14 @@ client.on('connect', () => {
 				//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 				metadata["type"] = "jog";
 				metadata["deltaPos"] = deltaPos;
+				metadata["shortnam"] = xkeys_products[pid.toString()];
 				client.publish('/xkeys/server/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 		})
+	}
+
+	// Return the key used in PRODUCTS for the device with given uniqueId
+	function product_code(uniqueId) {
 	}
 
 	// Add a newly discovered device to xkeys_devices object.
@@ -166,7 +181,7 @@ function update_client_device_list () {
 		//console.log("Found ", xkeys_devices[key].info.name, " at ", key);
 		device_list[key] = xkeys_devices[key].device.info;
 	}
-	console.log("update_client_device_list(): " + JSON.stringify(device_list));
+	//console.log("update_client_device_list(): " + JSON.stringify(device_list));
    	client.publish('/xkeys/server', JSON.stringify({"request":"result_deviceList", "data":device_list}));
 }
 
