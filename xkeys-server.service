@@ -1,0 +1,18 @@
+Unit]
+Description=Run xkeys-server as background service
+
+[Service]
+ExecStart=/var/lib/xkeys/xkeys-server/scripts/xkeys-server.js
+
+Restart=always
+User=nobody
+Group=nogroup
+
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=production
+
+WorkingDirectory=/var/lib/xkeys
+
+[Install]
+WantedBy=multi-user.target
+
