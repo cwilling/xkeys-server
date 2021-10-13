@@ -4,7 +4,7 @@ The xkeys-server is a stand alone NodeJS application, wrapping [SuperFlyTV's lib
 
 Communication between applications and xkeys-server uses the MQTT protocol. An MQTT broker, typically [mosquitto](https://mosquitto.org), will run on the host machine. All applications wanting access via xkeys-server, as well as the xkey-server itself, act as MQTT clients of this local broker.
 
-# Installation
+## Installation
 
 These instructions are for installaton on Raspberry Pi but may be sufficiently generic to apply, with minimal change, to other Linux-based systems.
 
@@ -44,5 +44,24 @@ sudo systemctl enable xkeys-server
 ```
 Check that it's running:
 ```
-ps -ef |grep xkeys
+ps -ef |grep xkeys-server
+```
+
+## Upgrading
+
+Upgrading to the latest version of _xkeys\_server_ firstly involves downloading it from the development repository:
+```
+sudo su - xkeys
+cd xkeys-server
+git pull
+npm install
+exit
+```
+Now restart to the new version (this can take a while on a Raspberry Pi):
+```
+sudo systemctl restart xkeys-server
+```
+Check that it's running:
+```
+ps -ef |grep xkeys-server
 ```
