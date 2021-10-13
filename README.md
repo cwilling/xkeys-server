@@ -6,7 +6,7 @@ Communication between applications and xkeys-server uses the MQTT protocol. An M
 
 # Installation
 
-These instructions are for installaton on Raspberry Pi but may be sufficiently generic to apply, with minimal chenge, to other Linux-based systems.
+These instructions are for installaton on Raspberry Pi but may be sufficiently generic to apply, with minimal change, to other Linux-based systems.
 
 First ensure that the mosquitto MQTT broker is installed and running:
 ```
