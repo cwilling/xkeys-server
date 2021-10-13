@@ -1,4 +1,4 @@
-Unit]
+[Unit]
 Description=Run xkeys-server as background service
 
 [Service]
