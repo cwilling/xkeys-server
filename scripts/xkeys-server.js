@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var mqtt = require('mqtt')
 var path = require('path')
 const { XKeys, XKeysWatcher } = require('xkeys');
@@ -76,6 +78,31 @@ client.on('connect', () => {
 				console.log(`X-keys panel of type ${xkeysPanel.info.name} disconnected`)
 				delete xkeys_devices[xkeysPanel.uniqueId];
 				update_client_device_list();
+			})
+			xkeysPanel.on('down', (btnIndex, metadata) => {
+				//console.log(`X-keys panel of type ${xkeysPanel.info.name} down`)
+				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+				//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+				metadata["type"] = "down";
+				client.publish('/xkeys/server/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
+			})
+			xkeysPanel.on('up', (btnIndex, metadata) => {
+				//console.log(`X-keys panel of type ${xkeysPanel.info.name} up`)
+				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+				//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+				metadata["type"] = "up";
+				client.publish('/xkeys/server/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
+			})
+			xkeysPanel.on('jog', (index, deltaPos, metadata) => {
+				//console.log(`X-keys panel of type ${xkeysPanel.info.name} jog (${index})`)
+				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+				//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+				metadata["type"] = "jog";
+				metadata["deltaPos"] = deltaPos;
+				client.publish('/xkeys/server/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 		})
 	}
