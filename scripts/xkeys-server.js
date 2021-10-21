@@ -94,7 +94,7 @@ client.on('connect', () => {
 				//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 				metadata["type"] = "down";
 				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
+				client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 			xkeysPanel.on('up', (btnIndex, metadata) => {
 				//console.log(`X-keys panel of type ${xkeysPanel.info.name} up`)
@@ -103,17 +103,47 @@ client.on('connect', () => {
 				//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 				metadata["type"] = "up";
 				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
+				client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 			xkeysPanel.on('jog', (index, deltaPos, metadata) => {
-				//console.log(`X-keys panel of type ${xkeysPanel.info.name} jog (${index})`)
+				//console.log(`X-keys panel of type ${xkeysPanel.info.name} jog (${index}), delta ${deltaPos}`)
 				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
 				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
 				//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 				metadata["type"] = "jog";
 				metadata["deltaPos"] = deltaPos;
 				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
+				client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
+			})
+			xkeysPanel.on('shuttle', (index, shuttlePos, metadata) => {
+				//console.log(`X-keys panel of type ${xkeysPanel.info.name} jog (${index})`)
+				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+				//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+				metadata["type"] = "shuttle";
+				metadata["shuttlePos"] = shuttlePos;
+				metadata["shortnam"] = xkeys_products[pid.toString()];
+				client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
+			})
+			xkeysPanel.on('joystick', (index, position, metadata) => {
+				//console.log(`X-keys panel of type ${xkeysPanel.info.name} joystick (${index})`)
+				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+				//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+				metadata["type"] = "joystick";
+				metadata["position"] = position;
+				metadata["shortnam"] = xkeys_products[pid.toString()];
+				client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
+			})
+			xkeysPanel.on('tbar', (index, position, metadata) => {
+				//console.log(`X-keys panel of type ${xkeysPanel.info.name} tbar (${index})`)
+				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+				//console.log("TBAR event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+				metadata["type"] = "tbar";
+				metadata["position"] = position;
+				metadata["shortnam"] = xkeys_products[pid.toString()];
+				client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 		})
 	}
@@ -147,17 +177,13 @@ client.on('message', (topic, message) => {
     var msg = ""
     try {
 	msg = JSON.parse(message)
-        if (msg.request == "bid") {
-		    console.log("BID in progress by bidder: " + msg.bidder)
-        } else if (msg.request == "hello") {
+        if (msg.request == "hello") {
 		    console.log("HELLO request from: " + topic)
         } else if (msg.request == "productList") {
 			// A list of all known products
-		    console.log("PRODUCTLIST request from: " + topic)
    			client.publish('/xkeys/server', JSON.stringify({"request":"result_productList", "data":PRODUCTS}));
         } else if (msg.request == "deviceList") {
 			// Generate a fresh dict of info objects keyed by uniqueId
-		    console.log("DEVICELIST request from: " + topic)
 			update_client_device_list();
         } else {
             console.log(`Unknown message request: ${msg.request} from ${topic}`)
