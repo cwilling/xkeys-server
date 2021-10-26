@@ -5,6 +5,9 @@ var path = require('path')
 const { XKeys, XKeysWatcher } = require('xkeys');
 const { PRODUCTS } = require('@xkeys-lib/core/dist/products');
 
+const flashRate_default = 20;
+var flashRate = flashRate_default;
+
 /* An XKeysWatcher */
 let watcher;
 
@@ -185,6 +188,67 @@ client.on('message', (topic, message) => {
         } else if (msg.request == "deviceList") {
 			// Generate a fresh dict of info objects keyed by uniqueId
 			update_client_device_list();
+        } else if (msg.request == "flashRate") {
+   			client.publish('/xkeys/server', JSON.stringify({"request":"result_flashRate", "data":flashRate}));
+        } else if (msg.request == "setFlashRate") {
+			// Expect msg = {request: "setFlashRate", data: VALUE}
+			try {
+				var value = parseInt(msg.data);
+				// Check value in range?
+				flashRate = value;
+			}
+			catch (err) {
+				console.log("Bad data for setFlashRate request: " + err);
+			}
+			// Advertise the new flashRate
+   			client.publish('/xkeys/server', JSON.stringify({"request":"result_flashRate", "data":flashRate}));
+
+        } else if (msg.request == "method") {
+			// Expect msg = {request:"method", endpoints:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pn]}
+			// where p1 = [l1,l2,...,lN]
+			console.log("method request: " + message);
+			/*	For each device matching endpoints & uid, call the named method with given params.
+			*	param p1 is an array of led# to target, typically 1, 2, or 1 & 2.
+			*/
+			var devices = [];
+			Object.keys(xkeys_devices).forEach(function (item) {
+				//console.log("xkeys_devices item:" + item);
+				msg.endpoints.forEach(function (ep) {
+					//console.log("Checking endpoint: " + ep);
+					var regex;
+					if (msg.uid) {
+						//console.log("uid check: " + msg.uid);
+						regex = new RegExp(ep + "_" + msg.uid);
+						if (item.search(regex) > -1) {
+							//console.log("Found usable device: " + item);
+							devices.push(item);
+						}
+					} else {
+						//console.log("uid check: (none)");
+						regex = new RegExp(ep + "_");
+						if (item.search(regex) > -1) {
+							//console.log("Found usable device: " + item);
+							devices.push(item);
+						}
+					}
+				})
+			});
+			devices.forEach( function (device) {
+				// Determine which led(s) to target
+				msg.params[0].forEach( function (ledid) {
+					// Is ledid a valid number (1 or 2)
+					if (isNaN(parseInt(ledid))) { return; }
+
+					// Run it
+					xkeys_devices[device].device.setFrequency(flashRate);
+					if ( msg.params.length > 2 ) {
+						console.log("Running: setIndicatorLED(" + parseInt(ledid) + "," + msg.params[1] + "," + msg.params[2] + ")");
+						xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1], msg.params[2]);
+					} else {
+						xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1]);
+					}
+				});
+			});
         } else {
             console.log(`Unknown message request: ${msg.request} from ${topic}`)
         }
