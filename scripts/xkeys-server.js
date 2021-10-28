@@ -175,7 +175,7 @@ client.on('connect', () => {
 	{request: requestName, param1: param, param2: param, etc.}
 */
 client.on('message', (topic, message) => {
-    console.log('received message：', topic, message.toString())
+    //console.log('received message：', topic, message.toString())
 
     var msg = ""
     try {
@@ -206,32 +206,50 @@ client.on('message', (topic, message) => {
         } else if (msg.request == "method") {
 			// Expect msg = {request:"method", endpoints:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pn]}
 			// where p1 = [l1,l2,...,lN]
-			console.log("method request: " + message);
+			//console.log("method request: " + message);
 			/*	For each device matching endpoints & uid, call the named method with given params.
 			*	param p1 is an array of led# to target, typically 1, 2, or 1 & 2.
 			*/
 			var devices = [];
 			Object.keys(xkeys_devices).forEach(function (item) {
 				//console.log("xkeys_devices item:" + item);
-				msg.endpoints.forEach(function (ep) {
-					//console.log("Checking endpoint: " + ep);
+				/*
+				*	endpoints == [] means target any attached device.
+				*/
+				if (msg.endpoints.length == 0) {
 					var regex;
 					if (msg.uid) {
 						//console.log("uid check: " + msg.uid);
-						regex = new RegExp(ep + "_" + msg.uid);
+						regex = new RegExp("_" + msg.uid);
 						if (item.search(regex) > -1) {
 							//console.log("Found usable device: " + item);
 							devices.push(item);
 						}
 					} else {
-						//console.log("uid check: (none)");
-						regex = new RegExp(ep + "_");
-						if (item.search(regex) > -1) {
-							//console.log("Found usable device: " + item);
-							devices.push(item);
-						}
+						// No UID specified. Anything goes!
+						devices.push(item);
 					}
-				})
+				} else {
+					msg.endpoints.forEach(function (ep) {
+						//console.log("Checking endpoint: " + ep);
+						var regex;
+						if (msg.uid) {
+							//console.log("uid check: " + msg.uid);
+							regex = new RegExp(ep + "_" + msg.uid);
+							if (item.search(regex) > -1) {
+								//console.log("Found usable device: " + item);
+								devices.push(item);
+							}
+						} else {
+							//console.log("uid check: (none)");
+							regex = new RegExp(ep + "_");
+							if (item.search(regex) > -1) {
+								//console.log("Found usable device: " + item);
+								devices.push(item);
+							}
+						}
+					})
+				}
 			});
 			devices.forEach( function (device) {
 				// Determine which led(s) to target
@@ -242,7 +260,7 @@ client.on('message', (topic, message) => {
 					// Run it
 					xkeys_devices[device].device.setFrequency(flashRate);
 					if ( msg.params.length > 2 ) {
-						console.log("Running: setIndicatorLED(" + parseInt(ledid) + "," + msg.params[1] + "," + msg.params[2] + ")");
+						//console.log("Running: setIndicatorLED(" + parseInt(ledid) + "," + msg.params[1] + "," + msg.params[2] + ")");
 						xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1], msg.params[2]);
 					} else {
 						xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1]);
