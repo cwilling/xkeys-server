@@ -86,12 +86,12 @@ client.on('connect', () => {
 			update_client_device_list();
 
 			xkeysPanel.on('disconnected', () => {
-				console.log(`X-keys panel of type ${xkeysPanel.info.name} disconnected`)
+				console.log(`X-keys panel ${xkeysPanel.info.name} disconnected`)
 				delete xkeys_devices[xkeysPanel.uniqueId];
 				update_client_device_list();
 			})
 			xkeysPanel.on('down', (btnIndex, metadata) => {
-				//console.log(`X-keys panel of type ${xkeysPanel.info.name} down`)
+				//console.log(`X-keys panel ${xkeysPanel.info.name} down`)
 				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
 				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
 				//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
@@ -100,7 +100,7 @@ client.on('connect', () => {
 				client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 			xkeysPanel.on('up', (btnIndex, metadata) => {
-				//console.log(`X-keys panel of type ${xkeysPanel.info.name} up`)
+				//console.log(`X-keys panel ${xkeysPanel.info.name} up`)
 				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
 				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
 				//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
@@ -109,7 +109,7 @@ client.on('connect', () => {
 				client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 			xkeysPanel.on('jog', (index, deltaPos, metadata) => {
-				//console.log(`X-keys panel of type ${xkeysPanel.info.name} jog (${index}), delta ${deltaPos}`)
+				//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index}), delta ${deltaPos}`)
 				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
 				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
 				//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
@@ -119,7 +119,7 @@ client.on('connect', () => {
 				client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 			xkeysPanel.on('shuttle', (index, shuttlePos, metadata) => {
-				//console.log(`X-keys panel of type ${xkeysPanel.info.name} jog (${index})`)
+				//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index})`)
 				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
 				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
 				//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
@@ -129,7 +129,7 @@ client.on('connect', () => {
 				client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 			xkeysPanel.on('joystick', (index, position, metadata) => {
-				//console.log(`X-keys panel of type ${xkeysPanel.info.name} joystick (${index})`)
+				//console.log(`X-keys panel ${xkeysPanel.info.name} joystick (${index})`)
 				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
 				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
 				//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
@@ -139,7 +139,7 @@ client.on('connect', () => {
 				client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
 			})
 			xkeysPanel.on('tbar', (index, position, metadata) => {
-				//console.log(`X-keys panel of type ${xkeysPanel.info.name} tbar (${index})`)
+				//console.log(`X-keys panel ${xkeysPanel.info.name} tbar (${index})`)
 				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
 				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
 				//console.log("TBAR event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
@@ -206,7 +206,7 @@ client.on('message', (topic, message) => {
         } else if (msg.request == "method") {
 			// Expect msg = {request:"method", endpoints:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pn]}
 			// where p1 = [l1,l2,...,lN]
-			//console.log("method request: " + message);
+			console.log("method request: " + message);
 			/*	For each device matching endpoints & uid, call the named method with given params.
 			*	param p1 is an array of led# to target, typically 1, 2, or 1 & 2.
 			*/
@@ -252,20 +252,32 @@ client.on('message', (topic, message) => {
 				}
 			});
 			devices.forEach( function (device) {
-				// Determine which led(s) to target
-				msg.params[0].forEach( function (ledid) {
-					// Is ledid a valid number (1 or 2)
-					if (isNaN(parseInt(ledid))) { return; }
+				if (msg.name == "setIndicatorLED") {
+					// Determine which led(s) to target
+					msg.params[0].forEach( function (ledid) {
+						// Is ledid a valid number (1 or 2)
+						if (isNaN(parseInt(ledid))) { return; }
 
-					// Run it
-					xkeys_devices[device].device.setFrequency(flashRate);
-					if ( msg.params.length > 2 ) {
-						//console.log("Running: setIndicatorLED(" + parseInt(ledid) + "," + msg.params[1] + "," + msg.params[2] + ")");
-						xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1], msg.params[2]);
-					} else {
-						xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1]);
-					}
-				});
+						// Run it
+						xkeys_devices[device].device.setFrequency(flashRate);
+						if ( msg.params.length > 2 ) {
+							//console.log("Running: setIndicatorLED(" + parseInt(ledid) + "," + msg.params[1] + "," + msg.params[2] + ")");
+							xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1], msg.params[2]);
+						} else {
+							xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1]);
+						}
+					});
+				} else if (msg.name == "writeLcdDisplay") {
+					// Determine which line number(s) to write to
+					msg.params[0].forEach( function (line) {
+						// Is line a valid number (1 or 2)
+						if (isNaN(parseInt(line))) { return; }
+
+						xkeys_devices[device].device.writeLcdDisplay(line, msg.params[1], msg.params[2]);
+					});
+				} else {
+					console.log("Unsupported library method: " + msg.name);
+				}
 			});
         } else {
             console.log(`Unknown message request: ${msg.request} from ${topic}`)
