@@ -206,7 +206,7 @@ client.on('message', (topic, message) => {
         } else if (msg.request == "method") {
 			// Expect msg = {request:"method", endpoints:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pn]}
 			// where p1 = [l1,l2,...,lN]
-			console.log("method request: " + message);
+			//console.log("method request: " + message);
 			/*	For each device matching endpoints & uid, call the named method with given params.
 			*	param p1 is an array of led# to target, typically 1, 2, or 1 & 2.
 			*/
