@@ -268,13 +268,10 @@ client.on('message', (topic, message) => {
 						}
 					});
 				} else if (msg.name == "writeLcdDisplay") {
-					// Determine which line number(s) to write to
-					msg.params[0].forEach( function (line) {
-						// Is line a valid number (1 or 2)
-						if (isNaN(parseInt(line))) { return; }
-
-						xkeys_devices[device].device.writeLcdDisplay(line, msg.params[1], msg.params[2]);
-					});
+					// Determine what text to write to each line
+					for (var i=0;i<msg.params[0].length;i++) {
+						xkeys_devices[device].device.writeLcdDisplay(i+1, msg.params[0][i], msg.params[1]);
+					}
 				} else {
 					console.log("Unsupported library method: " + msg.name);
 				}
