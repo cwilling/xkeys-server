@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 
 var mqtt = require('mqtt')
+const qos = 0;
 var path = require('path')
 const { XKeys, XKeysWatcher } = require('xkeys');
 const { PRODUCTS } = require('@xkeys-lib/core/dist/products');
-
-const flashRate_default = 20;
-var flashRate = flashRate_default;
 
 /* An XKeysWatcher */
 let watcher;
@@ -65,15 +63,15 @@ client.on('error', (error) => {
 client.on('connect', () => {
     console.log('connected');
     startWatcher();
-    client.publish('/xkeys/server', JSON.stringify({"request":"hello","data":"Hello from Xkeys device server"}));
-    client.subscribe('/xkeys/node/#', function (err) {
+    client.publish('/xkeys/server', JSON.stringify({"request":"hello","data":"Hello from Xkeys device server"}),{qos:qos,retain:false});
+    client.subscribe({'/xkeys/node/#':{qos:qos}}, function (err) {
     	if (!err) {
-      	    console.log('subscribed OK')
+      	    console.log('subscribed OK');
     	} else {
-	    // Any point in going on?
-      	    console.log('Subscription failed: ' + err)
-	    process.exit(1)
-	}
+			// Any point in going on?
+			console.log('Subscription failed: ' + err);
+			process.exit(1);
+		}
     })
 
     function startWatcher () {
@@ -83,12 +81,12 @@ client.on('connect', () => {
 	   		//xkeys_devices[xkeysPanel.uniqueId] = {"owner": "", "device": xkeysPanel};
 			add_xkeys_device(xkeysPanel);
 
-			update_client_device_list();
+			update_client_device_list("");
 
 			xkeysPanel.on('disconnected', () => {
 				console.log(`X-keys panel ${xkeysPanel.info.name} disconnected`)
 				delete xkeys_devices[xkeysPanel.uniqueId];
-				update_client_device_list();
+				update_client_device_list("");
 			})
 			xkeysPanel.on('down', (btnIndex, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} down`)
@@ -97,7 +95,7 @@ client.on('connect', () => {
 				//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 				metadata["type"] = "down";
 				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
+				client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}),{qos:qos,retain:false});
 			})
 			xkeysPanel.on('up', (btnIndex, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} up`)
@@ -106,7 +104,7 @@ client.on('connect', () => {
 				//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 				metadata["type"] = "up";
 				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}));
+				client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
 			})
 			xkeysPanel.on('jog', (index, deltaPos, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index}), delta ${deltaPos}`)
@@ -116,7 +114,7 @@ client.on('connect', () => {
 				metadata["type"] = "jog";
 				metadata["deltaPos"] = deltaPos;
 				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
+				client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
 			})
 			xkeysPanel.on('shuttle', (index, shuttlePos, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index})`)
@@ -126,7 +124,7 @@ client.on('connect', () => {
 				metadata["type"] = "shuttle";
 				metadata["shuttlePos"] = shuttlePos;
 				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
+				client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
 			})
 			xkeysPanel.on('joystick', (index, position, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} joystick (${index})`)
@@ -136,7 +134,7 @@ client.on('connect', () => {
 				metadata["type"] = "joystick";
 				metadata["position"] = position;
 				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
+				client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
 			})
 			xkeysPanel.on('tbar', (index, position, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} tbar (${index})`)
@@ -146,7 +144,7 @@ client.on('connect', () => {
 				metadata["type"] = "tbar";
 				metadata["position"] = position;
 				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}));
+				client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
 			})
 		})
 	}
@@ -182,30 +180,20 @@ client.on('message', (topic, message) => {
 	msg = JSON.parse(message)
         if (msg.request == "hello") {
 		    console.log("HELLO request from: " + topic)
+
         } else if (msg.request == "productList") {
 			// A list of all known products
-   			client.publish('/xkeys/server', JSON.stringify({"request":"result_productList", "data":PRODUCTS}));
+   			client.publish('/xkeys/server', JSON.stringify({"request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
+
         } else if (msg.request == "deviceList") {
+		    //console.log("deviceList request from: " + topic)
 			// Generate a fresh dict of info objects keyed by uniqueId
-			update_client_device_list();
-        } else if (msg.request == "flashRate") {
-   			client.publish('/xkeys/server', JSON.stringify({"request":"result_flashRate", "data":flashRate}));
-        } else if (msg.request == "setFlashRate") {
-			// Expect msg = {request: "setFlashRate", data: VALUE}
-			try {
-				var value = parseInt(msg.data);
-				// Check value in range?
-				flashRate = value;
-			}
-			catch (err) {
-				console.log("Bad data for setFlashRate request: " + err);
-			}
-			// Advertise the new flashRate
-   			client.publish('/xkeys/server', JSON.stringify({"request":"result_flashRate", "data":flashRate}));
+			update_client_device_list(topic);
+
 
         } else if (msg.request == "method") {
 			// Expect msg = {request:"method", endpoints:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pn]}
-			// where p1 = [l1,l2,...,lN]
+			// where p1 = [l1,l2,...,lN] (dependent on method name)
 			//console.log("method request: " + message);
 			/*	For each device matching endpoints & uid, call the named method with given params.
 			*	param p1 is an array of led# to target, typically 1, 2, or 1 & 2.
@@ -259,7 +247,6 @@ client.on('message', (topic, message) => {
 						if (isNaN(parseInt(ledid))) { return; }
 
 						// Run it
-						xkeys_devices[device].device.setFrequency(flashRate);
 						if ( msg.params.length > 2 ) {
 							//console.log("Running: setIndicatorLED(" + parseInt(ledid) + "," + msg.params[1] + "," + msg.params[2] + ")");
 							xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1], msg.params[2]);
@@ -267,11 +254,18 @@ client.on('message', (topic, message) => {
 							xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1]);
 						}
 					});
+
 				} else if (msg.name == "writeLcdDisplay") {
 					// Determine what text to write to each line
 					for (var i=0;i<msg.params[0].length;i++) {
 						xkeys_devices[device].device.writeLcdDisplay(i+1, msg.params[0][i], msg.params[1]);
 					}
+
+				} else if (msg.name == "setFlashRate") {
+					// params[0] is an array of flashRates (only one!) 
+					if (isNaN(parseInt(msg.params[0][0]))) { return; }
+					xkeys_devices[device].device.setFrequency(parseInt(msg.params[0][0]));
+
 				} else {
 					console.log("Unsupported library method: " + msg.name);
 				}
@@ -291,7 +285,7 @@ client.on('message', (topic, message) => {
 })
 
 // Send a (possibly unsolicited) device list
-function update_client_device_list () {
+function update_client_device_list (topic) {
 
 	var device_list = {};
 	for (const key of Object.keys(xkeys_devices) ) {
@@ -299,6 +293,12 @@ function update_client_device_list () {
 		device_list[key] = xkeys_devices[key].device.info;
 	}
 	//console.log("update_client_device_list(): " + JSON.stringify(device_list));
-   	client.publish('/xkeys/server', JSON.stringify({"request":"result_deviceList", "data":device_list}));
+	if (topic.length > 0) {
+		//console.log("Publish result_deviceList to:" + topic.replace("node","server"));
+   		client.publish(topic.replace("node","server"), JSON.stringify({"request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
+	} else {
+		//console.log("Publish result_deviceList");
+   		client.publish('/xkeys/server', JSON.stringify({"request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
+	}
 }
 
