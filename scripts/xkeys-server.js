@@ -84,7 +84,7 @@ client.on('connect', () => {
 			update_client_device_list("");
 
 			xkeysPanel.on('disconnected', () => {
-				console.log(`X-keys panel ${xkeysPanel.info.name} disconnected`)
+				console.log(`X-keys panel ${xkeysPanel.uniqueId} disconnected`)
 				delete xkeys_devices[xkeysPanel.uniqueId];
 				update_client_device_list("");
 			})
@@ -265,6 +265,21 @@ client.on('message', (topic, message) => {
 					// params[0] is an array of flashRates (only one!) 
 					if (isNaN(parseInt(msg.params[0][0]))) { return; }
 					xkeys_devices[device].device.setFrequency(parseInt(msg.params[0][0]));
+
+				} else if (msg.name == "setUnitID") {
+					//console.log("About to run: setUnitId(" + parseInt(msg.params[1]) + ")");
+					xkeys_devices[device].device.setUnitId(parseInt(msg.params[1]));
+
+					// Reboot this "new" device so that it is noticed by the system
+					xkeys_devices[device].device.rebootDevice();
+
+					// Remove the _old_ device from our local record
+					const regex = /_.*/;
+					var old_id = xkeys_devices[device].device.uniqueId.replace(regex, "_"+msg.uid);
+					if (Object.keys(xkeys_devices).includes(old_id)) {
+						//console.log("deleting: " + old_id);
+						delete xkeys_devices[old_id];
+					}
 
 				} else {
 					console.log("Unsupported library method: " + msg.name);
