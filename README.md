@@ -35,17 +35,28 @@ cd xkeys-server
 npm install
 exit
 ```
-Finally, setup _xkeys-server_ to run and automatically restart on system reboot:
+
+
+Before running the _xkeys-server_ for the first time, adjustments to access permissions for X-keys devices are needed. Save the following to `/etc/udev/rules.d/50-xkeys.rules` and reload the rules with `sudo udevadm control --reload-rules && sudo udevadm trigger`
 ```
-cp /var/lib/xkeys/xkeys-server/xkeys-server.service /etc/systemd/system/
+SUBSYSTEM=="input", GROUP="input", MODE="0666"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="05f3", MODE:="0666", GROUP="plugdev"
+KERNEL=="hidraw*", ATTRS{idVendor}=="05f3", MODE="0666", GROUP="plugdev"
+```
+
+
+Finally, setup _xkeys-server_ to start now, as well as to automatically restart on system reboot:
+```
+sudo cp /var/lib/xkeys/xkeys-server/xkeys-server.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl start xkeys-server
 sudo systemctl enable xkeys-server
+sudo systemctl start xkeys-server
 ```
 Check that it's running:
 ```
 ps -ef |grep xkeys-server
 ```
+
 
 ## Upgrading
 
