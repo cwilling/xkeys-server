@@ -10,7 +10,6 @@ These instructions are for installaton on Raspberry Pi but may be sufficiently g
 
 First ensure that the mosquitto MQTT broker is installed and running:
 ```
-sudo apt install mosquitto-clients
 sudo apt install mosquitto
 ```
 Now start the service and enable automatic restart on system reboot:
