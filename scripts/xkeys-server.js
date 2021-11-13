@@ -90,61 +90,85 @@ client.on('connect', () => {
 			})
 			xkeysPanel.on('down', (btnIndex, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} down`)
-				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-				//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
-				metadata["type"] = "down";
-				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}),{qos:qos,retain:false});
+				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
+					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+					//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+					metadata["type"] = "down";
+					metadata["shortnam"] = xkeys_products[pid.toString()];
+					client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}),{qos:qos,retain:false});
+				} else {
+					add_unknown_xkeys_device(xkeysPanel);
+				}
 			})
 			xkeysPanel.on('up', (btnIndex, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} up`)
-				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-				//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
-				metadata["type"] = "up";
-				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
+					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+					//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+					metadata["type"] = "up";
+					metadata["shortnam"] = xkeys_products[pid.toString()];
+					client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+				} else {
+					add_unknown_xkeys_device(xkeysPanel);
+				}
 			})
 			xkeysPanel.on('jog', (index, deltaPos, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index}), delta ${deltaPos}`)
-				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-				//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
-				metadata["type"] = "jog";
-				metadata["deltaPos"] = deltaPos;
-				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
+					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+					//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+					metadata["type"] = "jog";
+					metadata["deltaPos"] = deltaPos;
+					metadata["shortnam"] = xkeys_products[pid.toString()];
+					client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+				} else {
+					add_unknown_xkeys_device(xkeysPanel);
+				}
 			})
 			xkeysPanel.on('shuttle', (index, shuttlePos, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index})`)
-				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-				//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
-				metadata["type"] = "shuttle";
-				metadata["shuttlePos"] = shuttlePos;
-				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
+					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+					//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+					metadata["type"] = "shuttle";
+					metadata["shuttlePos"] = shuttlePos;
+					metadata["shortnam"] = xkeys_products[pid.toString()];
+					client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+				} else {
+					add_unknown_xkeys_device(xkeysPanel);
+				}
 			})
 			xkeysPanel.on('joystick', (index, position, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} joystick (${index})`)
-				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-				//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
-				metadata["type"] = "joystick";
-				metadata["position"] = position;
-				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
+					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+					//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+					metadata["type"] = "joystick";
+					metadata["position"] = position;
+					metadata["shortnam"] = xkeys_products[pid.toString()];
+					client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+				} else {
+					add_unknown_xkeys_device(xkeysPanel);
+				}
 			})
 			xkeysPanel.on('tbar', (index, position, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} tbar (${index})`)
-				var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-				var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-				//console.log("TBAR event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
-				metadata["type"] = "tbar";
-				metadata["position"] = position;
-				metadata["shortnam"] = xkeys_products[pid.toString()];
-				client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
+					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+					//console.log("TBAR event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+					metadata["type"] = "tbar";
+					metadata["position"] = position;
+					metadata["shortnam"] = xkeys_products[pid.toString()];
+					client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+				} else {
+					add_unknown_xkeys_device(xkeysPanel);
+				}
 			})
 		})
 	}
@@ -153,9 +177,11 @@ client.on('connect', () => {
 	function product_code(uniqueId) {
 	}
 
-	// Add a newly discovered device to xkeys_devices object.
-	// Main concern is duplicate uniqueId
-	// (probably same devices with UID still == 0)
+	/*
+		Add a newly discovered device to xkeys_devices object.
+		Main concern is duplicate uniqueId
+		(probably same devices with UID still == 0)
+	*/
     function add_xkeys_device (xkeysPanel) {
 		if ( xkeysPanel.uniqueId in xkeys_devices ) {
 			// Duplicate; use devicePath instead of uniqueId
@@ -163,6 +189,19 @@ client.on('connect', () => {
 		} else {
 	  		xkeys_devices[xkeysPanel.uniqueId] = {"owner": "", "device": xkeysPanel};
 		}
+	}
+	/*
+		Add a device discovered by acccident i.e. not by the watcher itself.
+		This can happen before version 4 RPIs, which have insufficient USB hardware
+		to deal with rebootDevice() calls (used after setUnitId() is called.
+
+		Although we can probably add the "new" device to xkeys_devices here, it still leaves
+		xkeys_devices in an inconsistent state because the "old" device remains on it.
+
+		Maybe we could use XKeys.listAllConnectedPanels() to completely repopulate xkeys_devices?
+	*/
+    function add_unknown_xkeys_device (xkeysPanel) {
+		console.log("add_unknown_xkeys_device");
 	}
 })
 
