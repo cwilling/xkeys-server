@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 
+//var { env } = require('process');
+process.env.UV_THREADPOOL_SIZE = 24;
+
 var mqtt = require('mqtt')
 const qos = 0;
 var path = require('path')
-const { XKeys, XKeysWatcher } = require('xkeys');
+const { XKeysWatcher } = require('xkeys');
+const XKeys = require('xkeys');
 const { PRODUCTS } = require('@xkeys-lib/core/dist/products');
 
 /* An XKeysWatcher */
@@ -88,6 +92,10 @@ client.on('connect', () => {
 				delete xkeys_devices[xkeysPanel.uniqueId];
 				update_client_device_list("");
 			})
+			/*
+				RPIs version < 4 don't handle rebootDevice(), leaving xkeys_devices in an inconsistent state.
+				Therefore we always check the source of the following events and add_unknown_xkeys_device() if necessary.
+			*/
 			xkeysPanel.on('down', (btnIndex, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} down`)
 				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
@@ -98,7 +106,20 @@ client.on('connect', () => {
 					metadata["shortnam"] = xkeys_products[pid.toString()];
 					client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}),{qos:qos,retain:false});
 				} else {
-					add_unknown_xkeys_device(xkeysPanel);
+					add_unknown_xkeys_device(xkeysPanel)
+					.then(data => {
+						console.log("XXXXX " + data);
+						update_client_device_list("");
+						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
+
+						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+						//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						metadata["type"] = "down";
+						metadata["shortnam"] = xkeys_products[pid.toString()];
+						client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}),{qos:qos,retain:false});
+
+					})
 				}
 			})
 			xkeysPanel.on('up', (btnIndex, metadata) => {
@@ -111,7 +132,19 @@ client.on('connect', () => {
 					metadata["shortnam"] = xkeys_products[pid.toString()];
 					client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
 				} else {
-					add_unknown_xkeys_device(xkeysPanel);
+					add_unknown_xkeys_device(xkeysPanel)
+					.then(data => {
+						console.log("XXXXX " + data);
+						update_client_device_list("");
+						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
+
+						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+						//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						metadata["type"] = "up";
+						metadata["shortnam"] = xkeys_products[pid.toString()];
+						client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					})
 				}
 			})
 			xkeysPanel.on('jog', (index, deltaPos, metadata) => {
@@ -125,7 +158,20 @@ client.on('connect', () => {
 					metadata["shortnam"] = xkeys_products[pid.toString()];
 					client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
 				} else {
-					add_unknown_xkeys_device(xkeysPanel);
+					add_unknown_xkeys_device(xkeysPanel)
+					.then(data => {
+						console.log("XXXXX " + data);
+						update_client_device_list("");
+						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
+
+						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+						//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						metadata["type"] = "jog";
+						metadata["deltaPos"] = deltaPos;
+						metadata["shortnam"] = xkeys_products[pid.toString()];
+						client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					})
 				}
 			})
 			xkeysPanel.on('shuttle', (index, shuttlePos, metadata) => {
@@ -139,7 +185,20 @@ client.on('connect', () => {
 					metadata["shortnam"] = xkeys_products[pid.toString()];
 					client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
 				} else {
-					add_unknown_xkeys_device(xkeysPanel);
+					add_unknown_xkeys_device(xkeysPanel)
+					.then(data => {
+						console.log("XXXXX " + data);
+						update_client_device_list("");
+						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
+
+						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+						//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						metadata["type"] = "shuttle";
+						metadata["shuttlePos"] = shuttlePos;
+						metadata["shortnam"] = xkeys_products[pid.toString()];
+						client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					})
 				}
 			})
 			xkeysPanel.on('joystick', (index, position, metadata) => {
@@ -153,7 +212,20 @@ client.on('connect', () => {
 					metadata["shortnam"] = xkeys_products[pid.toString()];
 					client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
 				} else {
-					add_unknown_xkeys_device(xkeysPanel);
+					add_unknown_xkeys_device(xkeysPanel)
+					.then(data => {
+						console.log("XXXXX " + data);
+						update_client_device_list("");
+						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
+
+						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+						//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						metadata["type"] = "joystick";
+						metadata["position"] = position;
+						metadata["shortnam"] = xkeys_products[pid.toString()];
+						client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					})
 				}
 			})
 			xkeysPanel.on('tbar', (index, position, metadata) => {
@@ -167,7 +239,20 @@ client.on('connect', () => {
 					metadata["shortnam"] = xkeys_products[pid.toString()];
 					client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
 				} else {
-					add_unknown_xkeys_device(xkeysPanel);
+					add_unknown_xkeys_device(xkeysPanel)
+					.then(data => {
+						console.log("XXXXX " + data);
+						update_client_device_list("");
+						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
+
+						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
+						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+						//console.log("TBAR event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						metadata["type"] = "tbar";
+						metadata["position"] = position;
+						metadata["shortnam"] = xkeys_products[pid.toString()];
+						client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					})
 				}
 			})
 		})
@@ -188,21 +273,44 @@ client.on('connect', () => {
 	  		xkeys_devices[path.basename(xkeysPanel.devicePath)] = {"owner": "", "device": xkeysPanel};
 		} else {
 	  		xkeys_devices[xkeysPanel.uniqueId] = {"owner": "", "device": xkeysPanel};
+			console.log("(add_xkeys_device) Added device " + xkeysPanel.uniqueId);
 		}
+		console.log("(add_xkeys_device) xkeys_devices = " + JSON.stringify(Object.keys(xkeys_devices)));
 	}
+
 	/*
 		Add a device discovered by acccident i.e. not by the watcher itself.
-		This can happen before version 4 RPIs, which have insufficient USB hardware
-		to deal with rebootDevice() calls (used after setUnitId() is called.
+		This can happen with RPSs version < 4, which have insufficient USB hardware
+		to deal with rebootDevice() calls (used after setUnitId() is called).
 
 		Although we can probably add the "new" device to xkeys_devices here, it still leaves
 		xkeys_devices in an inconsistent state because the "old" device remains on it.
 
-		Maybe we could use XKeys.listAllConnectedPanels() to completely repopulate xkeys_devices?
+		Here we use XKeys.listAllConnectedPanels() to completely repopulate xkeys_devices.
 	*/
     function add_unknown_xkeys_device (xkeysPanel) {
 		console.log("add_unknown_xkeys_device");
-	}
+		var devices = XKeys.listAllConnectedPanels();
+		var devsRemaining = devices.length;
+		console.log("device count = " + devsRemaining);
+		xkeys_devices = {};
+
+	return new Promise((resolve) => {
+		devices.forEach((panel) => {
+			XKeys.setupXkeysPanel(panel)
+				.then( (xkeysPanel) => {
+					add_xkeys_device(xkeysPanel);
+					devsRemaining -= 1;
+					console.log("devsRemaining = " + devsRemaining);
+					if ( devsRemaining < 1 ) {
+						resolve(devsRemaining);
+					}
+				})
+				.catch(console.log)
+                })
+	})
+    }
+
 })
 
 /*
