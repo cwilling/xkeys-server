@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 //var { env } = require('process');
-process.env.UV_THREADPOOL_SIZE = 24;
+process.env.UV_THREADPOOL_SIZE = 32;
 
 var mqtt = require('mqtt')
-const qos = 0;
+const qos = 2;
 var path = require('path')
 const { XKeysWatcher } = require('xkeys');
 const XKeys = require('xkeys');
@@ -342,9 +342,6 @@ client.on('message', (topic, message) => {
 			// Expect msg = {request:"method", endpoints:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pn]}
 			// where p1 = [l1,l2,...,lN] (dependent on method name)
 			//console.log("method request: " + message);
-			/*	For each device matching endpoints & uid, call the named method with given params.
-			*	param p1 is an array of led# to target, typically 1, 2, or 1 & 2.
-			*/
 			var devices = [];
 			Object.keys(xkeys_devices).forEach(function (item) {
 				//console.log("xkeys_devices item:" + item);
@@ -388,6 +385,10 @@ client.on('message', (topic, message) => {
 			});
 			devices.forEach( function (device) {
 				if (msg.name == "setIndicatorLED") {
+					console.log("setIndicatorLED(): ");
+					/*	For each device matching endpoints & uid, call the named method with given params.
+					*	param p1 (msg.params[0]) is an array of led# to target, typically 1, 2, or 1 & 2.
+					*/
 					// Determine which led(s) to target
 					msg.params[0].forEach( function (ledid) {
 						// Is ledid a valid number (1 or 2)
@@ -427,6 +428,31 @@ client.on('message', (topic, message) => {
 						//console.log("deleting: " + old_id);
 						delete xkeys_devices[old_id];
 					}
+
+				} else if (msg.name == "setBacklight") {
+					/*
+					*	For backlights, msg.params[0] is an array of buttonids to activate
+					*	                msg.params[1] is the hue to set
+					*	                msg.params[2] is true/false (flashing mode or not)
+					*/
+					// Does this device have a backlight?
+					if (xkeys_devices[device].device.product.backLightType == 0 ) {
+						console.log("no backlight for " + xkeys_devices[device].device.product.name);
+						return;
+					}
+
+					msg.params[0].forEach( (key) => {
+						// key must represent a valid number
+						var buttonid = parseInt(key);
+						if (isNaN(buttonid)) { return; }
+
+						//console.log("Running: setBacklight(" + buttonid + "," + msg.params[1] + "," + msg.params[2] + ")");
+						xkeys_devices[device].device.setBacklight(buttonid, msg.params[1], msg.params[2]);
+					});
+
+				} else if (msg.name == "setAllBacklights") {
+					//console.log("Running: setAllBacklights(" + msg.params[1] + ")");
+					xkeys_devices[device].device.setAllBacklights(msg.params[1]);
 
 				} else {
 					console.log("Unsupported library method: " + msg.name);
