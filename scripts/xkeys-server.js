@@ -339,8 +339,9 @@ client.on('message', (topic, message) => {
 
 
         } else if (msg.request == "method") {
-			// Expect msg = {request:"method", endpoints:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pn]}
-			// where p1 = [l1,l2,...,lN] (dependent on method name)
+			/*	Expect msg = {request:"method", endpoints:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pn]}
+			*	where p1 = [l1,l2,...,lN] (dependent on method name)
+			*/
 			//console.log("method request: " + message);
 			var devices = [];
 			Object.keys(xkeys_devices).forEach(function (item) {
@@ -435,11 +436,13 @@ client.on('message', (topic, message) => {
 					*	                msg.params[1] is the hue to set
 					*	                msg.params[2] is true/false (flashing mode or not)
 					*/
+					/*
 					// Does this device have a backlight?
 					if (xkeys_devices[device].device.product.backLightType == 0 ) {
 						console.log("no backlight for " + xkeys_devices[device].device.product.name);
 						return;
 					}
+					*/
 
 					msg.params[0].forEach( (key) => {
 						// key must represent a valid number
@@ -453,6 +456,13 @@ client.on('message', (topic, message) => {
 				} else if (msg.name == "setAllBacklights") {
 					//console.log("Running: setAllBacklights(" + msg.params[1] + ")");
 					xkeys_devices[device].device.setAllBacklights(msg.params[1]);
+
+				} else if (msg.name == "setBacklightIntensity") {
+					// params[0] is an array of intensity values (only one!) 
+					//console.log("Running: setBacklightIntensity(" + msg.params[0] + ")");
+					if (isNaN(parseInt(msg.params[0][0]))) { return; }
+
+					xkeys_devices[device].device.setBacklightIntensity(parseInt(msg.params[0][0]));
 
 				} else {
 					console.log("Unsupported library method: " + msg.name);
