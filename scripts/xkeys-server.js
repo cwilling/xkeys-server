@@ -458,8 +458,10 @@ client.on('message', (topic, message) => {
 					xkeys_devices[device].device.setAllBacklights(msg.params[1]);
 
 				} else if (msg.name == "setBacklightIntensity") {
-					// params[0] is an array of intensity values (only one!) 
-					//console.log("Running: setBacklightIntensity(" + msg.params[0] + ")");
+					/*
+					*	params[0] is an array of intensity values (only one!) 
+					*/
+					//console.log("Running: setBacklightIntensity(" + msg.params[0] + ") for " + xkeys_devices[device].device.product.name);
 					if (isNaN(parseInt(msg.params[0][0]))) { return; }
 
 					xkeys_devices[device].device.setBacklightIntensity(parseInt(msg.params[0][0]));
