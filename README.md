@@ -59,7 +59,12 @@ ps -ef |grep xkeys-server
 
 ## Upgrading
 
-Upgrading to the latest version of _xkeys\_server_ firstly involves downloading it from the development repository:
+First, stop the running version. This can take a while on a Raspberry Pi so just wait until the command prompt returns:
+```
+sudo systemctl stop xkeys-server
+```
+
+The actual upgrading to the latest version now requires downloading it from the development repository and then installing it:
 ```
 sudo su - xkeys
 cd xkeys-server
@@ -67,9 +72,9 @@ git pull
 npm install
 exit
 ```
-Now restart to the new version (this can take a while on a Raspberry Pi):
+Now start the new version:
 ```
-sudo systemctl restart xkeys-server
+sudo systemctl start xkeys-server
 ```
 Check that it's running:
 ```
