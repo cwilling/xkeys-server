@@ -386,7 +386,7 @@ client.on('message', (topic, message) => {
 			});
 			devices.forEach( function (device) {
 				if (msg.name == "setIndicatorLED") {
-					console.log("setIndicatorLED(): ");
+					//console.log("setIndicatorLED(): ");
 					/*	For each device matching endpoints & uid, call the named method with given params.
 					*	param p1 (msg.params[0]) is an array of led# to target, typically 1, 2, or 1 & 2.
 					*/
@@ -465,6 +465,10 @@ client.on('message', (topic, message) => {
 					if (isNaN(parseInt(msg.params[0][0]))) { return; }
 
 					xkeys_devices[device].device.setBacklightIntensity(parseInt(msg.params[0][0]));
+
+				} else if (msg.name == "saveBackLights") {
+					console.log("Running: saveBackLights() for " + xkeys_devices[device].device.product.name);
+					xkeys_devices[device].device.saveBackLights();
 
 				} else {
 					console.log("Unsupported library method: " + msg.name);
