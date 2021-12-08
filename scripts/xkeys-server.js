@@ -79,7 +79,10 @@ client.on('connect', () => {
     })
 
     function startWatcher () {
-		watcher = new XKeysWatcher();
+		watcher = new XKeysWatcher({
+			usePolling: true,
+			pollingInterval: 500, // optional, default is 1000 ms
+		});
 		watcher.on('connected', (xkeysPanel) => {
 	   		console.log(`X-keys panel ${xkeysPanel.uniqueId} connected`);
 	   		//xkeys_devices[xkeysPanel.uniqueId] = {"owner": "", "device": xkeysPanel};
