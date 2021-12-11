@@ -1,6 +1,6 @@
 # xkeys-server
 
-The xkeys-server is a stand alone NodeJS application, wrapping [SuperFlyTV's library](https://github.com/SuperFlyTV/xkeys) to interact with [X-keys](https://xkeys.com/) devices. Other applications wishing to access X-keys devices may do so directly or via the xkeys-server. Access via the xkeys-server aims to reduce contention when multiple applications may simultaneously wish to control these devices. A typical use-case is when multiple Node-RED nodes interact with attached X-keys devices. 
+The xkeys-server is a stand alone NodeJS application, wrapping [SuperFlyTV's library](https://github.com/SuperFlyTV/xkeys) to interact with [X-keys](https://xkeys.com/) devices. Other applications wishing to access X-keys devices may do so directly or via the xkeys-server. Access via the xkeys-server aims to reduce contention when multiple applications may simultaneously wish to control these devices. A typical use-case is when multiple Node-RED nodes interact with attached X-keys devices, examples of which may be found in the [node-red-contrib-xkeys](https://gitlab.com/chris.willing/node-red-contrib-xkeys). 
 
 Communication between applications and xkeys-server uses the MQTT protocol. An MQTT broker, typically [mosquitto](https://mosquitto.org), will run on the host machine. All applications wanting access via xkeys-server, as well as the xkey-server itself, act as MQTT clients of this local broker.
 
