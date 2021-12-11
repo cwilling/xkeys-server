@@ -80,7 +80,7 @@ client.on('connect', () => {
 
     function startWatcher () {
 		watcher = new XKeysWatcher({
-			usePolling: true,
+			usePolling: false,
 			pollingInterval: 500, // optional, default is 1000 ms
 		});
 		watcher.on('connected', (xkeysPanel) => {
@@ -342,7 +342,7 @@ client.on('message', (topic, message) => {
 
 
         } else if (msg.request == "method") {
-			/*	Expect msg = {request:"method", endpoints:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pn]}
+			/*	Expect msg = {request:"method", pid_list:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pn]}
 			*	where p1 = [l1,l2,...,lN] (dependent on method name)
 			*/
 			//console.log("method request: " + message);
@@ -350,9 +350,9 @@ client.on('message', (topic, message) => {
 			Object.keys(xkeys_devices).forEach(function (item) {
 				//console.log("xkeys_devices item:" + item);
 				/*
-				*	endpoints == [] means target any attached device.
+				*	pid_list == [] means target any attached device.
 				*/
-				if (msg.endpoints.length == 0) {
+				if (msg.pid_list.length == 0) {
 					var regex;
 					if (msg.uid) {
 						//console.log("uid check: " + msg.uid);
@@ -366,7 +366,7 @@ client.on('message', (topic, message) => {
 						devices.push(item);
 					}
 				} else {
-					msg.endpoints.forEach(function (ep) {
+					msg.pid_list.forEach(function (ep) {
 						//console.log("Checking endpoint: " + ep);
 						var regex;
 						if (msg.uid) {
@@ -390,7 +390,7 @@ client.on('message', (topic, message) => {
 			devices.forEach( function (device) {
 				if (msg.name == "setIndicatorLED") {
 					//console.log("setIndicatorLED(): ");
-					/*	For each device matching endpoints & uid, call the named method with given params.
+					/*	For each device matching pid_list & uid, call the named method with given params.
 					*	param p1 (msg.params[0]) is an array of led# to target, typically 1, 2, or 1 & 2.
 					*/
 					// Determine which led(s) to target
