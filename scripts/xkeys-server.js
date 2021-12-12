@@ -462,12 +462,13 @@ client.on('message', (topic, message) => {
 
 				} else if (msg.name == "setBacklightIntensity") {
 					/*
-					*	params[0] is an array of intensity values (only one!) 
+					*	params[0] is an array of intensity values (blue, red) 
 					*/
 					//console.log("Running: setBacklightIntensity(" + msg.params[0] + ") for " + xkeys_devices[device].device.product.name);
 					if (isNaN(parseInt(msg.params[0][0]))) { return; }
+					if (isNaN(parseInt(msg.params[0][1]))) { return; }
 
-					xkeys_devices[device].device.setBacklightIntensity(parseInt(msg.params[0][0]));
+					xkeys_devices[device].device.setBacklightIntensity(parseInt(msg.params[0][0]), parseInt(msg.params[0][1]));
 
 				} else if (msg.name == "saveBackLights") {
 					console.log("Running: saveBackLights() for " + xkeys_devices[device].device.product.name);
