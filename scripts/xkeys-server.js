@@ -469,8 +469,12 @@ client.on('message', (topic, message) => {
 					xkeys_devices[device].device.setBacklightIntensity(msg.params[0][0], msg.params[0][1]);
 
 				} else if (msg.name == "saveBackLights") {
-					console.log("Running: saveBackLights() for " + xkeys_devices[device].device.product.name);
+					//console.log("Running: saveBackLights() for " + xkeys_devices[device].device.product.name);
 					xkeys_devices[device].device.saveBackLights();
+
+				} else if (msg.name == "writeData") {
+					//console.log("Running: writeData(" + JSON.stringify(msg.params[0]) + ") for " + xkeys_devices[device].device.product.name);
+					xkeys_devices[device].device.writeData(msg.params[0]);
 
 				} else {
 					console.log("Unsupported library method: " + msg.name);
