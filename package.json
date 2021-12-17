@@ -1,6 +1,6 @@
 {
   "name": "xkeys-server",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "MQTT service for SuperFlyTv's xkeys library",
   "main": "src/scripts/xkeys-server.js",
   "scripts": {
@@ -17,7 +17,8 @@
   "dependencies": {
     "mqtt": "^4.2.8",
     "usb-detection": "^4.10.0",
-    "xkeys": "^2.3.2"
+    "xkeys": "^2.3.2",
+    "xkeys-monorepo": "file:../xkeys"
   },
   "author": "Christoph Willing",
   "license": "MIT",
