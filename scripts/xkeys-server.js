@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 //var { env } = require('process');
-process.env.UV_THREADPOOL_SIZE = 32;
+process.env.UV_THREADPOOL_SIZE = 48;
 
 var mqtt = require('mqtt')
 const qos = 2;
@@ -320,7 +320,7 @@ client.on('connect', () => {
 	Each message should be a stringified json object
 	containing a "request" field, optionally followed
 	by any parameters required for the request.
-	{request: requestName, param1: param, param2: param, etc.}
+	{request: requestName, param0: param, param1: param, ...}
 */
 client.on('message', (topic, message) => {
     //console.log('received message：', topic, message.toString())
@@ -342,8 +342,9 @@ client.on('message', (topic, message) => {
 
 
         } else if (msg.request == "method") {
-			/*	Expect msg = {request:"method", pid_list:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pn]}
-			*	where p1 = [l1,l2,...,lN] (dependent on method name)
+			/*
+			*	Expect msg = {request:"method", pid_list:[e0,e1,...,eN], uid:UID, name:METHODNAME, params:[p0,p1,...,pN]}
+			*	where p0 = [k1,k2,...,kN] (dependent on method name)
 			*/
 			//console.log("method request: " + message);
 			var devices = [];
@@ -390,8 +391,9 @@ client.on('message', (topic, message) => {
 			devices.forEach( function (device) {
 				if (msg.name == "setIndicatorLED") {
 					//console.log("setIndicatorLED(): ");
-					/*	For each device matching pid_list & uid, call the named method with given params.
-					*	param p1 (msg.params[0]) is an array of led# to target, typically 1, 2, or 1 & 2.
+					/*
+					*	For each device matching pid_list & uid, call the named method with given params.
+					*	param p0 (msg.params[0]) is an array of led# to target, typically 1, 2, or 1 & 2.
 					*/
 					// Determine which led(s) to target
 					msg.params[0].forEach( function (ledid) {
@@ -408,17 +410,27 @@ client.on('message', (topic, message) => {
 					});
 
 				} else if (msg.name == "writeLcdDisplay") {
+					/*
+					*	Parameter p0 (msg.params[0]) is an array of strings (one entry for each line) for the device to display.
+					*/
 					// Determine what text to write to each line
 					for (var i=0;i<msg.params[0].length;i++) {
 						xkeys_devices[device].device.writeLcdDisplay(i+1, msg.params[0][i], msg.params[1]);
 					}
 
 				} else if (msg.name == "setFlashRate") {
-					// params[0] is an array of flashRates (only one!) 
-					if (isNaN(parseInt(msg.params[0][0]))) { return; }
-					xkeys_devices[device].device.setFrequency(parseInt(msg.params[0][0]));
+					/*
+						Flash rate is provided as parameter params[1]
+						(empty p0 is unused)
+					*/
+					if (isNaN(parseInt(msg.params[1]))) { return; }
+					xkeys_devices[device].device.setFrequency(parseInt(msg.params[1]));
 
 				} else if (msg.name == "setUnitID") {
+					/*
+					*	The new UnitID provided as parameter params[1]
+						(empty p0 is unused)
+					*/
 					//console.log("About to run: setUnitId(" + parseInt(msg.params[1]) + ")");
 					xkeys_devices[device].device.setUnitId(parseInt(msg.params[1]));
 
