@@ -98,4 +98,5 @@ sudo apt install python3-paho-mqtt
 
 - *device_list.py* is a command line Python application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed.
 - *events.py* is another command line application but which displays device events as they occur. For each event, the first line displayed will show the topic used by the server to publish to, further lines show additional detail about the event.
+- *ledonoff.py* is a command line application to turn the second (red) LED of any connected device on or off. To turn the LED(s) on, run `./ledonoff.py on` and run `./ledonoff.py off` to turn them off.
 
