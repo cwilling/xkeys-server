@@ -17,9 +17,9 @@ simplicity, the examples below assume that the broker, xkeys-server and client a
 all on the same machine although in practice they may all be on different machines.
 
 The *xkeys-server* will subscribe to the **/xkeys/node/#** topic and publish on the
-**/xkeys/server** topic. Therefore a client should subscribe to the **xkeys/server/#**
-topic (to receive messages from the server) and publish to the **/xkeys/node/** topic
-(on which the server is listening for requests).
+**/xkeys/server** topic. Therefore a client should initially subscribe to the
+**xkeys/server/#** topic (to receive messages from the server) and publish to the
+**/xkeys/node/** topic (on which the server is listening for requests).
 
 Note that since the *xkeys-server* has subscribed to **/xkeys/node/#**, there is
 potential for greater topic depth in a client's messages. Similarly, if a client has
