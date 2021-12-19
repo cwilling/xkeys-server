@@ -55,8 +55,8 @@ where p1 is itself an array [k0,k1,k2,...kN] (dependent on the method name).
 Method names currently supported by the *xkeys-server* are:
 - **setIndicatorLED** where p0 (params[0]) is an array of leds to target i.e. [1], [2] or [1,2]
 - **writeLcdDisplay** where p0 is an array of text strings to display e.g. ["top line text","bottom line text"]
-- **setFlashRate** where p0 is an empty unused array and p1 contains the requested flash rate as a string value
-- **setUnitID** where p0 is empty and p1 (params[1]) is the new Unit ID for the device 
+- **setFlashRate** where p0 is an empty unused array and p1 (params[1]) contains the requested flash rate as a string value
+- **setUnitID** where p0 is empty and p1 is the new Unit ID for the device 
 - **setBacklight** where p0 is an array of buttonid numbers to activate, p1 is a hue value, p2 sets flashing on or off.
 - **setAllBacklights** where p0 is empty and p1 is a hue value
 - **setBacklightIntensity** where p0 is an array of intensity values i.e. [blue_intensity, red_intensity]
@@ -91,5 +91,5 @@ tbar_event
 
 ## Examples
 
-*device_list.py* is a command line Python application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices.
+*device_list.py* is a command line Python application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed.
 
