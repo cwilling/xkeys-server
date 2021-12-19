@@ -100,3 +100,7 @@ sudo apt install python3-paho-mqtt
 - *events.py* is another command line application but which displays device events as they occur. For each event, the first line displayed will show the topic used by the server to publish to, further lines show additional detail about the event.
 - *ledonoff.py* is a command line application to turn the second (red) LED of any connected device on or off. To turn the LED(s) on, run `./ledonoff.py on` and run `./ledonoff.py off` to turn them off.
 
+
+C language examples assume the installation of the mosquitto MQTT library. If running on the same machine as the *xkeys-server*, it should already be installed.
+- events.c is a C source program, only slightly [modified example code](https://github.com/eclipse/mosquitto/blob/master/examples/subscribe/basic-1.c) from the mosquitto deveopment repository. When compiled it displays device events as they occur. Compile with `gcc -o events events.c -lmosquitto` and then run `./events`.
+
