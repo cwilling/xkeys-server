@@ -394,6 +394,8 @@ client.on('message', (topic, message) => {
 					/*
 					*	For each device matching pid_list & uid, call the named method with given params.
 					*	param p0 (msg.params[0]) is an array of led# to target, typically 1, 2, or 1 & 2.
+					*	param p1 (msg.params[1]) is a boolean denoting whether to turn LED on or off
+					*	param p2 (msg.params[2]) is a boolean denoting whether LED should be flashing or not
 					*/
 					// Determine which led(s) to target
 					msg.params[0].forEach( function (ledid) {
