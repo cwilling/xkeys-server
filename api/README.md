@@ -91,5 +91,11 @@ tbar_event
 
 ## Examples
 
-*device_list.py* is a command line Python application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed.
+Python examples use Python3 and require a python3 based MQTT client which can be installed with:
+```
+sudo apt install python3-paho-mqtt
+```
+
+- *device_list.py* is a command line Python application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed.
+- *events.py* is another command line application which displays device events as the occur. The first line displayed will show the topic used by the server to publish to, further lines show additional detail about the event.
 
