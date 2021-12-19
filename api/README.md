@@ -91,7 +91,7 @@ tbar_event
 
 ## Examples
 
-Python examples use Python3 and require a python3 based MQTT client which can be installed with:
+Python examples use Python3 and require a python3 based MQTT client which can be installed in Debian/Ubuntu/Raspberry Pi OS with:
 ```
 sudo apt install python3-paho-mqtt
 ```
