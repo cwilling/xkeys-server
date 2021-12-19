@@ -30,7 +30,7 @@ Client messages should be stringified JSON objects containing a "request" field 
 a well known request, followed by any parameters that may be needed to process the
 request.
 ```
-{request: requestName, param1: param, param2: param, ...}
+{request: requestName, parameter0: val0, parameter1: val1, ..., parameterN: valN}
 ```
 Well known requestNames are:
 - productList
@@ -48,22 +48,44 @@ representing a particular physical device. It will therefore have a varying
 number of parameters, always including sufficient to uniquely identify the
 target device (pid_list & uid).
 ```
-{request:"method", pid_list:[e1,e2,...,eN], uid:UID, name:METHODNAME, params:[p1,p2,...,pN]}
+{request:"method", pid_list:[e0,e1,...,eN], uid:UID, name:METHODNAME, params:[p0,p1,...,pN]}
 ```
-where p1 is itself an array [k1,k2,k3,...kN] (dependent on the method name).
+where p1 is itself an array [k0,k1,k2,...kN] (dependent on the method name).
 
 Method names currently supported by the *xkeys-server* are:
-- **setIndicatorLED** where p1 (params[0]) is an array of leds to target i.e. [1], [2] or [1,2]
-- **writeLcdDisplay** where p1 is an array of text strings to display e.g. ["top line text","bottom line text"]
-- **setFlashRate** where p1 is an array (of length 1) containing the requested flash rate e.g. [27]
-- **setUnitID** where p1 is empty and p2 (params[1]) is the new Unit ID for the device 
-- **setBacklight** where p1 is an array of buttonid numbers to activate, p2 is a hue value, p3 sets flashing on or off.
-- **setAllBacklights** where p1 is unused and p2 is a hue value
-- **setBacklightIntensity** where p1 is an array of intensity values i.e. [blue_intensity, red_intensity]
+- **setIndicatorLED** where p0 (params[0]) is an array of leds to target i.e. [1], [2] or [1,2]
+- **writeLcdDisplay** where p0 is an array of text strings to display e.g. ["top line text","bottom line text"]
+- **setFlashRate** where p0 is an empty unused array and p1 contains the requested flash rate as a string value
+- **setUnitID** where p0 is empty and p1 (params[1]) is the new Unit ID for the device 
+- **setBacklight** where p0 is an array of buttonid numbers to activate, p1 is a hue value, p2 sets flashing on or off.
+- **setAllBacklights** where p0 is empty and p1 is a hue value
+- **setBacklightIntensity** where p0 is an array of intensity values i.e. [blue_intensity, red_intensity]
 - **saveBackLights** requires no parameters
-- **writeData** where p1 is the command code to write e.g. [0, 206, 0, 1, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 32, 32, 32, 32, 32]
+- **writeData** where p0 is the command code to write e.g. [0, 206, 0, 1, 72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 32, 32, 32, 32, 32]
+
+Client requests for particular methods are performed immediately but not otherwise responded to by the *xkeys-server*.
+
+In response to client requests *productList* & *deviceList*, the server publishes to the **/xkeys/server** topic, messages of the form:
+```
+{"request":"result_productList", "data":PRODUCTS}
+```
+and
+```
+{"request":"result_deviceList", "data":device_list}
+```
 
 
+
+Some server messages are published without requests from clients, in particular when events from connected devices are detected. Events from devices are published by the *xkeys-server* to topics according to the type of event, namely **/xkeys/server/EVENT_TYPE/PID/UID/index**. For instance pressing button 7 of an XK12JOG device (PID of 1062) with a Unit ID of 3 would result in the event being published on topic **/xkeys/server/button_event/1062/3/7**. The meaning of *index* in the topic varies according to *EVENT_TYPE*. In the case of a *button_event*, index refers to the button that was pressed. While a client may be able to decipher an event largely by just the topic on which the event message is received, there is usually additional information about the event in the message itself e.g. was it the *down* or *up* part of the button press.
+
+The EVENT_TYPEs published by the *xkeys-server* are:
+```
+button_event
+jog_event
+shuttle_event
+joystick_event
+tbar_event
+```
 
 
 
