@@ -53,9 +53,9 @@ target device (pid_list & uid).
 where p1 is itself an array [k0,k1,k2,...kN] (dependent on the method name).
 
 Method names currently supported by the *xkeys-server* are:
-- **setIndicatorLED** where p0 (params[0]) is an array of leds to target i.e. [1], [2] or [1,2], p1 (params[1]) is a boolean denoting whether the indicator should turn on or off, while the optional p2 (params[2]) is a boolean denotes whether the nominated LED(s) should flash or not.
+- **setIndicatorLED** where p0 (params[0]) is an array of leds to target i.e. [1], [2] or [1,2]. Additionally, p1 (params[1]) is a boolean denoting whether the indicator should turn on or off, while the optional p2 (params[2]) is a boolean which denotes whether the nominated LED(s) should flash or not.
 - **writeLcdDisplay** where p0 is an array of text strings to display e.g. ["top line text","bottom line text"]
-- **setFlashRate** where p0 is an empty unused array and p1 (params[1]) contains the requested flash rate as a string value
+- **setFlashRate** where p0 is an empty unused array and p1 contains the requested flash rate as a string value
 - **setUnitID** where p0 is empty and p1 is the new Unit ID for the device 
 - **setBacklight** where p0 is an array of buttonid numbers to activate, p1 is a hue value, p2 sets flashing on or off.
 - **setAllBacklights** where p0 is empty and p1 is a hue value
