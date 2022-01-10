@@ -102,5 +102,5 @@ sudo apt install python3-paho-mqtt
 
 
 C language examples assume the installation of the mosquitto MQTT library. If running on the same machine as the *xkeys-server*, the mosquitto libraries should already be installed.
-- events.c is a C source program, only slightly [modified example code](https://github.com/eclipse/mosquitto/blob/master/examples/subscribe/basic-1.c) from the mosquitto development repository. When compiled it displays device events as they occur. Compile with `gcc -o events events.c -lmosquitto` and then run `./events` to watch for device events.
+- events.c is a C source program, only slightly [modified example code](https://github.com/eclipse/mosquitto/blob/master/examples/subscribe/basic-1.c) from the mosquitto development repository. When compiled it displays device events as they occur. Compilation on Debian/Ubuntu/RasPI systems will require installation of mosquitto header files with: `sudo apt install libmosquitto-dev`; then, in this _api_ directory, compile with `gcc -o events events.c -lmosquitto` and then run the resulting `./events` to watch for device events.
 
