@@ -96,13 +96,13 @@ Python examples use Python3 and require a python3 based MQTT client which can be
 sudo apt install python3-paho-mqtt
 ```
 
-- *device_list.py* is a command line Python application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed.
-- *events.py* is another command line application but which displays device events as they occur. For each event, the first line displayed will show the topic used by the server to publish to, further lines show additional detail about the event.
-- *ledonoff.py* is a command line application to turn the second (red) LED of any connected device on or off. To turn the LED(s) on, run `./ledonoff.py on` and run `./ledonoff.py off` to turn them off.
+- [_device_list.py_](device_list.py) is a command line Python application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed.
+- [_events.py_](events.py) is another command line application but which displays device events as they occur. For each event, the first line displayed will show the topic used by the server to publish to, further lines show additional detail about the event.
+- [_ledonoff.py_](ledonoff.py) is a command line application to turn the second (red) LED of any connected device on or off. To turn the LED(s) on, run `./ledonoff.py on` and run `./ledonoff.py off` to turn them off.
 
 
 C language examples assume the installation of the mosquitto MQTT library header files. Some platforms provide these by default; others will require additional installation.
-- events.c is a C source program, only slightly [modified example code](https://github.com/eclipse/mosquitto/blob/master/examples/subscribe/basic-1.c) from the mosquitto development repository. When compiled it displays device events as they occur. Compilation on Debian, Ubuntu or Raspberry Pi OS based systems will require installation of mosquitto header files with: `sudo apt install libmosquitto-dev`; then, in this _api_ directory, compile with `gcc -o events events.c -lmosquitto` and then run the resulting `./events` to watch for device events.
+- [_events.c_](events.c) is a C source program, only slightly [modified example code](https://github.com/eclipse/mosquitto/blob/master/examples/subscribe/basic-1.c) from the mosquitto development repository. When compiled it displays device events as they occur. Compilation on Debian, Ubuntu or Raspberry Pi OS based systems will require installation of mosquitto header files with: `sudo apt install libmosquitto-dev`; then, in this _api_ directory, compile with `gcc -o events events.c -lmosquitto` and then run the resulting `./events` to watch for device events.
 
 
 Of course, Javascript clients are also possible. The examples here use modules already available in the higher level xkeys-server/node_modules directory.
