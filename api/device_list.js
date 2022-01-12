@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /*
-Copyright (c) 2021  Christoph Willing, Brisbane Australia
+Copyright (c) 2022  Christoph Willing, Brisbane Australia
 SPDX-License-Identifier: MIT
 */
 
@@ -18,7 +18,6 @@ client.on('error', (error) => {
 })
 client.on('connect', () => {
 	console.log('connected')
-	//client.subscribe({'/xkeys/server/xkeys_button/#':{qos:qos}}, function (err, granted) {
 	client.subscribe({'/xkeys/server/#':{qos:qos}}, function (err, granted) {
 		if (!err) {
 			console.log("Subscribed OK, granted: " + JSON.stringify(granted));
