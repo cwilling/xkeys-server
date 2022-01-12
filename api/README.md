@@ -105,5 +105,5 @@ C language examples assume the installation of the mosquitto MQTT library header
 - [_events.c_](events.c) is a C source program, only slightly [modified example code](https://github.com/eclipse/mosquitto/blob/master/examples/subscribe/basic-1.c) from the mosquitto development repository. When compiled it displays device events as they occur. Compilation on Debian, Ubuntu or Raspberry Pi OS based systems will require installation of mosquitto header files with: `sudo apt install libmosquitto-dev`; then, in this _api_ directory, compile with `gcc -o events events.c -lmosquitto` and then run the resulting `./events` to watch for device events.
 
 
-Of course, Javascript clients are also possible. The examples here use modules already available in the higher level xkeys-server/node_modules directory.
-- [_device_list.js_](device_list.js) is a command line Python application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed.
+Of course, Javascript clients are also possible. The examples here use modules already available in the higher level _xkeys-server/node_modules_ directory.
+- [_device_list.js_](device_list.js) is a command line Javascript/NodeJS application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed. In the _api_ directory, run `./device_list.js`
