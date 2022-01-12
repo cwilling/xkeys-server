@@ -106,4 +106,4 @@ C language examples assume the installation of the mosquitto MQTT library header
 
 
 Of course, Javascript clients are also possible. The examples here use modules already available in the higher level xkeys-server/node_modules directory.
-- *device_list.js* is a command line Python application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed.
+- [_device_list.js_](device_list.js) is a command line Python application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed.
