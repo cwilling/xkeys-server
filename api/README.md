@@ -108,3 +108,4 @@ C language examples assume the installation of the mosquitto MQTT library header
 Of course, Javascript clients are also possible. The examples here use modules already available in the higher level _xkeys-server/node_modules_ directory.
 - [_device_list.js_](device_list.js) is a command line Javascript/NodeJS application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed. In the _api_ directory, run `./device_list.js`
 - [_events.js_](events.js) is another Javascript/NodeJS command line application. It displays events from any connected device as they occur.
+- [_ledonoff.js_](ledonoff.js) is a command line application to turn the second (red) LED of any connected device on or off. To turn the LED(s) on, run `./ledonoff.js on` and run `./ledonoff.js off` to turn them off.
