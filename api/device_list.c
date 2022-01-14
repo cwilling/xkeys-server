@@ -78,12 +78,15 @@ void on_subscribe(struct mosquitto *mosq, void *obj, int mid, int qos_count, con
 void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg)
 {
 	/* This blindly prints the payload, but the payload can be anything so take care. */
-	printf("\n%s\n\n", (char *)msg->payload);
+	printf("\nRaw message:\n%s\n\n", (char *)msg->payload);
 
 	/* This time we pretty-print the message */
 	struct json_object *jobj;
 	jobj = json_tokener_parse((char *)msg->payload);
-	printf("\n%s\n\n", json_object_to_json_string_ext(jobj, JSON_C_TO_STRING_PRETTY ));
+	printf("\nPrettified message:\n%s\n\n", json_object_to_json_string_ext(jobj, JSON_C_TO_STRING_PRETTY ));
+
+	mosquitto_lib_cleanup();
+	exit(0);
 }
 
 void publish_request(struct mosquitto *mosq)
