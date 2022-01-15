@@ -3,7 +3,7 @@
  * not do anything other than handle the messages that are received.
  */
 
-#include <json-c/json.h>
+#include <json.h>
 #include <mosquitto.h>
 #include <stdio.h>
 #include <stdlib.h>
