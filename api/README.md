@@ -108,7 +108,7 @@ The C language examples are only slightly modified [mosquitto example code](http
 sudo apt install libmosquitto-dev
 sudo apt install libjson-c-dev
 ``` 
-- [device_list.c](device_list.c) is a C source program which requests a list of attached devices and prints out the result twice. Firstly as a raw string, secondly prettified. Compile the executable with `gcc -o events events.c -lmosquitto -ljson-c` and run the result with `./device_list`
+- [device_list.c](device_list.c) is a C source program which requests a list of attached devices and prints out the result twice. Firstly as a raw string, secondly prettified. Compile the executable with `gcc -o device_list device_list.c -lmosquitto -ljson-c` and run the result with `./device_list`
 - [_events.c_](events.c) is a C source program which, when compiled displays device events from any attached device as they occur. In this _api_ directory, compile with `gcc -o events events.c -lmosquitto` and then run the resulting `./events` to watch for device events.
 
 
