@@ -91,6 +91,7 @@ tbar_event
 
 ## Examples
 
+### Python
 Python examples use Python3 and require a python3 based MQTT client which can be installed in Debian/Ubuntu/Raspberry Pi OS systems with:
 ```
 sudo apt install python3-paho-mqtt
@@ -101,6 +102,7 @@ sudo apt install python3-paho-mqtt
 - [_ledonoff.py_](ledonoff.py) is a command line application to turn the second (red) LED of any connected device on or off. To turn the LED(s) on, run `./ledonoff.py on` and run `./ledonoff.py off` to turn them off.
 
 
+### C
 The C language examples are only slightly modified [mosquitto example code](https://github.com/eclipse/mosquitto/blob/master/examples/) from the mosquitto development repository. They assume the installation of the _mosquitto_ MQTT library header files; some may also need _json-c_ library header files. Some platforms provide these by default; others may require additional installation. To install them on Debian, Ubuntu or Raspberry Pi OS based systems, run:
 ```
 sudo apt install libmosquitto-dev
@@ -110,7 +112,8 @@ sudo apt install libjson-c-dev
 - [_events.c_](events.c) is a C source program which, when compiled displays device events from any attached device as they occur. In this _api_ directory, compile with `gcc -o events events.c -lmosquitto` and then run the resulting `./events` to watch for device events.
 
 
-Of course, Javascript clients are also possible. The examples here use modules already available in the higher level _xkeys-server/node_modules_ directory.
+### NodeJS/Javascript
+Of course, NodeJS/Javascript clients are also possible. However there is no preference for them just because the _xkeys-server_ is a NodeJS application. No extra efficiency or affinity accrues to them since all communication with the server is via JSON encoded messages. The examples here use modules already available in the higher level _xkeys-server/node_modules_ directory.
 - [_device_list.js_](device_list.js) is a command line Javascript/NodeJS application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed. In the _api_ directory, run `./device_list.js`
 - [_events.js_](events.js) is another Javascript/NodeJS command line application. It displays events from any connected device as they occur.
 - [_ledonoff.js_](ledonoff.js) is a command line application to turn the second (red) LED of any connected device on or off. To turn the LED(s) on, run `./ledonoff.js on` and run `./ledonoff.js off` to turn them off.
