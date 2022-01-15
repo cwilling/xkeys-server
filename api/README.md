@@ -108,12 +108,25 @@ The C language examples are only slightly modified [mosquitto example code](http
 sudo apt install libmosquitto-dev
 sudo apt install libjson-c-dev
 ``` 
-- [device_list.c](device_list.c) is a C source program which requests a list of attached devices and prints out the result twice. Firstly as a raw string, secondly prettified. Compile the executable with `gcc -o device_list device_list.c -lmosquitto -ljson-c` and run the result with `./device_list`
-- [_events.c_](events.c) is a C source program which, when compiled displays device events from any attached device as they occur. In this _api_ directory, compile with `gcc -o events events.c -lmosquitto` and then run the resulting `./events` to watch for device events.
+- [_device_list.c_](device_list.c) is a C source program which requests a list of attached devices and prints out the result twice. Firstly as a raw string, secondly prettified. Compile the executable with:
+```
+gcc -I/usr/include/json-c -o device_list device_list.c -lmosquitto -ljson-c
+```
+and run the result with: `./device_list`
+- [_events.c_](events.c) is a C source program which, when compiled displays device events from any attached device as they occur. In this _api_ directory, compile with:
+```
+gcc -o events events.c -lmosquitto
+```
+and then run the resulting `./events` executable to watch for device events.
+- [_ledonoff.c_](ledonoff.c) is a command line application to turn the second (red) LED of any connected device on or off. Compile with:
+```
+gcc -I/usr/include/json-c -o ledonoff ledonoff.c -lmosquitto -ljson-c
+```
+and run the result with: `./ledonoff`
 
 
 ### NodeJS/Javascript
-Of course, NodeJS/Javascript clients are also possible. However there is no preference for them just because the _xkeys-server_ is a NodeJS application. No extra efficiency or affinity accrues to them since all communication with the server is via JSON encoded messages. The examples here use modules already available in the higher level _xkeys-server/node_modules_ directory.
+Of course, NodeJS/Javascript clients are also possible. However there is no preference for them just because the _xkeys-server_ is a NodeJS application. No extra efficiency or affinity accrues to them since all communication with the server is conducted using JSON encoded messages. The examples here use modules already available in the higher level _xkeys-server/node_modules_ directory.
 - [_device_list.js_](device_list.js) is a command line Javascript/NodeJS application which demonstrates how to connect to the MQTT server and publish a request for a list of connected X-keys devices which is then displayed. In the _api_ directory, run `./device_list.js`
 - [_events.js_](events.js) is another Javascript/NodeJS command line application. It displays events from any connected device as they occur.
 - [_ledonoff.js_](ledonoff.js) is a command line application to turn the second (red) LED of any connected device on or off. To turn the LED(s) on, run `./ledonoff.js on` and run `./ledonoff.js off` to turn them off.
