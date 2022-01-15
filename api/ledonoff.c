@@ -32,34 +32,52 @@ void on_publish(struct mosquitto *mosq, void *obj, int mid)
 void publish_request(struct mosquitto *mosq)
 {
 	struct json_object *jobj; /* The request object */
-	struct json_object *pid_list, *params, *p1, *request, *uid, *name, *tmp;
+	struct json_object *pid_list, *params, *p0, *request, *uid, *name, *tmp;
 	const char* jobj_string;
 	int rc;
 	char payload[120];
 
+	/*	The xkeys-server expects the request object we create here to contain a number of fields.
+	*	"request" : what type of action we're requesting - in this case to execute a "method"
+	*	"pid_list": an array of device PIDs to perform the action on (empty array => any/all devices)
+	*	"uid"     : a particular device Unit ID to perform the action on (empty string => any/all UIDs)
+	*	"name"    : the name of the method being requested - in this case "setIndicatorLED"
+	*	"params"  : an array of any paramaters to be applied to this method
+	*				params[0] is itself an array of LED ids to target (here we target LED #2)
+	*				params[1] is a boolean signalling whether to turn LED on or off
+	*				params[2] is a boolean signalling whether the LED should be flashing when on
+	*/
 	jobj = json_object_new_object();
 
+	/* Type of request is "method" */
 	request = json_object_new_string("method");
 	json_object_object_add(jobj, "request", request);
 
+	/* Array of PIDs (empty in this case) */
 	pid_list = json_object_new_array();
 	json_object_object_add(jobj, "pid_list", pid_list);
 
+	/* Unit ID as a string (empty in this case) */
 	uid = json_object_new_string("");
 	json_object_object_add(jobj, "uid", uid);
 
+	/* Name of the method being requested */
 	name = json_object_new_string("setIndicatorLED");
 	json_object_object_add(jobj, "name", name);
 
+	/* An Array of parameters for the requested method */
 	params = json_object_new_array();
-		p1 = json_object_new_array();
-		tmp = json_object_new_int(2);
-		json_object_array_add(p1, tmp);
-	json_object_array_add(params, p1);
-	tmp = json_object_new_boolean(onoff);
-	json_object_array_add(params, tmp);
-	tmp = json_object_new_boolean(false);
-	json_object_array_add(params, tmp);
+		/* params[0] is an array of LED ids to target */
+		p0 = json_object_new_array();
+			tmp = json_object_new_int(2);
+			json_object_array_add(p0, tmp);
+		json_object_array_add(params, p0);
+		/* params[1] is a boolean denoting LED should turn on or off */
+		tmp = json_object_new_boolean(onoff);
+		json_object_array_add(params, tmp);
+		/* params[2] is a boolean denoting whether LED should be flashing when on */
+		tmp = json_object_new_boolean(false);
+		json_object_array_add(params, tmp);
 	json_object_object_add(jobj, "params", params);
 
 	/* Check that it looks OK */
@@ -117,7 +135,7 @@ int main(int argc, char *argv[])
 
 	/* Determine whether we're turning LED on or off. Set onoff */
 	if (argc != 2 ) {
-		fprintf(stderr, "%s requires an \"on\" of \"off\" argument\n", argv[0]);
+		fprintf(stderr, "%s requires an \"on\" or \"off\" argument\n", argv[0]);
 		exit(1);
 	}
 	if (!strcmp(argv[1], "on")) {
@@ -125,7 +143,7 @@ int main(int argc, char *argv[])
 	} else if (!strcmp(argv[1], "off")) {
 		onoff = false;
 	} else {
-		fprintf(stderr, "%s requires an \"on\" of \"off\" argument\n", argv[0]);
+		fprintf(stderr, "%s requires an \"on\" or \"off\" argument\n", argv[0]);
 		exit(2);
 	}
 
