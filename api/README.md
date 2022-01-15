@@ -122,7 +122,7 @@ and then run the resulting `./events` executable to watch for device events.
 ```
 gcc -I/usr/include/json-c -o ledonoff ledonoff.c -lmosquitto -ljson-c
 ```
-and run the result with: `./ledonoff`
+and then run the result with: `./ledonoff on` to turn LED(s) on, or run: `./ledonoff off` to turn them off.
 
 
 ### NodeJS/Javascript
