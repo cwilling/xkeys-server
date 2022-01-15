@@ -85,8 +85,8 @@ void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_messag
 	jobj = json_tokener_parse((char *)msg->payload);
 	printf("\nPrettified message:\n%s\n\n", json_object_to_json_string_ext(jobj, JSON_C_TO_STRING_PRETTY ));
 
-	mosquitto_lib_cleanup();
-	exit(0);
+	/* We have everything we asked for */
+	mosquitto_disconnect(mosq);
 }
 
 void publish_request(struct mosquitto *mosq)
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 	mosquitto_subscribe_callback_set(mosq, on_subscribe);
 	mosquitto_message_callback_set(mosq, on_message);
 
-	/* Connect to test.mosquitto.org on port 1883, with a keepalive of 60 seconds.
+	/* Connect to localhost on port 1883, with a keepalive of 60 seconds.
 	 * This call makes the socket connection only, it does not complete the MQTT
 	 * CONNECT/CONNACK flow, you should use mosquitto_loop_start() or
 	 * mosquitto_loop_forever() for processing net traffic. */
