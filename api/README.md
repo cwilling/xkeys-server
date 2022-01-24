@@ -124,7 +124,7 @@ gcc -I/usr/include/json-c -o ledonoff ledonoff.c -lmosquitto -ljson-c
 ```
 and then run the result with: `./ledonoff on` to turn LED(s) on, or run: `./ledonoff off` to turn them off.
 
-A more complete C based application, [_devicefinder-gtk_ is available here](https://gitlab.com/chris.willing/devicefinder-gtk). It uses the GTK user interface library along with the more closely aligned _json-glib_ (rather than _json-c) for JSON handling.
+A more complete C based application, [_devicefinder-gtk_ is available here](https://gitlab.com/chris.willing/devicefinder-gtk). It uses the GTK user interface library along with the more closely aligned _json-glib_ (rather than _json-c_) for JSON handling.
 
 
 ### NodeJS/Javascript
