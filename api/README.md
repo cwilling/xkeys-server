@@ -124,6 +124,8 @@ gcc -I/usr/include/json-c -o ledonoff ledonoff.c -lmosquitto -ljson-c
 ```
 and then run the result with: `./ledonoff on` to turn LED(s) on, or run: `./ledonoff off` to turn them off.
 
+A more complete C based application, [_devicefinder-gtk_ is available here](https://gitlab.com/chris.willing/devicefinder-gtk). It uses the GTK user interface library along with the more closely aligned _json-glib_ (rather than _json-c) for JSON handling.
+
 
 ### NodeJS/Javascript
 Of course, NodeJS/Javascript clients are also possible. However there is no preference for them just because the _xkeys-server_ is a NodeJS application. No extra efficiency or affinity accrues to them since all communication with the server is conducted using JSON encoded messages. The examples here use modules already available in the higher level _xkeys-server/node_modules_ directory.
