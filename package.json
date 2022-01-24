@@ -16,7 +16,7 @@
   ],
   "dependencies": {
     "mqtt": "^4.2.8",
-    "usb-detection": "^4.10.0",
+    "usb-detection": "^4.13.0",
     "xkeys": "^2.3.2"
   },
   "author": "Christoph Willing",

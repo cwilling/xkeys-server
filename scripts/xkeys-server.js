@@ -78,6 +78,9 @@ client.on('connect', () => {
 		}
     })
 
+	/* Heartbeat timer */
+	setInterval(sendHeartbeat, 2000, client);
+
     function startWatcher () {
 		watcher = new XKeysWatcher({
 			usePolling: false,
@@ -526,3 +529,7 @@ function update_client_device_list (topic) {
 	}
 }
 
+function sendHeartbeat (client) {
+	//console.log("heartbeat");
+  	client.publish('/xkeys/server', JSON.stringify({"request":"heartbeat"}), {qos:qos,retain:false});
+}
