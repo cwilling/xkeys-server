@@ -3,6 +3,10 @@
 //var { env } = require('process');
 process.env.UV_THREADPOOL_SIZE = 48;
 
+const os = require('os')
+const ServerID = os.hostname()
+console.log("ServerID = " + ServerID);
+
 var mqtt = require('mqtt')
 const qos = 2;
 var path = require('path')
@@ -67,7 +71,7 @@ client.on('error', (error) => {
 client.on('connect', () => {
     console.log('connected');
     startWatcher();
-    client.publish('/xkeys/server', JSON.stringify({"request":"hello","data":"Hello from Xkeys device server"}),{qos:qos,retain:false});
+    client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"hello","data":"Hello from Xkeys device server"}),{qos:qos,retain:false});
     client.subscribe({'/xkeys/node/#':{qos:qos}}, function (err) {
     	if (!err) {
       	    console.log('subscribed OK');
@@ -110,7 +114,7 @@ client.on('connect', () => {
 					//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 					metadata["type"] = "down";
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}),{qos:qos,retain:false});
+					client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}),{qos:qos,retain:false});
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -123,7 +127,7 @@ client.on('connect', () => {
 						//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 						metadata["type"] = "down";
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}),{qos:qos,retain:false});
+						client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}),{qos:qos,retain:false});
 
 					})
 				}
@@ -136,7 +140,7 @@ client.on('connect', () => {
 					//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 					metadata["type"] = "up";
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -149,7 +153,7 @@ client.on('connect', () => {
 						//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 						metadata["type"] = "up";
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+						client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
 					})
 				}
 			})
@@ -162,7 +166,7 @@ client.on('connect', () => {
 					metadata["type"] = "jog";
 					metadata["deltaPos"] = deltaPos;
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -176,7 +180,7 @@ client.on('connect', () => {
 						metadata["type"] = "jog";
 						metadata["deltaPos"] = deltaPos;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+						client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
 					})
 				}
 			})
@@ -189,7 +193,7 @@ client.on('connect', () => {
 					metadata["type"] = "shuttle";
 					metadata["shuttlePos"] = shuttlePos;
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -203,7 +207,7 @@ client.on('connect', () => {
 						metadata["type"] = "shuttle";
 						metadata["shuttlePos"] = shuttlePos;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+						client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
 					})
 				}
 			})
@@ -216,7 +220,7 @@ client.on('connect', () => {
 					metadata["type"] = "joystick";
 					metadata["position"] = position;
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -230,7 +234,7 @@ client.on('connect', () => {
 						metadata["type"] = "joystick";
 						metadata["position"] = position;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+						client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
 					})
 				}
 			})
@@ -243,7 +247,7 @@ client.on('connect', () => {
 					metadata["type"] = "tbar";
 					metadata["position"] = position;
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -257,7 +261,7 @@ client.on('connect', () => {
 						metadata["type"] = "tbar";
 						metadata["position"] = position;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"request":"device_event", "data":metadata}), {qos:qos,retain:false});
+						client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
 					})
 				}
 			})
@@ -336,7 +340,7 @@ client.on('message', (topic, message) => {
 
         } else if (msg.request == "productList") {
 			// A list of all known products
-   			client.publish('/xkeys/server', JSON.stringify({"request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
+   			client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
 
         } else if (msg.request == "deviceList") {
 		    //console.log("deviceList request from: " + topic)
@@ -522,14 +526,14 @@ function update_client_device_list (topic) {
 	//console.log("update_client_device_list(): " + JSON.stringify(device_list));
 	if (topic.length > 0) {
 		//console.log("Publish result_deviceList to:" + topic.replace("node","server"));
-   		client.publish(topic.replace("node","server"), JSON.stringify({"request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
+   		client.publish(topic.replace("node","server"), JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
 	} else {
 		//console.log("Publish result_deviceList");
-   		client.publish('/xkeys/server', JSON.stringify({"request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
+   		client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
 	}
 }
 
 function sendHeartbeat (client) {
 	//console.log("heartbeat");
-  	client.publish('/xkeys/server', JSON.stringify({"request":"heartbeat"}), {qos:qos,retain:false});
+  	client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"heartbeat"}), {qos:qos,retain:false});
 }
