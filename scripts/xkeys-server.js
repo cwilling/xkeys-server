@@ -7,6 +7,13 @@ const os = require('os')
 const ServerID = os.hostname()
 console.log("ServerID = " + ServerID);
 
+const dgram = require('dgram');
+const udp_server = dgram.createSocket('udp4');
+const udp_host = '0.0.0.0';
+const udp_port = 48895;
+const udp_clients = [];
+const udp_expiry = 20000;
+
 var mqtt = require('mqtt')
 const qos = 2;
 var path = require('path')
@@ -114,7 +121,12 @@ client.on('connect', () => {
 					//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 					metadata["type"] = "down";
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}),{qos:qos,retain:false});
+					var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
+					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+					msg_pload["topic"] = msg_topic;
+					send_udp_message(JSON.stringify(msg_pload));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -127,8 +139,12 @@ client.on('connect', () => {
 						//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 						metadata["type"] = "down";
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}),{qos:qos,retain:false});
+						var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
+						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
+						msg_pload["topic"] = msg_topic;
+						send_udp_message(JSON.stringify(msg_pload));
 					})
 				}
 			})
@@ -140,7 +156,12 @@ client.on('connect', () => {
 					//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 					metadata["type"] = "up";
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
+					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+					msg_pload["topic"] = msg_topic;
+					send_udp_message(JSON.stringify(msg_pload));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -153,7 +174,12 @@ client.on('connect', () => {
 						//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 						metadata["type"] = "up";
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
+						var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
+						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+						msg_pload["topic"] = msg_topic;
+						send_udp_message(JSON.stringify(msg_pload));
 					})
 				}
 			})
@@ -166,7 +192,12 @@ client.on('connect', () => {
 					metadata["type"] = "jog";
 					metadata["deltaPos"] = deltaPos;
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					var msg_topic = '/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index;
+					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+					msg_pload["topic"] = msg_topic;
+					send_udp_message(JSON.stringify(msg_pload));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -180,7 +211,12 @@ client.on('connect', () => {
 						metadata["type"] = "jog";
 						metadata["deltaPos"] = deltaPos;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
+						var msg_topic = '/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index;
+						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+						msg_pload["topic"] = msg_topic;
+						send_udp_message(JSON.stringify(msg_pload));
 					})
 				}
 			})
@@ -193,7 +229,12 @@ client.on('connect', () => {
 					metadata["type"] = "shuttle";
 					metadata["shuttlePos"] = shuttlePos;
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					var msg_topic = '/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index;
+					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+					msg_pload["topic"] = msg_topic;
+					send_udp_message(JSON.stringify(msg_pload));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -207,7 +248,12 @@ client.on('connect', () => {
 						metadata["type"] = "shuttle";
 						metadata["shuttlePos"] = shuttlePos;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
+						var msg_topic = '/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index;
+						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+						msg_pload["topic"] = msg_topic;
+						send_udp_message(JSON.stringify(msg_pload));
 					})
 				}
 			})
@@ -220,7 +266,12 @@ client.on('connect', () => {
 					metadata["type"] = "joystick";
 					metadata["position"] = position;
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					var msg_topic = '/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index;
+					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+					msg_pload["topic"] = msg_topic;
+					send_udp_message(JSON.stringify(msg_pload));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -234,7 +285,12 @@ client.on('connect', () => {
 						metadata["type"] = "joystick";
 						metadata["position"] = position;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
+						var msg_topic = '/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index;
+						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+						msg_pload["topic"] = msg_topic;
+						send_udp_message(JSON.stringify(msg_pload));
 					})
 				}
 			})
@@ -247,7 +303,12 @@ client.on('connect', () => {
 					metadata["type"] = "tbar";
 					metadata["position"] = position;
 					metadata["shortnam"] = xkeys_products[pid.toString()];
-					client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
+					var msg_topic = '/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index;
+					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+					msg_pload["topic"] = msg_topic;
+					send_udp_message(JSON.stringify(msg_pload));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -261,7 +322,12 @@ client.on('connect', () => {
 						metadata["type"] = "tbar";
 						metadata["position"] = position;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
-						client.publish('/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index, JSON.stringify({"sid":ServerID, "request":"device_event", "data":metadata}), {qos:qos,retain:false});
+						var msg_topic = '/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index;
+						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+						msg_pload["topic"] = msg_topic;
+						send_udp_message(JSON.stringify(msg_pload));
 					})
 				}
 			})
@@ -341,6 +407,7 @@ client.on('message', (topic, message) => {
         } else if (msg.request == "productList") {
 			// A list of all known products
    			client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
+			send_udp_message(JSON.stringify({"topic":"/xkeys/server","sid":ServerID, "request":"result_productList", "data":PRODUCTS}));
 
         } else if (msg.request == "deviceList") {
 		    //console.log("deviceList request from: " + topic)
@@ -527,9 +594,11 @@ function update_client_device_list (topic) {
 	if (topic.length > 0) {
 		//console.log("Publish result_deviceList to:" + topic.replace("node","server"));
    		client.publish(topic.replace("node","server"), JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
+		send_udp_message(JSON.stringify({"topic":topic.replace("node","server"),"sid":ServerID, "request":"result_deviceList", "data":device_list}));
 	} else {
 		//console.log("Publish result_deviceList");
    		client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
+		send_udp_message(JSON.stringify({"topic":"/xkeys/server","sid":ServerID, "request":"result_deviceList", "data":device_list}));
 	}
 }
 
@@ -537,3 +606,65 @@ function sendHeartbeat (client) {
 	//console.log("heartbeat");
   	client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"heartbeat"}), {qos:qos,retain:false});
 }
+
+
+/* udp_server functions */
+udp_server.on('error', (err) => {
+	console.log(err.stack);
+	udp_server.close();
+});
+
+udp_server.on('message', (msg, rinfo) => {
+	console.log(`Client message \"${msg}\" from ${rinfo.address}:${rinfo.port}`);
+	/* If this is a new client,
+	*	- add it udp_clients[]
+	*	- send list of attached devices
+	*/
+	var udp_client_found = false;
+	for (var i=udp_clients.length;i>0;i--) {
+		udp_client_found = false;
+		if ((udp_clients[i-1].remote.address == rinfo.address) && (udp_clients[i-1].remote.port == rinfo.port)) {
+			udp_client_found = true;
+			break;
+		}
+	}
+	if (!udp_client_found) {
+		// New client
+		udp_clients.push({"timestamp":Date.now(), "remote":rinfo});
+		console.log(`New client at ${rinfo.address}:${rinfo.port}`);
+		update_client_device_list("");
+	}
+});
+
+udp_server.on('listening', () => {
+	const address = udp_server.address();
+	console.log(`server listening ${address.address}:${address.port}`);
+});
+
+udp_server.on('closed', (rinfo) => {
+});
+
+udp_server.bind(udp_port, udp_host);
+
+function send_udp_message (msg) {
+	//console.log("send_udp_message(), clients = " + udp_clients.length);
+	//console.log("send_udp_message(), mesg count = " + msgs.length);
+	for (var i=udp_clients.length;i>0;i--) {
+		var rinfo = udp_clients[i-1].remote;
+		try {
+			udp_server.send(msg, rinfo.port, rinfo.address);
+		} catch (err) {
+			console.log("send_udp_message() error: " + err);
+		}
+		//console.log("Sent msg to: " + rinfo.address + ":" + rinfo.port);
+	}
+}
+
+function check_udp_clients() {
+	//console.log("check_udp_clients(), clients# = " + udp_clients.length);
+	for (var i=udp_clients.length;i>0;i--) {
+		console.log(JSON.stringify(udp_clients[i-1]) + " " + i);
+	}
+}
+//setInterval(check_udp_clients, 4000);
+
