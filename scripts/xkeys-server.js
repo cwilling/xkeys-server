@@ -3,8 +3,10 @@
 //var { env } = require('process');
 process.env.UV_THREADPOOL_SIZE = 48;
 
-const os = require('os')
-const ServerID = os.hostname()
+const { hostname, networkInterfaces } = require('os');
+//const os = require('os')
+//const ServerID = os.hostname()
+const ServerID = hostname()
 console.log("ServerID = " + ServerID);
 
 const dgram = require('dgram');
@@ -63,6 +65,137 @@ for (const product of Object.values(PRODUCTS)) {
 	//console.log("Product: " + product.name);
 }
 */
+
+/*	request_message_process()
+*
+*	Generic request processor to which all client
+*	types (MQTT, UDP) send their request messages.
+*
+*	type: string describing callee origin ("MQTT"|"UDP"|...)
+*	message: JSON format string
+*   moreArgs: array of additional args
+*		moreArgs[0] is the topic (string) of an MQTT message
+*		            is rinfo (object) of a UDP message
+*/
+request_message_process = (type, message, ...moreArgs) => {
+	var callee_type = type.toLowerCase();
+	let topic;
+	let rinfo;
+
+	if (callee_type == "udp") {
+		rinfo = moreArgs[0];
+	} else if (callee_type == "mqtt") {
+		topic = moreArgs[0];
+	}
+
+	/* Does the message comply? */
+    var msg = ""
+    try {
+		msg = JSON.parse(message);
+		console.log(`${callee_type} message request: ${msg.request}`);
+		switch (msg.request) {
+			case "EOI":
+				if (callee_type == "udp") {
+					console.log("request_message_process(): UDP msg.request was EOI");
+					var udp_client_found = false;
+					for (var i=udp_clients.length;i>0;i--) {
+						udp_client_found = false;
+						if ((udp_clients[i-1].remote.address == rinfo.address) && (udp_clients[i-1].remote.port == rinfo.port)) {
+							udp_client_found = true;
+							break;
+						}
+					}
+					if (!udp_client_found) {
+						// New client
+						udp_clients.push({"timestamp":Date.now(), "remote":rinfo});
+						try {
+							udp_server.send(JSON.stringify({"topic":"/xkeys/server","sid":ServerID,"request":"result_EOI","data":"OK"}), rinfo.port, rinfo.address);
+						} catch (err) {
+							console.log("send_udp_message() error: " + err);
+						}
+						console.log(`New client at ${rinfo.address}:${rinfo.port}`);
+					}
+					/* Otherwise do nothing since we already have this client registered */
+
+				} else if (callee_type == "mqtt") {
+					console.log("request_message_process(): MQTT msg.request was EOI");
+					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_EOI", "data":"OK"}), {qos:qos,retain:false});
+
+				} else {
+					console.log("request_message_process(): UNKNOWN TYPE msg.request was EOI");
+				}
+				break;
+			case "DISCOVER":
+				/*	Since we exist on 0.0.0.0 i.e. every available interface
+				*	therefore possibly multiple IP addresses,
+				*	find the best IP address to provide the client with.
+				*/
+				const nifs = networkInterfaces();
+				const nif_addrs = {};
+
+				for (const name of Object.keys(nifs)) {
+					for (const net of nifs[name]) {
+						// Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
+						if (net.family === 'IPv4' && !net.internal) {
+							if (!nif_addrs[name]) {
+								nif_addrs[name] = [];
+							}
+							nif_addrs[name].push(net.address);
+						}
+					}
+				}
+				console.log(`${JSON.stringify(nif_addrs)}`);
+
+				var address_match = "";
+				for (const name of Object.keys(nif_addrs)) {
+					nif_addrs[name].forEach( (item) => {
+						//console.log(`Checking: ${item}, against ${rinfo.address}`);
+						if (item == rinfo.address) {
+							address_match = item;
+							return;
+						} else if (/[0-9]*\.[0-9]*\.[0-9]*/.exec(item).toString() == /[0-9]*\.[0-9]*\.[0-9]*/.exec(rinfo.address).toString()) {
+							address_match = item;
+							return;
+						} else if (/[0-9]*\.[0-9]*/.exec(item).toString() == /[0-9]*\.[0-9]*/.exec(rinfo.address).toString()) {
+							address_match = item;
+							return;
+						} else {
+						}
+					});
+					if (address_match.length > 0) {
+						//console.log(`The match is: ${address_match}`);
+						break
+					}
+				}
+				if (address_match.length < 7) {
+					return;
+				}
+
+				if (callee_type == "udp") {
+					//console.log("sending result_DISCOVER message");
+					udp_server.send(JSON.stringify({"topic":"/xkeys/server","sid":ServerID,"request":"result_DISCOVER","data":address_match}), rinfo.port, rinfo.address);
+				} else if (callee_type == "mqtt") {
+					console.log("DISCOVER message via MQTT");
+				} else {
+					console.log("request_message_process(): UNKNOWN TYPE msg.request was DISCOVER");
+				}
+				break;
+			default:
+				console.log(`request_message_process(): Unhandled msg.reqest - ${message}`);
+		}
+
+	}
+    catch (e) {
+		if (callee_type == "udp") {
+			console.log(`Couldn't parse message: ${message.toString()} from ${rinfo.address}:${rinfo.port}`);
+		} else if (callee_type == "mqtt") {
+			console.log(`Couldn't parse message: ${message.toString()}`);
+		}
+		console.log(e);
+		return;
+	}
+}
+
 
 const connectUrl = 'mqtt://localhost'
 var client = mqtt.connect(connectUrl)
@@ -408,9 +541,12 @@ client.on('message', (topic, message) => {
 			/*	The "EOI" request isn't actually needed/used by MQTT clients
 			*	but is included for symmetry with other clients e.g. UDP
 			*/
+			/* Now handled by request_message_process()
 		    console.log("EOI request from: " + topic)
    			client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_EOI", "data":"OK"}), {qos:qos,retain:false});
 			send_udp_message(JSON.stringify({"topic":"/xkeys/server","sid":ServerID,"request":"result_EOI","data":"OK"}));
+			request_message_process("mqtt", message, topic);
+			*/
 
         } else if (msg.request == "productList") {
 			// A list of all known products
@@ -601,10 +737,12 @@ function update_client_device_list (topic) {
 	//console.log("update_client_device_list(): " + JSON.stringify(device_list));
 	if (topic.length > 0) {
 		//console.log("Publish result_deviceList to:" + topic.replace("node","server"));
+		console.log("0");
    		client.publish(topic.replace("node","server"), JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
 		send_udp_message(JSON.stringify({"topic":topic.replace("node","server"),"sid":ServerID, "request":"result_deviceList", "data":device_list}));
 	} else {
 		//console.log("Publish result_deviceList");
+		console.log("1");
    		client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
 		send_udp_message(JSON.stringify({"topic":"/xkeys/server","sid":ServerID, "request":"result_deviceList", "data":device_list}));
 	}
@@ -631,26 +769,10 @@ udp_server.on('message', (message, rinfo) => {
 		msg = JSON.parse(message);
 		//console.log(`received msg: ${JSON.stringify(msg)}`);
 		if (msg.request == "EOI") {
-			//console.log("received an EOI message");
-			var udp_client_found = false;
-			for (var i=udp_clients.length;i>0;i--) {
-				udp_client_found = false;
-				if ((udp_clients[i-1].remote.address == rinfo.address) && (udp_clients[i-1].remote.port == rinfo.port)) {
-					udp_client_found = true;
-					break;
-				}
-			}
-			if (!udp_client_found) {
-				// New client
-				udp_clients.push({"timestamp":Date.now(), "remote":rinfo});
-				try {
-					udp_server.send(JSON.stringify({"topic":"/xkeys/server","sid":ServerID,"request":"result_EOI","data":"OK"}), rinfo.port, rinfo.address);
-				} catch (err) {
-					console.log("send_udp_message() error: " + err);
-				}
-				console.log(`New client at ${rinfo.address}:${rinfo.port}`);
-			}
-			/* Otherwise do nothing since we already have this client registered */
+			request_message_process("udp", message, rinfo);
+
+		} else if (msg.request == "DISCOVER") {
+			request_message_process("udp", message, rinfo);
 
 		} else if (msg.request == "deviceList") {
 			console.log("received request for deviceList");
@@ -658,7 +780,7 @@ udp_server.on('message', (message, rinfo) => {
 			for (const key of Object.keys(xkeys_devices) ) {
 				device_list[key] = xkeys_devices[key].device.info;
 			}
-			send_udp_message(JSON.stringify({"topic":"/xkeys/server","sid":ServerID, "request":"result_deviceList", "data":device_list}));
+			udp_server.send(JSON.stringify({"topic":"/xkeys/server","sid":ServerID,"request":"result_deviceList","data":device_list}), rinfo.port, rinfo.address);
 
 		} else if (msg.request == "productList") {
 			console.log("received request for productList");
@@ -685,6 +807,9 @@ udp_server.on('closed', (rinfo) => {
 
 udp_server.bind(udp_port, udp_host);
 
+/*	send_udp_message(msg)
+*	send the message to all known clients
+*/
 function send_udp_message (msg) {
 	//console.log("send_udp_message(), clients = " + udp_clients.length);
 	//console.log("send_udp_message(), mesg count = " + msgs.length);
