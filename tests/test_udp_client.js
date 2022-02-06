@@ -11,8 +11,15 @@
 */
 
 
+let target_serverId;
+const myArgs = process.argv.slice(2);
+if (myArgs.length > 0) {
+   target_serverId = myArgs[0];
+}
+
 const server_port = 48895;
 let server_addr;
+const discovered_hosts = [];
 
 const dgram = require('dgram');
 const client = dgram.createSocket('udp4');
@@ -29,9 +36,13 @@ client.on('message', (message, remote) => {
 		msg = JSON.parse(message);
 		if (msg.request == "result_DISCOVER") {
 			console.log(`Received a result_DISCOVER message. Server address: ${msg.data}`);
-			server_addr = msg.data;
-			client.setBroadcast(true);
-			send_udp_message(new Buffer.from('{"request":"EOI"}', 'UTF-8'));
+			if (discovered_hosts.find(entry => { return entry.data === msg.data ; }) ) {
+				/* We have already seen this server */
+				console.log(`Not adding duplicate ${msg.data}`);
+			} else {
+				console.log(`Adding server: ${JSON.stringify(msg)}`);
+				discovered_hosts.push(msg);
+			}
 		} else if (msg.request == "result_EOI") {
 			if (msg.data == "OK") {
 				   console.log(`EOI was accepted by ${msg.sid}`);
@@ -44,7 +55,7 @@ client.on('message', (message, remote) => {
 			if (device_keys.length > 0 ){
 				/* Choose a device randomly to display */
 				var choice = Math.floor(Math.random() * device_keys.length);
-				console.log(`Showing number ${choice} of ${device_keys.length} attached devices:`);
+				console.log(`Showing number ${(choice + 1)} of ${device_keys.length} attached device(s):`);
 				console.log(JSON.stringify(msg.data[device_keys[choice]], null, 2));
 			} else {
 				console.log(`No devices attached at ${msg.sid}`);
@@ -54,7 +65,7 @@ client.on('message', (message, remote) => {
 			if (product_keys.length > 0 ){
 				/* Choose a device randomly to display */
 				var choice = Math.floor(Math.random() * product_keys.length);
-				console.log(`Showing number ${choice} of ${product_keys.length} products:`);
+				console.log(`Showing number ${(choice + 1)} of ${product_keys.length} product(s):`);
 				console.log(JSON.stringify(msg.data[product_keys[choice]]));
 			} else {
 				console.log(`No products available at ${msg.sid}`);
@@ -95,19 +106,60 @@ send_udp_message = (message) => {
 	});
 }
 
+choose_server = (sid) => {
+	if (discovered_hosts.length == 0) {
+		/* No servers found so try again
+		*/
+		console.log("Finding server ...");
+		try {
+			client.setBroadcast(true);
+		}
+		catch (err) {
+		}
+		client.send(discovery_message, 0, discovery_message.length, server_port, '255.255.255.255', function(err, bytes) { });
+		setTimeout(choose_server, 1000, sid);
+	} else {
+		if (sid) {
+			/* Extract the entry with matching SID
+			*/
+			const target = discovered_hosts.find(entry => { return entry.sid === sid ; });
+			if (target) {
+				console.log(`Choice: ${target.sid} at ${target.data}`);
+				server_addr = target.data;
+				client.setBroadcast(false);
+				begin_normal_operations();
+			} else {
+				/* Something went wrong so start all over */
+				console.log(`Couldn't find server with SID matching ${sid}`);
+				console.log("Finding server ...");
+				socket.send(message, 0, message.length, discover_port, '255.255.255.255', function(err, bytes) { });
+				setTimeout(choose_server, 1000, sid);
+			}
+		} else {
+			var choice = discovered_hosts[0];
+			console.log(`Choosing server: ${choice.sid} at ${choice.data}`);
+			server_addr = choice.data;
+			client.setBroadcast(false);
+			begin_normal_operations();
+		}
+	}
+}
+
+
 
 /* This is where we start doing things:
 *	- send DISCOVERY
+*	- choose server from respondents
 *	- send EOI
 *	- some time later, request a list of devices attached to the server
 *	- some time later, request a list of known products
 */
 
-/* Find the xkeys-server
+/*	Find the xkeys-server
+*	See discovery.js for detail on how this works.
 */
 var discovery_message = new Buffer.from('{"request":"DISCOVER"}');
-client.send(discovery_message, 0, discovery_message.length, server_port, '255.255.255.255', function(err, bytes) {
-});
+choose_server(target_serverId);
 
 
 begin_normal_operations = () => {
