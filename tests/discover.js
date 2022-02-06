@@ -70,9 +70,9 @@ choose_server = (sid) => {
 		if (sid) {
 			/*	 From discovered_hosts[], extract the entry whose sid matches
 			*/
-			const target = discovered_hosts.find(entry => { return entry.sid === sid ; });
-			if (target) {
-				console.log(`Choice: ${target.sid} at ${target.data}`);
+			const choice = discovered_hosts.find(entry => { return entry.sid === sid ; });
+			if (choice) {
+				console.log(`Choice: ${choice.sid} at ${choice.data}`);
 			} else {
 				/* Something went wrong so start all over */
 				console.log(`Couldn't find server with SID matching ${sid}`);
@@ -81,9 +81,13 @@ choose_server = (sid) => {
 				setTimeout(choose_server, 1000, sid);
 			}
 		} else {
-			var choice = discovered_hosts[0];
+			const choice = discovered_hosts[0];
 			console.log(`Choice: ${choice.sid} at ${choice.data}`);
 		}
+		/*	Having chosen a server, an EOI message would usually be sent now
+		*	but since we're just demonstrating discovery here,
+		*	close the socket and exit.
+		*/
 		socket.close();
 	}
 }

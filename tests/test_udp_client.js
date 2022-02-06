@@ -71,17 +71,16 @@ client.on('message', (message, remote) => {
 				console.log(`No products available at ${msg.sid}`);
 			}
 		} else if (msg.request == "device_event") {
-			//console.log(JSON.stringify(JSON.parse(message)));
-			/* FILTER for only "down" events
+			/*	See all events */
+			console.log(JSON.stringify(JSON.parse(message)));
+
+			/* OR, to filter to see only "down" events
 			*  - could be "up", "tbar", "jog", "shuttle", ...
 			*
-			*	To see without filtering i.e. see all events
-			*	remove (or comment out) the following 'if' statement
+				if (msg.data.type == "down") {
+					console.log(msg);
+				}
 			*/
-			if (msg.data.type == "down") {
-				//console.log(JSON.stringify(msg, null, 2));
-				console.log(msg);
-			}
 		} else {
 		}
 	}
@@ -90,6 +89,7 @@ client.on('message', (message, remote) => {
 });
 
 send_udp_message = (message) => {
+	/*	Before sending message, check that it's valid JSON */
 	var msg = "";
 	try {
 		msg = JSON.parse(message);
@@ -97,7 +97,9 @@ send_udp_message = (message) => {
 	catch (err) {
 		console.log(`Not sending invalid message: ${message}`);
 		console.log(err);
+		return;
 	}
+
 	client.send(message, 0, message.length, server_port, server_addr, (err, bytes) => {
 		if (err) {
 			throw err;
@@ -127,7 +129,7 @@ choose_server = (sid) => {
 				console.log(`Choice: ${target.sid} at ${target.data}`);
 				server_addr = target.data;
 				client.setBroadcast(false);
-				begin_normal_operations();
+				send_udp_message(new Buffer.from('{"request":"EOI"}', 'UTF-8'));
 			} else {
 				/* Something went wrong so start all over */
 				console.log(`Couldn't find server with SID matching ${sid}`);
@@ -140,7 +142,7 @@ choose_server = (sid) => {
 			console.log(`Choosing server: ${choice.sid} at ${choice.data}`);
 			server_addr = choice.data;
 			client.setBroadcast(false);
-			begin_normal_operations();
+			send_udp_message(new Buffer.from('{"request":"EOI"}', 'UTF-8'));
 		}
 	}
 }
@@ -150,7 +152,7 @@ choose_server = (sid) => {
 /* This is where we start doing things:
 *	- send DISCOVERY
 *	- choose server from respondents
-*	- send EOI
+*	- send EOI to chosen server
 *	- some time later, request a list of devices attached to the server
 *	- some time later, request a list of known products
 */
