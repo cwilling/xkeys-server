@@ -737,12 +737,10 @@ function update_client_device_list (topic) {
 	//console.log("update_client_device_list(): " + JSON.stringify(device_list));
 	if (topic.length > 0) {
 		//console.log("Publish result_deviceList to:" + topic.replace("node","server"));
-		console.log("0");
    		client.publish(topic.replace("node","server"), JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
 		send_udp_message(JSON.stringify({"topic":topic.replace("node","server"),"sid":ServerID, "request":"result_deviceList", "data":device_list}));
 	} else {
 		//console.log("Publish result_deviceList");
-		console.log("1");
    		client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
 		send_udp_message(JSON.stringify({"topic":"/xkeys/server","sid":ServerID, "request":"result_deviceList", "data":device_list}));
 	}
