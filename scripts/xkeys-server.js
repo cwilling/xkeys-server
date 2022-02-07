@@ -78,13 +78,13 @@ for (const product of Object.values(PRODUCTS)) {
 *		            is rinfo (object) of a UDP message
 */
 request_message_process = (type, message, ...moreArgs) => {
-	var callee_type = type.toLowerCase();
+	var msg_transport = type.toLowerCase();
 	let topic;
 	let rinfo;
 
-	if (callee_type == "udp") {
+	if (msg_transport == "udp") {
 		rinfo = moreArgs[0];
-	} else if (callee_type == "mqtt") {
+	} else if (msg_transport == "mqtt") {
 		topic = moreArgs[0];
 	}
 
@@ -92,11 +92,19 @@ request_message_process = (type, message, ...moreArgs) => {
     var msg = ""
     try {
 		msg = JSON.parse(message);
-		console.log(`${callee_type} message request: ${msg.request}`);
-		switch (msg.request) {
+		/*	Accommodate new message structure */
+		let msg_type;
+		if (msg.hasOwnProperty('msg_type')) {
+			msg_type = 'msg_type'; 
+		} else {
+			msg_type = 'request'; 
+		}
+		console.log(`${msg_transport} message request: ${msg[msg_type]}`);
+
+		switch (msg[msg_type]) {
 			case "DISCOVER":
-				/*	Since we exist on 0.0.0.0 i.e. every available interface
-				*	therefore possibly multiple IP addresses,
+				/*	Since we exist on 0.0.0.0 i.e. every available interface,
+				*	and therefore have possibly multiple IP addresses,
 				*	find the best IP address to provide the client with.
 				*/
 				const nifs = networkInterfaces();
@@ -140,17 +148,17 @@ request_message_process = (type, message, ...moreArgs) => {
 					return;
 				}
 
-				if (callee_type == "udp") {
+				if (msg_transport == "udp") {
 					//console.log("sending result_DISCOVER message");
-					udp_server.send(JSON.stringify({"topic":"/xkeys/server","sid":ServerID,"request":"result_DISCOVER","data":address_match}), rinfo.port, rinfo.address);
-				} else if (callee_type == "mqtt") {
+					udp_server.send(JSON.stringify({"sid":ServerID,"msg_type":"result_DISCOVER","data":address_match}), rinfo.port, rinfo.address);
+				} else if (msg_transport == "mqtt") {
 					console.log("DISCOVER message via MQTT");
 				} else {
 					console.log(`request_message_process(): UNKNOWN TYPE msg.request was ${msg.request}`);
 				}
 				break;
 			case "EOI":
-				if (callee_type == "udp") {
+				if (msg_transport == "udp") {
 					console.log("request_message_process(): UDP msg.request was EOI");
 					var udp_client_found = false;
 					for (var i=udp_clients.length;i>0;i--) {
@@ -164,7 +172,7 @@ request_message_process = (type, message, ...moreArgs) => {
 						// New client
 						udp_clients.push({"timestamp":Date.now(), "remote":rinfo});
 						try {
-							udp_server.send(JSON.stringify({"topic":"/xkeys/server","sid":ServerID,"request":"result_EOI","data":"OK"}), rinfo.port, rinfo.address);
+							udp_server.send(JSON.stringify({"sid":ServerID,"msg_type":"result_EOI","data":"OK"}), rinfo.port, rinfo.address);
 						} catch (err) {
 							console.log("send_udp_message() error: " + err);
 						}
@@ -172,7 +180,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					}
 					/* Otherwise do nothing since we already have this client registered */
 
-				} else if (callee_type == "mqtt") {
+				} else if (msg_transport == "mqtt") {
 					console.log("request_message_process(): MQTT msg.request was EOI");
 					/*	EOI isn't really part of MQTT establishment.
 					*	Should we dignify it with a response?
@@ -190,16 +198,16 @@ request_message_process = (type, message, ...moreArgs) => {
 					device_list[key] = xkeys_devices[key].device.info;
 				}
 
-				if (callee_type == "udp") {
-					udp_server.send(JSON.stringify({"topic":"/xkeys/server","sid":ServerID,"request":"result_deviceList","data":device_list}), rinfo.port, rinfo.address);
-				} else if (callee_type == "mqtt") {
+				if (msg_transport == "udp") {
+					udp_server.send(JSON.stringify({"sid":ServerID,"msg_type":"result_deviceList","data":device_list}), rinfo.port, rinfo.address);
+				} else if (msg_transport == "mqtt") {
 					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
 				}
 				break;
 			case "productList":
-				if (callee_type == "udp") {
-					udp_server.send(JSON.stringify({"topic":"/xkeys/server","sid":ServerID,"request":"result_productList","data":PRODUCTS}), rinfo.port, rinfo.address);
-				} else if (callee_type == "mqtt") {
+				if (msg_transport == "udp") {
+					udp_server.send(JSON.stringify({"sid":ServerID,"msg_type":"result_productList","data":PRODUCTS}), rinfo.port, rinfo.address);
+				} else if (msg_transport == "mqtt") {
 					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
 				}
 				break;
@@ -358,8 +366,8 @@ request_message_process = (type, message, ...moreArgs) => {
 				});
 
 				/*	Nothing to do but ... */
-				if (callee_type == "udp") {
-				} else if (callee_type == "mqtt") {
+				if (msg_transport == "udp") {
+				} else if (msg_transport == "mqtt") {
 				}
 				break;
 			default:
@@ -368,9 +376,9 @@ request_message_process = (type, message, ...moreArgs) => {
 
 	}
     catch (e) {
-		if (callee_type == "udp") {
+		if (msg_transport == "udp") {
 			console.log(`Couldn't parse message: ${message.toString()} from ${rinfo.address}:${rinfo.port}`);
-		} else if (callee_type == "mqtt") {
+		} else if (msg_transport == "mqtt") {
 			console.log(`Couldn't parse message: ${message.toString()}`);
 		}
 		console.log(e);
@@ -440,8 +448,12 @@ client.on('connect', () => {
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					msg_pload["topic"] = msg_topic;
-					send_udp_message(JSON.stringify(msg_pload));
+					// This is the new format
+					// value = 1 for down, 0 for up
+					var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
+									"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
+									"value":"1","timestamp":metadata.timestamp};
+					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -458,8 +470,12 @@ client.on('connect', () => {
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						msg_pload["topic"] = msg_topic;
-						send_udp_message(JSON.stringify(msg_pload));
+						// This is the new format
+						// value = 1 for down, 0 for up
+						var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
+										"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
+										"value":"1","timestamp":metadata.timestamp};
+						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
@@ -475,8 +491,12 @@ client.on('connect', () => {
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					msg_pload["topic"] = msg_topic;
-					send_udp_message(JSON.stringify(msg_pload));
+					// This is the new format
+					// value = 1 for down, 0 for up
+					var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
+									"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
+									"value":"0","timestamp":metadata.timestamp};
+					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -493,8 +513,12 @@ client.on('connect', () => {
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						msg_pload["topic"] = msg_topic;
-						send_udp_message(JSON.stringify(msg_pload));
+						// This is the new format
+						// value = 1 for down, 0 for up
+						var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
+										"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
+										"value":"0","timestamp":metadata.timestamp};
+						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
@@ -511,8 +535,10 @@ client.on('connect', () => {
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					msg_pload["topic"] = msg_topic;
-					send_udp_message(JSON.stringify(msg_pload));
+					// This is the new format
+					var msg_udp = {"sid":ServerID,"msg_type":"jog_event","device":xkeys_products[pid.toString()],
+									"pid":pid,"uid":uid,"index":index,"value":deltaPos,"timestamp":metadata.timestamp};
+					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -530,8 +556,10 @@ client.on('connect', () => {
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						msg_pload["topic"] = msg_topic;
-						send_udp_message(JSON.stringify(msg_pload));
+						// This is the new format
+						var msg_udp = {"sid":ServerID,"msg_type":"jog_event","device":xkeys_products[pid.toString()],
+										"pid":pid,"uid":uid,"index":index,"value":deltaPos,"timestamp":metadata.timestamp};
+						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
@@ -548,8 +576,10 @@ client.on('connect', () => {
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					msg_pload["topic"] = msg_topic;
-					send_udp_message(JSON.stringify(msg_pload));
+					// This is the new format
+					var msg_udp = {"sid":ServerID,"msg_type":"shuttle_event","device":xkeys_products[pid.toString()],
+									"pid":pid,"uid":uid,"index":index,"value":shuttlePos,"timestamp":metadata.timestamp};
+					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -567,8 +597,10 @@ client.on('connect', () => {
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						msg_pload["topic"] = msg_topic;
-						send_udp_message(JSON.stringify(msg_pload));
+						// This is the new format
+						var msg_udp = {"sid":ServerID,"msg_type":"shuttle_event","device":xkeys_products[pid.toString()],
+										"pid":pid,"uid":uid,"index":index,"value":shuttlePos,"timestamp":metadata.timestamp};
+						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
@@ -585,8 +617,11 @@ client.on('connect', () => {
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					msg_pload["topic"] = msg_topic;
-					send_udp_message(JSON.stringify(msg_pload));
+					// This is the new format
+					var msg_udp = {"sid":ServerID,"msg_type":"joystick_event","device":xkeys_products[pid.toString()],
+									"pid":pid,"uid":uid,"index":index,
+									"x":position.x,"y":position.y,"z":position.z,"deltaZ":position.deltaZ,"timestamp":metadata.timestamp};
+					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -604,8 +639,11 @@ client.on('connect', () => {
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						msg_pload["topic"] = msg_topic;
-						send_udp_message(JSON.stringify(msg_pload));
+						// This is the new format
+						var msg_udp = {"sid":ServerID,"msg_type":"joystick_event","device":xkeys_products[pid.toString()],
+										"pid":pid,"uid":uid,"index":index,
+										"x":position.x,"y":position.y,"z":position.z,"deltaZ":position.deltaZ,"timestamp":metadata.timestamp};
+						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
@@ -622,8 +660,10 @@ client.on('connect', () => {
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					msg_pload["topic"] = msg_topic;
-					send_udp_message(JSON.stringify(msg_pload));
+					// This is the new format
+					var msg_udp = {"sid":ServerID,"msg_type":"tbar_event","device":xkeys_products[pid.toString()],
+									"pid":pid,"uid":uid,"index":index, "value":position,"timestamp":metadata.timestamp};
+					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
@@ -641,8 +681,10 @@ client.on('connect', () => {
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						msg_pload["topic"] = msg_topic;
-						send_udp_message(JSON.stringify(msg_pload));
+						// This is the new format
+						var msg_udp = {"sid":ServerID,"msg_type":"tbar_event","device":xkeys_products[pid.toString()],
+										"pid":pid,"uid":uid,"index":index, "value":position,"timestamp":metadata.timestamp};
+						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
@@ -713,45 +755,7 @@ client.on('connect', () => {
 */
 client.on('message', (topic, message) => {
     //console.log('received message：', topic, message.toString())
-
-    var msg = ""
-    try {
-	msg = JSON.parse(message)
-        if (msg.request == "hello") {
-		    console.log("HELLO request from: " + topic)
-
-        } else if (msg.request == "DISCOVER") {
-			/*	The "DISCOVER" request isn't actually needed/used by MQTT clients
-			*	but is included for symmetry with other clients e.g. UDP
-			*/
-			request_message_process("mqtt", message, topic);
-
-        } else if (msg.request == "EOI") {
-			/*	The "EOI" request isn't actually needed/used by MQTT clients
-			*	but is included for symmetry with other clients e.g. UDP
-			*/
-			request_message_process("mqtt", message, topic);
-
-        } else if (msg.request == "productList") {
-			request_message_process("mqtt", message, topic);
-
-        } else if (msg.request == "deviceList") {
-			request_message_process("mqtt", message, topic);
-
-        } else if (msg.request == "method") {
-			request_message_process("mqtt", message, topic);
-        } else {
-            console.log(`Unknown message request: ${msg.request} from ${topic}`)
-        }
-    }
-    catch (e) {
-		console.log("Couldn't parse message: ${message.toString()} from ${topic}")
-		console.log(e)
-		return;
-    }
-
-
-
+	request_message_process("mqtt", message, topic);
 })
 
 // Send a (possibly unsolicited) device list
@@ -774,7 +778,7 @@ function update_client_device_list (topic) {
 	}
 }
 
-function sendHeartbeat (client) {
+sendHeartbeat = (client) => {
 	//console.log("heartbeat");
   	client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"heartbeat"}), {qos:qos,retain:false});
 }
@@ -788,36 +792,7 @@ udp_server.on('error', (err) => {
 
 udp_server.on('message', (message, rinfo) => {
 	//console.log(`Client message \"${message}\" from ${rinfo.address}:${rinfo.port}`);
-
-	/* Does the message comply? */
-    var msg = ""
-    try {
-		msg = JSON.parse(message);
-		//console.log(`received msg: ${JSON.stringify(msg)}`);
-		if (msg.request == "DISCOVER") {
-			request_message_process("udp", message, rinfo);
-
-		} else if (msg.request == "EOI") {
-			request_message_process("udp", message, rinfo);
-
-		} else if (msg.request == "deviceList") {
-			request_message_process("udp", message, rinfo);
-
-		} else if (msg.request == "productList") {
-			request_message_process("udp", message, rinfo);
-
-		} else if (msg.request == "method") {
-			request_message_process("udp", message, rinfo);
-
-		} else {
-			console.log(`Unknown UDP message request: ${JSON.stringify(msg)}`);
-		}
-	}
-    catch (e) {
-		console.log(`Couldn't parse message: ${message.toString()} from ${rinfo.address}:${rinfo.port}`);
-		console.log(e);
-		return;
-	}
+	request_message_process("udp", message, rinfo);
 });
 
 udp_server.on('listening', () => {
@@ -835,7 +810,7 @@ udp_server.bind(udp_port, udp_host);
 */
 function send_udp_message (msg) {
 	//console.log("send_udp_message(), clients = " + udp_clients.length);
-	//console.log("send_udp_message(), mesg count = " + msgs.length);
+	//console.log("send_udp_message(), mesg = " + msg);
 	for (var i=udp_clients.length;i>0;i--) {
 		var rinfo = udp_clients[i-1].remote;
 		try {

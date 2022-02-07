@@ -37,12 +37,18 @@ var socket = dgram.createSocket("udp4");
 socket.bind( () => {
 	socket.setBroadcast(true);
 });
-var message = new Buffer.from('{"request":"DISCOVER"}');
+var message = new Buffer.from('{"msg_type":"DISCOVER"}');
 
 socket.on("message", (message, rinfo) => {
 	const msg = JSON.parse(message);
+	let msg_type;
+	if (msg.hasOwnProperty('msg_type')) {
+		msg_type = 'msg_type';
+	} else {
+		msg_type = 'request';
+	}
 	/* Check it's a message type we're interested in */
-	if (msg.request == "result_DISCOVER") {
+	if (msg[msg_type] == "result_DISCOVER") {
 		if (discovered_hosts.find(entry => { return entry.data === msg.data ; }) ) {
 			console.log(`Not adding duplicate ${msg.data}`);
 		} else {

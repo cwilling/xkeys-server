@@ -34,7 +34,13 @@ client.on('message', (message, remote) => {
 	var msg = "";
 	try{
 		msg = JSON.parse(message);
-		if (msg.request == "result_DISCOVER") {
+		let msg_type;
+		if (msg.hasOwnProperty('msg_type')) {
+			msg_type = 'msg_type';
+		} else {
+			msg_type = 'request';
+		}
+		if (msg[msg_type] == "result_DISCOVER") {
 			console.log(`Received a result_DISCOVER message. Server address: ${msg.data}`);
 			if (discovered_hosts.find(entry => { return entry.data === msg.data ; }) ) {
 				/* We have already seen this server */
@@ -43,14 +49,14 @@ client.on('message', (message, remote) => {
 				console.log(`Adding server: ${JSON.stringify(msg)}`);
 				discovered_hosts.push(msg);
 			}
-		} else if (msg.request == "result_EOI") {
+		} else if (msg[msg_type] == "result_EOI") {
 			if (msg.data == "OK") {
 				   console.log(`EOI was accepted by ${msg.sid}`);
 				   begin_normal_operations();
 			} else {
 				   console.log(`EOI not accepted, returned: ${JSON.stringify(msg)}`);
 			}
-		} else if (msg.request == "result_deviceList") {
+		} else if (msg[msg_type] == "result_deviceList") {
 			var device_keys = Object.keys(msg.data);
 			if (device_keys.length > 0 ){
 				/* Choose a device randomly to display */
@@ -60,7 +66,7 @@ client.on('message', (message, remote) => {
 			} else {
 				console.log(`No devices attached at ${msg.sid}`);
 			}
-		} else if (msg.request == "result_productList") {
+		} else if (msg[msg_type] == "result_productList") {
 			var product_keys = Object.keys(msg.data);
 			if (product_keys.length > 0 ){
 				/* Choose a device randomly to display */
@@ -70,7 +76,7 @@ client.on('message', (message, remote) => {
 			} else {
 				console.log(`No products available at ${msg.sid}`);
 			}
-		} else if (msg.request == "device_event") {
+		} else if (/.*_event/.exec(msg[msg_type])) {
 			/*	See all events */
 			console.log(JSON.stringify(JSON.parse(message)));
 
@@ -104,7 +110,7 @@ send_udp_message = (message) => {
 		if (err) {
 			throw err;
 		}
-		console.log(`Sending ${msg.request} request to ${server_addr}:${server_port}`);
+		console.log(`Sending ${msg["msg_type"]} request to ${server_addr}:${server_port}`);
 	});
 }
 
@@ -129,12 +135,12 @@ choose_server = (sid) => {
 				console.log(`Choice: ${target.sid} at ${target.data}`);
 				server_addr = target.data;
 				client.setBroadcast(false);
-				send_udp_message(new Buffer.from('{"request":"EOI"}', 'UTF-8'));
+				send_udp_message(new Buffer.from('{"msg_type":"EOI"}', 'UTF-8'));
 			} else {
 				/* Something went wrong so start all over */
 				console.log(`Couldn't find server with SID matching ${sid}`);
 				console.log("Finding server ...");
-				socket.send(message, 0, message.length, discover_port, '255.255.255.255', function(err, bytes) { });
+				client.send(discovery_message, 0, discovery_message.length, server_port, '255.255.255.255', function(err, bytes) { });
 				setTimeout(choose_server, 1000, sid);
 			}
 		} else {
@@ -142,7 +148,7 @@ choose_server = (sid) => {
 			console.log(`Choosing server: ${choice.sid} at ${choice.data}`);
 			server_addr = choice.data;
 			client.setBroadcast(false);
-			send_udp_message(new Buffer.from('{"request":"EOI"}', 'UTF-8'));
+			send_udp_message(new Buffer.from('{"msg_type":"EOI"}', 'UTF-8'));
 		}
 	}
 }
@@ -163,18 +169,18 @@ choose_server = (sid) => {
 /*	Find the xkeys-server
 *	See discovery.js for detail on how this works.
 */
-var discovery_message = new Buffer.from('{"request":"DISCOVER"}');
+var discovery_message = new Buffer.from('{"msg_type":"DISCOVER"}');
 choose_server(target_serverId);
 
 
 begin_normal_operations = () => {
 	/*	At intervals, request some things.
 	*/
-	setTimeout(send_udp_message, 9000, (new Buffer.from('{"request":"deviceList"}', 'UTF-8')));
-	setTimeout(send_udp_message, 18000, (new Buffer.from('{"request":"productList"}', 'UTF-8')));
+	setTimeout(send_udp_message, 9000, (new Buffer.from('{"msg_type":"deviceList"}', 'UTF-8')));
+	setTimeout(send_udp_message, 18000, (new Buffer.from('{"msg_type":"productList"}', 'UTF-8')));
 
-	setTimeout(send_udp_message, 4000, (new Buffer.from('{"request":"method","pid_list":[],"uid":"","name":"setIndicatorLED","params":[["2"],true,true]}', 'UTF-8')));
-	setTimeout(send_udp_message, 15000, (new Buffer.from('{"request":"method","pid_list":[],"uid":"","name":"setIndicatorLED","params":[["2"],false]}', 'UTF-8')));
+	setTimeout(send_udp_message, 4000, (new Buffer.from('{"msg_type":"method","pid_list":[],"uid":"","name":"setIndicatorLED","params":[["2"],true,true]}', 'UTF-8')));
+	setTimeout(send_udp_message, 15000, (new Buffer.from('{"msg_type":"method","pid_list":[],"uid":"","name":"setIndicatorLED","params":[["2"],false]}', 'UTF-8')));
 }
 
 
