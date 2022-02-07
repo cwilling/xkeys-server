@@ -4,8 +4,6 @@
 process.env.UV_THREADPOOL_SIZE = 48;
 
 const { hostname, networkInterfaces } = require('os');
-//const os = require('os')
-//const ServerID = os.hostname()
 const ServerID = hostname()
 console.log("ServerID = " + ServerID);
 
@@ -41,12 +39,13 @@ Object.entries(PRODUCTS).forEach(entry => {
 
 /*
 Proposed Topic heirarchy:
-	'/xkeys/SRC/PID/UID/MSG'
+	'/xkeys/SRC/PID/UID/index'
 where:
 	SRC = source of msg - probably: server|node
 	PID = X-keys product id
 	UID = X-keys unit id (or devicePath if UID == 0)
-	MSG = message data
+	index = device dependent index value
+			e.g. button id
 
 Server will listen to:
 	/xkeys/node/#
@@ -54,24 +53,18 @@ Server will listen to:
 Nodes could listen to (filtering appropriately):
 	/xkeys/server/#
 or:
-	xkeys/#
-
-*/
-
-/*
-console.log("Products: " + JSON.stringify(PRODUCTS));
-for (const product of Object.values(PRODUCTS)) {
-	//console.log("Product: " + JSON.stringify(product));
-	//console.log("Product: " + product.name);
-}
+	/xkeys/#
+or, more specifically:
+	/xkeys/server/pid/uid
+	i.e. messages intended for a specific node only
 */
 
 /*	request_message_process()
 *
-*	Generic request processor to which all client
-*	types (MQTT, UDP) send their request messages.
+*	Generic request processor through which all transport
+*	types (MQTT, UDP) request messages are processed.
 *
-*	type: string describing callee origin ("MQTT"|"UDP"|...)
+*	type: string describing caller origin ("MQTT"|"UDP"|...)
 *	message: JSON format string
 *   moreArgs: array of additional args
 *		moreArgs[0] is the topic (string) of an MQTT message
@@ -375,13 +368,17 @@ request_message_process = (type, message, ...moreArgs) => {
 		}
 
 	}
-    catch (e) {
+    catch (err) {
+		/*	message doesn't comply in some way - either:
+		*	- can't JSON.parse it
+		*	- some error processing it
+		*/
 		if (msg_transport == "udp") {
 			console.log(`Couldn't parse message: ${message.toString()} from ${rinfo.address}:${rinfo.port}`);
 		} else if (msg_transport == "mqtt") {
 			console.log(`Couldn't parse message: ${message.toString()}`);
 		}
-		console.log(e);
+		console.log(err);
 		return;
 	}
 }
@@ -452,7 +449,7 @@ client.on('connect', () => {
 					// value = 1 for down, 0 for up
 					var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
 									"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
-									"value":"1","timestamp":metadata.timestamp};
+									"value":1,"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
@@ -474,7 +471,7 @@ client.on('connect', () => {
 						// value = 1 for down, 0 for up
 						var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
 										"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
-										"value":"1","timestamp":metadata.timestamp};
+										"value":1,"timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
@@ -495,7 +492,7 @@ client.on('connect', () => {
 					// value = 1 for down, 0 for up
 					var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
 									"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
-									"value":"0","timestamp":metadata.timestamp};
+									"value":0,"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
@@ -517,7 +514,7 @@ client.on('connect', () => {
 						// value = 1 for down, 0 for up
 						var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
 										"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
-										"value":"0","timestamp":metadata.timestamp};
+										"value":0,"timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
