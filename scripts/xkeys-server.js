@@ -203,6 +203,165 @@ request_message_process = (type, message, ...moreArgs) => {
 					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
 				}
 				break;
+			case "method":
+				/*
+				*	Expect msg = {request:"method", pid_list:[e0,e1,...,eN], uid:UID, name:METHODNAME, params:[p0,p1,...,pN]}
+				*	where p0 = [k1,k2,...,kN] (dependent on method name)
+				*/
+				console.log("method request: " + message);
+				var devices = [];
+				Object.keys(xkeys_devices).forEach(function (item) {
+					//console.log("xkeys_devices item:" + item);
+					/*
+					*	pid_list == [] means target any attached device.
+					*/
+					if (msg.pid_list.length == 0) {
+						var regex;
+						if (msg.uid) {
+							//console.log("uid check: " + msg.uid);
+							regex = new RegExp("_" + msg.uid);
+							if (item.search(regex) > -1) {
+								//console.log("Found usable device: " + item);
+								devices.push(item);
+							}
+						} else {
+							// No UID specified. Anything goes!
+							devices.push(item);
+						}
+					} else {
+						msg.pid_list.forEach(function (ep) {
+							//console.log("Checking endpoint: " + ep);
+							var regex;
+							if (msg.uid) {
+								//console.log("uid check: " + msg.uid);
+								regex = new RegExp(ep + "_" + msg.uid);
+								if (item.search(regex) > -1) {
+									//console.log("Found usable device: " + item);
+									devices.push(item);
+								}
+							} else {
+								//console.log("uid check: (none)");
+								regex = new RegExp(ep + "_");
+								if (item.search(regex) > -1) {
+									//console.log("Found usable device: " + item);
+									devices.push(item);
+								}
+							}
+						})
+					}
+				});
+				devices.forEach( function (device) {
+					if (msg.name == "setIndicatorLED") {
+						//console.log("setIndicatorLED(): ");
+						/*
+						*	For each device matching pid_list & uid, call the named method with given params.
+						*	param p0 (msg.params[0]) is an array of led# to target, typically 1, 2, or 1 & 2.
+						*	param p1 (msg.params[1]) is a boolean denoting whether to turn LED on or off
+						*	param p2 (msg.params[2]) is a boolean denoting whether LED should be flashing or not
+						*/
+						// Determine which led(s) to target
+						msg.params[0].forEach( function (ledid) {
+							// Is ledid a valid number (1 or 2)
+							if (isNaN(parseInt(ledid))) { return; }
+
+							// Run it
+							if ( msg.params.length > 2 ) {
+								//console.log("Running: setIndicatorLED(" + parseInt(ledid) + "," + msg.params[1] + "," + msg.params[2] + ")");
+								xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1], msg.params[2]);
+							} else {
+								xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1]);
+							}
+						});
+
+					} else if (msg.name == "writeLcdDisplay") {
+						/*
+						*	Parameter p0 (msg.params[0]) is an array of strings (one entry for each line) for the device to display.
+						*/
+						// Determine what text to write to each line
+						for (var i=0;i<msg.params[0].length;i++) {
+							xkeys_devices[device].device.writeLcdDisplay(i+1, msg.params[0][i], msg.params[1]);
+						}
+
+					} else if (msg.name == "setFlashRate") {
+						/*
+							Flash rate is provided as parameter params[1]
+							(empty p0 is unused)
+						*/
+						if (isNaN(parseInt(msg.params[1]))) { return; }
+						xkeys_devices[device].device.setFrequency(parseInt(msg.params[1]));
+
+					} else if (msg.name == "setUnitID") {
+						/*
+						*	The new UnitID provided as parameter params[1]
+							(empty p0 is unused)
+						*/
+						//console.log("About to run: setUnitId(" + parseInt(msg.params[1]) + ")");
+						xkeys_devices[device].device.setUnitId(parseInt(msg.params[1]));
+
+						// Reboot this "new" device so that it is noticed by the system
+						xkeys_devices[device].device.rebootDevice();
+
+						// Remove the _old_ device from our local record
+						const regex = /_.*/;
+						var old_id = xkeys_devices[device].device.uniqueId.replace(regex, "_"+msg.uid);
+						if (Object.keys(xkeys_devices).includes(old_id)) {
+							//console.log("deleting: " + old_id);
+							delete xkeys_devices[old_id];
+						}
+
+					} else if (msg.name == "setBacklight") {
+						/*
+						*	For backlights, msg.params[0] is an array of buttonids to activate
+						*	                msg.params[1] is the hue to set
+						*	                msg.params[2] is true/false (flashing mode or not)
+						*/
+						/*
+						// Does this device have a backlight?
+						if (xkeys_devices[device].device.product.backLightType == 0 ) {
+							console.log("no backlight for " + xkeys_devices[device].device.product.name);
+							return;
+						}
+						*/
+
+						msg.params[0].forEach( (key) => {
+							// key must represent a valid number
+							var buttonid = parseInt(key);
+							if (isNaN(buttonid)) { return; }
+
+							//console.log("Running: setBacklight(" + buttonid + "," + msg.params[1] + "," + msg.params[2] + ")");
+							xkeys_devices[device].device.setBacklight(buttonid, msg.params[1], msg.params[2]);
+						});
+
+					} else if (msg.name == "setAllBacklights") {
+						//console.log("Running: setAllBacklights(" + msg.params[1] + ")");
+						xkeys_devices[device].device.setAllBacklights(msg.params[1]);
+
+					} else if (msg.name == "setBacklightIntensity") {
+						/*
+						*	params[0] is an array of intensity values (blue, red) 
+						*/
+						//console.log("Running: setBacklightIntensity(" + msg.params[0] + ") for " + xkeys_devices[device].device.product.name);
+
+						xkeys_devices[device].device.setBacklightIntensity(msg.params[0][0], msg.params[0][1]);
+
+					} else if (msg.name == "saveBackLights") {
+						//console.log("Running: saveBackLights() for " + xkeys_devices[device].device.product.name);
+						xkeys_devices[device].device.saveBackLights();
+
+					} else if (msg.name == "writeData") {
+						//console.log("Running: writeData(" + JSON.stringify(msg.params[0]) + ") for " + xkeys_devices[device].device.product.name);
+						xkeys_devices[device].device.writeData(msg.params[0]);
+
+					} else {
+						console.log("Unsupported library method: " + msg.name);
+					}
+				});
+
+				/*	Nothing to do but ... */
+				if (callee_type == "udp") {
+				} else if (callee_type == "mqtt") {
+				}
+				break;
 			default:
 				console.log(`request_message_process(): Unhandled msg.reqest - ${message}`);
 		}
@@ -580,158 +739,7 @@ client.on('message', (topic, message) => {
 			request_message_process("mqtt", message, topic);
 
         } else if (msg.request == "method") {
-			/*
-			*	Expect msg = {request:"method", pid_list:[e0,e1,...,eN], uid:UID, name:METHODNAME, params:[p0,p1,...,pN]}
-			*	where p0 = [k1,k2,...,kN] (dependent on method name)
-			*/
-			//console.log("method request: " + message);
-			var devices = [];
-			Object.keys(xkeys_devices).forEach(function (item) {
-				//console.log("xkeys_devices item:" + item);
-				/*
-				*	pid_list == [] means target any attached device.
-				*/
-				if (msg.pid_list.length == 0) {
-					var regex;
-					if (msg.uid) {
-						//console.log("uid check: " + msg.uid);
-						regex = new RegExp("_" + msg.uid);
-						if (item.search(regex) > -1) {
-							//console.log("Found usable device: " + item);
-							devices.push(item);
-						}
-					} else {
-						// No UID specified. Anything goes!
-						devices.push(item);
-					}
-				} else {
-					msg.pid_list.forEach(function (ep) {
-						//console.log("Checking endpoint: " + ep);
-						var regex;
-						if (msg.uid) {
-							//console.log("uid check: " + msg.uid);
-							regex = new RegExp(ep + "_" + msg.uid);
-							if (item.search(regex) > -1) {
-								//console.log("Found usable device: " + item);
-								devices.push(item);
-							}
-						} else {
-							//console.log("uid check: (none)");
-							regex = new RegExp(ep + "_");
-							if (item.search(regex) > -1) {
-								//console.log("Found usable device: " + item);
-								devices.push(item);
-							}
-						}
-					})
-				}
-			});
-			devices.forEach( function (device) {
-				if (msg.name == "setIndicatorLED") {
-					//console.log("setIndicatorLED(): ");
-					/*
-					*	For each device matching pid_list & uid, call the named method with given params.
-					*	param p0 (msg.params[0]) is an array of led# to target, typically 1, 2, or 1 & 2.
-					*	param p1 (msg.params[1]) is a boolean denoting whether to turn LED on or off
-					*	param p2 (msg.params[2]) is a boolean denoting whether LED should be flashing or not
-					*/
-					// Determine which led(s) to target
-					msg.params[0].forEach( function (ledid) {
-						// Is ledid a valid number (1 or 2)
-						if (isNaN(parseInt(ledid))) { return; }
-
-						// Run it
-						if ( msg.params.length > 2 ) {
-							//console.log("Running: setIndicatorLED(" + parseInt(ledid) + "," + msg.params[1] + "," + msg.params[2] + ")");
-							xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1], msg.params[2]);
-						} else {
-							xkeys_devices[device].device.setIndicatorLED(parseInt(ledid), msg.params[1]);
-						}
-					});
-
-				} else if (msg.name == "writeLcdDisplay") {
-					/*
-					*	Parameter p0 (msg.params[0]) is an array of strings (one entry for each line) for the device to display.
-					*/
-					// Determine what text to write to each line
-					for (var i=0;i<msg.params[0].length;i++) {
-						xkeys_devices[device].device.writeLcdDisplay(i+1, msg.params[0][i], msg.params[1]);
-					}
-
-				} else if (msg.name == "setFlashRate") {
-					/*
-						Flash rate is provided as parameter params[1]
-						(empty p0 is unused)
-					*/
-					if (isNaN(parseInt(msg.params[1]))) { return; }
-					xkeys_devices[device].device.setFrequency(parseInt(msg.params[1]));
-
-				} else if (msg.name == "setUnitID") {
-					/*
-					*	The new UnitID provided as parameter params[1]
-						(empty p0 is unused)
-					*/
-					//console.log("About to run: setUnitId(" + parseInt(msg.params[1]) + ")");
-					xkeys_devices[device].device.setUnitId(parseInt(msg.params[1]));
-
-					// Reboot this "new" device so that it is noticed by the system
-					xkeys_devices[device].device.rebootDevice();
-
-					// Remove the _old_ device from our local record
-					const regex = /_.*/;
-					var old_id = xkeys_devices[device].device.uniqueId.replace(regex, "_"+msg.uid);
-					if (Object.keys(xkeys_devices).includes(old_id)) {
-						//console.log("deleting: " + old_id);
-						delete xkeys_devices[old_id];
-					}
-
-				} else if (msg.name == "setBacklight") {
-					/*
-					*	For backlights, msg.params[0] is an array of buttonids to activate
-					*	                msg.params[1] is the hue to set
-					*	                msg.params[2] is true/false (flashing mode or not)
-					*/
-					/*
-					// Does this device have a backlight?
-					if (xkeys_devices[device].device.product.backLightType == 0 ) {
-						console.log("no backlight for " + xkeys_devices[device].device.product.name);
-						return;
-					}
-					*/
-
-					msg.params[0].forEach( (key) => {
-						// key must represent a valid number
-						var buttonid = parseInt(key);
-						if (isNaN(buttonid)) { return; }
-
-						//console.log("Running: setBacklight(" + buttonid + "," + msg.params[1] + "," + msg.params[2] + ")");
-						xkeys_devices[device].device.setBacklight(buttonid, msg.params[1], msg.params[2]);
-					});
-
-				} else if (msg.name == "setAllBacklights") {
-					//console.log("Running: setAllBacklights(" + msg.params[1] + ")");
-					xkeys_devices[device].device.setAllBacklights(msg.params[1]);
-
-				} else if (msg.name == "setBacklightIntensity") {
-					/*
-					*	params[0] is an array of intensity values (blue, red) 
-					*/
-					//console.log("Running: setBacklightIntensity(" + msg.params[0] + ") for " + xkeys_devices[device].device.product.name);
-
-					xkeys_devices[device].device.setBacklightIntensity(msg.params[0][0], msg.params[0][1]);
-
-				} else if (msg.name == "saveBackLights") {
-					//console.log("Running: saveBackLights() for " + xkeys_devices[device].device.product.name);
-					xkeys_devices[device].device.saveBackLights();
-
-				} else if (msg.name == "writeData") {
-					//console.log("Running: writeData(" + JSON.stringify(msg.params[0]) + ") for " + xkeys_devices[device].device.product.name);
-					xkeys_devices[device].device.writeData(msg.params[0]);
-
-				} else {
-					console.log("Unsupported library method: " + msg.name);
-				}
-			});
+			request_message_process("mqtt", message, topic);
         } else {
             console.log(`Unknown message request: ${msg.request} from ${topic}`)
         }
@@ -796,6 +804,9 @@ udp_server.on('message', (message, rinfo) => {
 			request_message_process("udp", message, rinfo);
 
 		} else if (msg.request == "productList") {
+			request_message_process("udp", message, rinfo);
+
+		} else if (msg.request == "method") {
 			request_message_process("udp", message, rinfo);
 
 		} else {
