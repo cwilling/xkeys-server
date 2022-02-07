@@ -153,8 +153,11 @@ choose_server = (sid) => {
 *	- send DISCOVERY
 *	- choose server from respondents
 *	- send EOI to chosen server
-*	- some time later, request a list of devices attached to the server
-*	- some time later, request a list of known products
+*	- if result_EOI is OK, begin_normal_operations
+*		- some time later, request a method on connected devices (start LED flashing)
+*		- some time later, request a list of devices attached to the server
+*		- some time later, request a method on connected devices (stop LED)
+*		- some time later, request a list of known products
 */
 
 /*	Find the xkeys-server
@@ -169,6 +172,9 @@ begin_normal_operations = () => {
 	*/
 	setTimeout(send_udp_message, 9000, (new Buffer.from('{"request":"deviceList"}', 'UTF-8')));
 	setTimeout(send_udp_message, 18000, (new Buffer.from('{"request":"productList"}', 'UTF-8')));
+
+	setTimeout(send_udp_message, 4000, (new Buffer.from('{"request":"method","pid_list":[],"uid":"","name":"setIndicatorLED","params":[["2"],true,true]}', 'UTF-8')));
+	setTimeout(send_udp_message, 15000, (new Buffer.from('{"request":"method","pid_list":[],"uid":"","name":"setIndicatorLED","params":[["2"],false]}', 'UTF-8')));
 }
 
 
