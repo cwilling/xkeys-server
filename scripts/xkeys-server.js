@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const xkeys_server_version = require('../package.json').version;
+
 //var { env } = require('process');
 process.env.UV_THREADPOOL_SIZE = 48;
 
@@ -401,7 +403,7 @@ client.on('connect', () => {
     client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"hello","data":"Hello from Xkeys device server"}),{qos:qos,retain:false});
     client.subscribe({'/xkeys/node/#':{qos:qos}}, function (err) {
     	if (!err) {
-      	    console.log('subscribed OK');
+      	    console.log(`xkeys-server ${xkeys_server_version} subscribed OK`);
     	} else {
 			// Any point in going on?
 			console.log('Subscription failed: ' + err);
