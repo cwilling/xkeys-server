@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-const xkeys_server_version = require('../package.json').version;
+const ServerVersion = require('../package.json').version;
 
 //var { env } = require('process');
 process.env.UV_THREADPOOL_SIZE = 48;
 
 const { hostname, networkInterfaces } = require('os');
-const ServerID = hostname()
+const ServerID = hostname();
 console.log("ServerID = " + ServerID);
 
 const dgram = require('dgram');
@@ -16,9 +16,11 @@ const udp_port = 48895;
 const udp_clients = [];
 const udp_expiry = 20000;
 
-var mqtt = require('mqtt')
+const crypto = require('crypto');
+
+var mqtt = require('mqtt');
 const qos = 2;
-var path = require('path')
+var path = require('path');
 const { XKeysWatcher } = require('xkeys');
 const XKeys = require('xkeys');
 const { PRODUCTS } = require('@xkeys-lib/core/dist/products');
@@ -97,7 +99,7 @@ request_message_process = (type, message, ...moreArgs) => {
 		console.log(`${msg_transport} message request: ${msg[msg_type]}`);
 
 		switch (msg[msg_type]) {
-			case "DISCOVER":
+			case "discover":
 				/*	Since we exist on 0.0.0.0 i.e. every available interface,
 				*	and therefore have possibly multiple IP addresses,
 				*	find the best IP address to provide the client with.
@@ -144,17 +146,24 @@ request_message_process = (type, message, ...moreArgs) => {
 				}
 
 				if (msg_transport == "udp") {
-					//console.log("sending result_DISCOVER message");
-					udp_server.send(JSON.stringify({"sid":ServerID,"msg_type":"result_DISCOVER","data":address_match}), rinfo.port, rinfo.address);
+					discover_result = {};
+					discover_result["msg_type"] = "discover_result";
+					discover_result["sid"] = ServerID;
+					discover_result["xk_server_address"] = address_match;
+					discover_result["attached_devices"] = Object.keys(xkeys_devices);
+					discover_result["version"] = ServerVersion;
+
+					//console.log("sending discover_result message");
+					udp_server.send(JSON.stringify(discover_result), rinfo.port, rinfo.address);
 				} else if (msg_transport == "mqtt") {
 					console.log("DISCOVER message via MQTT");
 				} else {
 					console.log(`request_message_process(): UNKNOWN TYPE msg.request was ${msg.request}`);
 				}
 				break;
-			case "EOI":
+			case "connect":
 				if (msg_transport == "udp") {
-					console.log("request_message_process(): UDP msg.request was EOI");
+					console.log("request_message_process(): UDP msg.request was connect");
 					var udp_client_found = false;
 					for (var i=udp_clients.length;i>0;i--) {
 						udp_client_found = false;
@@ -167,7 +176,23 @@ request_message_process = (type, message, ...moreArgs) => {
 						// New client
 						udp_clients.push({"timestamp":Date.now(), "remote":rinfo});
 						try {
-							udp_server.send(JSON.stringify({"sid":ServerID,"msg_type":"result_EOI","data":"OK"}), rinfo.port, rinfo.address);
+							connect_result = {};
+							connect_result["msg_type"] = "connect_result";
+							connect_result["sid"] = ServerID;
+							connect_result["client_address"] = rinfo.address;
+							connect_result["client_port"] = rinfo.port;
+							if (msg.hasOwnProperty("client_name")) {
+								connect_result["client_name"] = msg.client_name;
+							} else {
+								// For now, generate a random name
+								connect_result["client_name"] = crypto.randomBytes(8).toString('hex');
+							}
+							connect_result["attached_devices"] = Object.keys(xkeys_devices);
+							connect_result["version"] = ServerVersion;
+
+							//udp_server.send(JSON.stringify(connect_result), rinfo.port, rinfo.address);
+							send_udp_message(JSON.stringify(connect_result));
+
 						} catch (err) {
 							console.log("send_udp_message() error: " + err);
 						}
@@ -403,7 +428,7 @@ client.on('connect', () => {
     client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"hello","data":"Hello from Xkeys device server"}),{qos:qos,retain:false});
     client.subscribe({'/xkeys/node/#':{qos:qos}}, function (err) {
     	if (!err) {
-      	    console.log(`xkeys-server ${xkeys_server_version} subscribed OK`);
+      	    console.log(`xkeys-server ${ServerVersion} subscribed OK`);
     	} else {
 			// Any point in going on?
 			console.log('Subscription failed: ' + err);
@@ -427,8 +452,9 @@ client.on('connect', () => {
 			update_client_device_list("");
 
 			xkeysPanel.on('disconnected', () => {
-				console.log(`X-keys panel ${xkeysPanel.uniqueId} disconnected`)
-				delete xkeys_devices[xkeysPanel.uniqueId];
+				var full_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				console.log(`X-keys panel ${full_id} disconnected`)
+				delete xkeys_devices[full_id];
 				update_client_device_list("");
 			})
 			/*
@@ -700,14 +726,17 @@ client.on('connect', () => {
 		(probably same devices with UID still == 0)
 	*/
     function add_xkeys_device (xkeysPanel) {
-		if ( xkeysPanel.uniqueId in xkeys_devices ) {
-			// Duplicate; use devicePath instead of uniqueId
-	  		xkeys_devices[path.basename(xkeysPanel.devicePath)] = {"owner": "", "device": xkeysPanel};
-		} else {
-	  		xkeys_devices[xkeysPanel.uniqueId] = {"owner": "", "device": xkeysPanel};
-			console.log("(add_xkeys_device) Added device " + xkeysPanel.uniqueId);
+		var order = 0;
+		var temp_id_base = xkeysPanel.uniqueId.replace(/_/g, "-");
+		while ((temp_id_base + '-' + order) in xkeys_devices) {
+			order += 1;
 		}
-		console.log("(add_xkeys_device) xkeys_devices = " + JSON.stringify(Object.keys(xkeys_devices)));
+		xkeysPanel["order"] = order;
+		var temp_id = temp_id_base + "-" + xkeysPanel.order;
+		console.log(`New device entry: ${temp_id}`);
+		xkeys_devices[temp_id] = {"owner": "", "device": xkeysPanel};
+
+		console.log(`After add_xkeys_device(): xkeys_devices = ${JSON.stringify(Object.keys(xkeys_devices))}`);
 	}
 
 	/*
