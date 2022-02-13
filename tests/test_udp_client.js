@@ -40,22 +40,18 @@ client.on('message', (message, remote) => {
 		} else {
 			msg_type = 'request';
 		}
-		if (msg[msg_type] == "result_DISCOVER") {
-			console.log(`Received a result_DISCOVER message. Server address: ${msg.data}`);
-			if (discovered_hosts.find(entry => { return entry.data === msg.data ; }) ) {
+		if (msg[msg_type] == "discover_result") {
+			console.log(`Received a discover_result message. Server address: ${msg.xk_server_address}`);
+			if (discovered_hosts.find(entry => { return entry.xk_server_address === msg.xk_server_address ; }) ) {
 				/* We have already seen this server */
-				console.log(`Not adding duplicate ${msg.data}`);
+				console.log(`Not adding duplicate ${msg.xk_server_address}`);
 			} else {
 				console.log(`Adding server: ${JSON.stringify(msg)}`);
 				discovered_hosts.push(msg);
 			}
-		} else if (msg[msg_type] == "result_EOI") {
-			if (msg.data == "OK") {
-				   console.log(`EOI was accepted by ${msg.sid}`);
-				   begin_normal_operations();
-			} else {
-				   console.log(`EOI not accepted, returned: ${JSON.stringify(msg)}`);
-			}
+		} else if (msg[msg_type] == "connect_result") {
+		   console.log(`connect was accepted by ${msg.sid}`);
+		   begin_normal_operations();
 		} else if (msg[msg_type] == "result_deviceList") {
 			var device_keys = Object.keys(msg.data);
 			if (device_keys.length > 0 ){
@@ -135,7 +131,7 @@ choose_server = (sid) => {
 				console.log(`Choice: ${target.sid} at ${target.data}`);
 				server_addr = target.data;
 				client.setBroadcast(false);
-				send_udp_message(new Buffer.from('{"msg_type":"EOI"}', 'UTF-8'));
+				send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
 			} else {
 				/* Something went wrong so start all over */
 				console.log(`Couldn't find server with SID matching ${sid}`);
@@ -145,10 +141,10 @@ choose_server = (sid) => {
 			}
 		} else {
 			var choice = discovered_hosts[0];
-			console.log(`Choosing server: ${choice.sid} at ${choice.data}`);
-			server_addr = choice.data;
+			console.log(`Choosing server: ${choice.sid} at ${choice.xk_server_address}`);
+			server_addr = choice.xk_server_address;
 			client.setBroadcast(false);
-			send_udp_message(new Buffer.from('{"msg_type":"EOI"}', 'UTF-8'));
+			send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
 		}
 	}
 }
@@ -158,8 +154,8 @@ choose_server = (sid) => {
 /* This is where we start doing things:
 *	- send DISCOVERY
 *	- choose server from respondents
-*	- send EOI to chosen server
-*	- if result_EOI is OK, begin_normal_operations
+*	- send connect to chosen server
+*	- if connect_result is OK, begin_normal_operations
 *		- some time later, request a method on connected devices (start LED flashing)
 *		- some time later, request a list of devices attached to the server
 *		- some time later, request a method on connected devices (stop LED)
@@ -169,7 +165,7 @@ choose_server = (sid) => {
 /*	Find the xkeys-server
 *	See discovery.js for detail on how this works.
 */
-var discovery_message = new Buffer.from('{"msg_type":"DISCOVER"}');
+var discovery_message = new Buffer.from('{"msg_type":"discover"}');
 choose_server(target_serverId);
 
 

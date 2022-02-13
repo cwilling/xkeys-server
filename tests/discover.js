@@ -5,7 +5,7 @@
 *	Discover the ip address of a service using port 48895
 *	which we expect an xkeys_server to be using.
 *
-*	Any reply with a field "request":"result_DISCOVER" is
+*	Any reply with a field "request":"discover_result" is
 *   potentially a server we'll wish to use, so is added
 *	to discovered_hosts[] provided it doesn't duplicate
 *	a previous reply.
@@ -37,7 +37,7 @@ var socket = dgram.createSocket("udp4");
 socket.bind( () => {
 	socket.setBroadcast(true);
 });
-var message = new Buffer.from('{"msg_type":"DISCOVER"}');
+var message = new Buffer.from('{"msg_type":"discover"}');
 
 socket.on("message", (message, rinfo) => {
 	const msg = JSON.parse(message);
@@ -48,9 +48,9 @@ socket.on("message", (message, rinfo) => {
 		msg_type = 'request';
 	}
 	/* Check it's a message type we're interested in */
-	if (msg[msg_type] == "result_DISCOVER") {
-		if (discovered_hosts.find(entry => { return entry.data === msg.data ; }) ) {
-			console.log(`Not adding duplicate ${msg.data}`);
+	if (msg[msg_type] == "discover_result") {
+		if (discovered_hosts.find(entry => { return entry.xk_server_address === msg.xk_server_address ; }) ) {
+			console.log(`Not adding duplicate ${msg.xk_server_address}`);
 		} else {
 			console.log(`Adding server: ${JSON.stringify(msg)}`);
 			discovered_hosts.push(msg);
@@ -69,6 +69,7 @@ choose_server = (sid) => {
 		socket.send(message, 0, message.length, discovery_port, '255.255.255.255', function(err, bytes) { });
 		setTimeout(choose_server, 1000, sid);
 	} else {
+		console.log(`discovered_hosts: ${JSON.stringify(discovered_hosts)}`);
 		/*	Choose which of the servers that replied to use.
 		*	For brevity/convenience, we choose the first server we received a reply from.
 		*	A normal app may have a more sophisticated way to choose e.g. user input.
@@ -78,7 +79,7 @@ choose_server = (sid) => {
 			*/
 			const choice = discovered_hosts.find(entry => { return entry.sid === sid ; });
 			if (choice) {
-				console.log(`Choice: ${choice.sid} at ${choice.data}`);
+				console.log(`Choice: ${choice.sid} at ${choice.xk_server_address}`);
 			} else {
 				/* Something went wrong so start all over */
 				console.log(`Couldn't find server with SID matching ${sid}`);
@@ -88,7 +89,7 @@ choose_server = (sid) => {
 			}
 		} else {
 			const choice = discovered_hosts[0];
-			console.log(`Choice: ${choice.sid} at ${choice.data}`);
+			console.log(`Choice: ${choice.sid} at ${choice.xk_server_address}`);
 		}
 		/*	Having chosen a server, an EOI message would usually be sent now
 		*	but since we're just demonstrating discovery here,
