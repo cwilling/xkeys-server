@@ -58,7 +58,7 @@ client.on('message', (message, remote) => {
 				console.log(JSON.stringify(msg.devices));
 				/* Choose a device randomly to display */
 				var choice = Math.floor(Math.random() * device_keys.length);
-				//console.log(`Showing number ${(choice + 1)} of ${device_keys.length} attached device(s) (${device_keys[choice]}):`);
+				console.log(`Showing number ${(choice + 1)} of ${device_keys.length} attached device(s) (${device_keys[choice]}):`);
 				console.log(JSON.stringify(msg.devices[device_keys[choice]], null, 2));
 			} else {
 				console.log(`No devices attached at ${msg.sid}`);
