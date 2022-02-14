@@ -211,7 +211,24 @@ request_message_process = (type, message, ...moreArgs) => {
 					console.log("request_message_process(): UNKNOWN TYPE msg.request was EOI");
 				}
 				break;
+			case "list_attached":
+				/*	Generate latest device list */
+				var device_list = [];
+				for (const key of Object.keys(xkeys_devices) ) {
+
+					device_list.push(xkeys_devices[key].device.info);
+					device_list[device_list.length-1]["temp_id"] = key;
+				}
+				if (msg_transport == "udp") {
+					udp_server.send(JSON.stringify({"msg_type":"list_attached_result","sid":ServerID, "devices":device_list}), rinfo.port, rinfo.address);
+				} else if (msg_transport == "mqtt") {
+					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
+				}
+				break
 			case "deviceList":
+				/*	!!!! Only relevant to OLD 1.0.0 server - retained for backward compatibility (for now).
+				*	!!!! Clients should now use "msg_request":"list_attached"
+				*/
 				/*	Generate latest device list */
 				var device_list = {};
 				for (const key of Object.keys(xkeys_devices) ) {
@@ -219,12 +236,22 @@ request_message_process = (type, message, ...moreArgs) => {
 				}
 
 				if (msg_transport == "udp") {
-					udp_server.send(JSON.stringify({"sid":ServerID,"msg_type":"result_deviceList","data":device_list}), rinfo.port, rinfo.address);
+					udp_server.send(JSON.stringify({"msg_type":"result_deviceList","sid":ServerID,"data":device_list}), rinfo.port, rinfo.address);
 				} else if (msg_transport == "mqtt") {
 					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
 				}
 				break;
+
+			case "product_list":
+				if (msg_transport == "udp") {
+					udp_server.send(JSON.stringify({"msg_type":"product_list_result", "sid":ServerID, "data":PRODUCTS}), rinfo.port, rinfo.address);
+				} else if (msg_transport == "mqtt") {
+					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
+				}
 			case "productList":
+				/*	!!!! Only relevant to OLD 1.0.0 server - retained for backward compatibility (for now).
+				*	!!!! Clients should now use "msg_request":"product_list"
+				*/
 				if (msg_transport == "udp") {
 					udp_server.send(JSON.stringify({"sid":ServerID,"msg_type":"result_productList","data":PRODUCTS}), rinfo.port, rinfo.address);
 				} else if (msg_transport == "mqtt") {
@@ -268,10 +295,10 @@ request_message_process = (type, message, ...moreArgs) => {
 									devices.push(item);
 								}
 							} else {
-								//console.log("uid check: (none)");
+								//console.log(`uid check ${item}: (none)`);
 								regex = new RegExp(ep + "_");
 								if (item.search(regex) > -1) {
-									//console.log("Found usable device: " + item);
+									console.log("Found usable device: " + item);
 									devices.push(item);
 								}
 							}
@@ -446,15 +473,14 @@ client.on('connect', () => {
 		});
 		watcher.on('connected', (xkeysPanel) => {
 	   		console.log(`X-keys panel ${xkeysPanel.uniqueId} connected`);
-	   		//xkeys_devices[xkeysPanel.uniqueId] = {"owner": "", "device": xkeysPanel};
 			add_xkeys_device(xkeysPanel);
 
 			update_client_device_list("");
 
 			xkeysPanel.on('disconnected', () => {
-				var full_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
-				console.log(`X-keys panel ${full_id} disconnected`)
-				delete xkeys_devices[full_id];
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				console.log(`X-keys panel ${temp_id} disconnected`)
+				delete xkeys_devices[temp_id];
 				update_client_device_list("");
 			})
 			/*
@@ -463,21 +489,22 @@ client.on('connect', () => {
 			*/
 			xkeysPanel.on('down', (btnIndex, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} down`)
-				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
-					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-					//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				if (Object.keys(xkeys_devices).includes(temp_id)) {
+					var pid = xkeys_devices[temp_id].device.info.productId;
+					var uid = xkeys_devices[temp_id].device.info.unitId;
+					//console.log("DOWN event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					metadata["type"] = "down";
 					metadata["shortnam"] = xkeys_products[pid.toString()];
 					var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					// This is the new format
+					// This is the v2.0.0 format
 					// value = 1 for down, 0 for up
-					var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
-									"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
-									"value":1,"timestamp":metadata.timestamp};
+					var msg_udp = {"msg_type":"button_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+									"pid":pid,"uid":uid,"order":xkeysPanel.order, "index":btnIndex,
+									"row":metadata.row,"col":metadata.col, "value":1,"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
@@ -486,41 +513,42 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-						//console.log("DOWN event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						var pid = xkeys_devices[temp_id].device.info.productId;
+						var uid = xkeys_devices[temp_id].device.info.unitId;
+						//console.log("DOWN event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "down";
 						metadata["shortnam"] = xkeys_products[pid.toString()];
 						var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						// This is the new format
+						// This is the v2.0.0 format
 						// value = 1 for down, 0 for up
-						var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
-										"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
-										"value":1,"timestamp":metadata.timestamp};
+						var msg_udp = {"msg_type":"button_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+										"pid":pid,"uid":uid,"order":xkeysPanel.order, "index":btnIndex,
+										"row":metadata.row,"col":metadata.col, "value":1,"timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
 			xkeysPanel.on('up', (btnIndex, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} up`)
-				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
-					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-					//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				if (Object.keys(xkeys_devices).includes(temp_id)) {
+					var pid = xkeys_devices[temp_id].device.info.productId;
+					var uid = xkeys_devices[temp_id].device.info.unitId;
+					//console.log("UP event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					metadata["type"] = "up";
 					metadata["shortnam"] = xkeys_products[pid.toString()];
 					var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					// This is the new format
+					// This is the v2.0.0 format
 					// value = 1 for down, 0 for up
-					var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
-									"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
-									"value":0,"timestamp":metadata.timestamp};
+					var msg_udp = {"msg_type":"button_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+									"pid":pid,"uid":uid,"order":xkeysPanel.order, "index":btnIndex,
+									"row":metadata.row,"col":metadata.col, "value":0,"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
@@ -529,29 +557,30 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-						//console.log("UP event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						var pid = xkeys_devices[temp_id].device.info.productId;
+						var uid = xkeys_devices[temp_id].device.info.unitId;
+						//console.log("UP event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "up";
 						metadata["shortnam"] = xkeys_products[pid.toString()];
 						var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						// This is the new format
+						// This is the v2.0.0 format
 						// value = 1 for down, 0 for up
-						var msg_udp = {"sid":ServerID,"msg_type":"button_event","device":xkeys_products[pid.toString()],
-										"pid":pid,"uid":uid,"index":btnIndex,"row":metadata.row,"col":metadata.col,
-										"value":0,"timestamp":metadata.timestamp};
+						var msg_udp = {"msg_type":"button_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+										"pid":pid,"uid":uid,"order":xkeysPanel.order, "index":btnIndex,
+										"row":metadata.row,"col":metadata.col, "value":0,"timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
 			xkeysPanel.on('jog', (index, deltaPos, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index}), delta ${deltaPos}`)
-				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
-					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				if (Object.keys(xkeys_devices).includes(temp_id)) {
+					var pid = xkeys_devices[temp_id].device.info.productId;
+					var uid = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 					metadata["type"] = "jog";
 					metadata["deltaPos"] = deltaPos;
@@ -560,9 +589,10 @@ client.on('connect', () => {
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					// This is the new format
-					var msg_udp = {"sid":ServerID,"msg_type":"jog_event","device":xkeys_products[pid.toString()],
-									"pid":pid,"uid":uid,"index":index,"value":deltaPos,"timestamp":metadata.timestamp};
+					// This is the v2.0.0 format
+					var msg_udp = {"msg_type":"jog_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+									"pid":pid, "uid":uid, "order":xkeysPanel.order,
+									"index":index, "value":deltaPos, "timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
@@ -571,9 +601,9 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-						//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						var pid = xkeys_devices[temp_id].device.info.productId;
+						var uid = xkeys_devices[temp_id].device.info.unitId;
+						//console.log("JOG event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "jog";
 						metadata["deltaPos"] = deltaPos;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
@@ -581,19 +611,21 @@ client.on('connect', () => {
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						// This is the new format
-						var msg_udp = {"sid":ServerID,"msg_type":"jog_event","device":xkeys_products[pid.toString()],
-										"pid":pid,"uid":uid,"index":index,"value":deltaPos,"timestamp":metadata.timestamp};
+						// This is the v2.0.0 format
+						var msg_udp = {"msg_type":"jog_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+										"pid":pid, "uid":uid, "order":xkeysPanel.order,
+										"index":index, "value":deltaPos, "timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
 			xkeysPanel.on('shuttle', (index, shuttlePos, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index})`)
-				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
-					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-					//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				if (Object.keys(xkeys_devices).includes(temp_id)) {
+					var pid = xkeys_devices[temp_id].device.info.productId;
+					var uid = xkeys_devices[temp_id].device.info.unitId;
+					//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					metadata["type"] = "shuttle";
 					metadata["shuttlePos"] = shuttlePos;
 					metadata["shortnam"] = xkeys_products[pid.toString()];
@@ -601,9 +633,10 @@ client.on('connect', () => {
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					// This is the new format
-					var msg_udp = {"sid":ServerID,"msg_type":"shuttle_event","device":xkeys_products[pid.toString()],
-									"pid":pid,"uid":uid,"index":index,"value":shuttlePos,"timestamp":metadata.timestamp};
+					// This is the v2.0.0 format
+					var msg_udp = {"msg_type":"shuttle_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+									"pid":pid, "uid":uid, "order":xkeysPanel.order,
+									"index":index, "value":shuttlePos, "timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
@@ -612,9 +645,9 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-						//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						var pid = xkeys_devices[temp_id].device.info.productId;
+						var uid = xkeys_devices[temp_id].device.info.unitId;
+						//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "shuttle";
 						metadata["shuttlePos"] = shuttlePos;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
@@ -622,19 +655,21 @@ client.on('connect', () => {
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						// This is the new format
-						var msg_udp = {"sid":ServerID,"msg_type":"shuttle_event","device":xkeys_products[pid.toString()],
-										"pid":pid,"uid":uid,"index":index,"value":shuttlePos,"timestamp":metadata.timestamp};
+						// This is the v2.0.0 format
+						var msg_udp = {"msg_type":"shuttle_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+										"pid":pid, "uid":uid, "order":xkeysPanel.order,
+										"index":index, "value":shuttlePos, "timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
 			xkeysPanel.on('joystick', (index, position, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} joystick (${index})`)
-				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
-					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-					//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				if (Object.keys(xkeys_devices).includes(temp_id)) {
+					var pid = xkeys_devices[temp_id].device.info.productId;
+					var uid = xkeys_devices[temp_id].device.info.unitId;
+					//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					metadata["type"] = "joystick";
 					metadata["position"] = position;
 					metadata["shortnam"] = xkeys_products[pid.toString()];
@@ -642,10 +677,11 @@ client.on('connect', () => {
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					// This is the new format
-					var msg_udp = {"sid":ServerID,"msg_type":"joystick_event","device":xkeys_products[pid.toString()],
-									"pid":pid,"uid":uid,"index":index,
-									"x":position.x,"y":position.y,"z":position.z,"deltaZ":position.deltaZ,"timestamp":metadata.timestamp};
+					// This is the v2.0.0 format
+					var msg_udp = {"msg_type":"joystick_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+									"pid":pid, "uid":uid, "order":xkeysPanel.order, "index":index,
+									"x":position.x, "y":position.y, "z":position.z, "deltaZ":position.deltaZ,
+									"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
@@ -654,9 +690,9 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-						//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						var pid = xkeys_devices[temp_id].device.info.productId;
+						var uid = xkeys_devices[temp_id].device.info.unitId;
+						//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "joystick";
 						metadata["position"] = position;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
@@ -664,20 +700,22 @@ client.on('connect', () => {
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						// This is the new format
-						var msg_udp = {"sid":ServerID,"msg_type":"joystick_event","device":xkeys_products[pid.toString()],
-										"pid":pid,"uid":uid,"index":index,
-										"x":position.x,"y":position.y,"z":position.z,"deltaZ":position.deltaZ,"timestamp":metadata.timestamp};
+						// This is the v2.0.0 format
+						var msg_udp = {"msg_type":"joystick_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+										"pid":pid, "uid":uid, "order":xkeysPanel.order, "index":index,
+										"x":position.x, "y":position.y, "z":position.z, "deltaZ":position.deltaZ,
+										"timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
 			xkeysPanel.on('tbar', (index, position, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} tbar (${index})`)
-				if (Object.keys(xkeys_devices).includes(xkeysPanel.uniqueId)) {
-					var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-					var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-					//console.log("TBAR event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				if (Object.keys(xkeys_devices).includes(temp_id)) {
+					var pid = xkeys_devices[temp_id].device.info.productId;
+					var uid = xkeys_devices[temp_id].device.info.unitId;
+					//console.log("TBAR event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					metadata["type"] = "tbar";
 					metadata["position"] = position;
 					metadata["shortnam"] = xkeys_products[pid.toString()];
@@ -685,9 +723,10 @@ client.on('connect', () => {
 					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-					// This is the new format
-					var msg_udp = {"sid":ServerID,"msg_type":"tbar_event","device":xkeys_products[pid.toString()],
-									"pid":pid,"uid":uid,"index":index, "value":position,"timestamp":metadata.timestamp};
+					// This is the 2.0.0 format
+					var msg_udp = {"msg_type":"tbar_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+									"pid":pid, "uid":uid, "index":index, "order":xkeysPanel.order,
+									"value":position,"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
@@ -696,9 +735,9 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[xkeysPanel.uniqueId].device.info.productId;
-						var uid = xkeys_devices[xkeysPanel.uniqueId].device.info.unitId;
-						//console.log("TBAR event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+						var pid = xkeys_devices[temp_id].device.info.productId;
+						var uid = xkeys_devices[temp_id].device.info.unitId;
+						//console.log("TBAR event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "tbar";
 						metadata["position"] = position;
 						metadata["shortnam"] = xkeys_products[pid.toString()];
@@ -706,9 +745,10 @@ client.on('connect', () => {
 						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
-						// This is the new format
-						var msg_udp = {"sid":ServerID,"msg_type":"tbar_event","device":xkeys_products[pid.toString()],
-										"pid":pid,"uid":uid,"index":index, "value":position,"timestamp":metadata.timestamp};
+						// This is the 2.0.0 format
+						var msg_udp = {"msg_type":"tbar_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
+										"pid":pid, "uid":uid, "index":index, "order":xkeysPanel.order,
+										"value":position,"timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
@@ -716,16 +756,13 @@ client.on('connect', () => {
 		})
 	}
 
-	// Return the key used in PRODUCTS for the device with given uniqueId
-	function product_code(uniqueId) {
-	}
 
 	/*
 		Add a newly discovered device to xkeys_devices object.
 		Main concern is duplicate uniqueId
 		(probably same devices with UID still == 0)
 	*/
-    function add_xkeys_device (xkeysPanel) {
+    add_xkeys_device = (xkeysPanel) => {
 		var order = 0;
 		var temp_id_base = xkeysPanel.uniqueId.replace(/_/g, "-");
 		while ((temp_id_base + '-' + order) in xkeys_devices) {
