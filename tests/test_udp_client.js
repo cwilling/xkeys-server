@@ -52,17 +52,18 @@ client.on('message', (message, remote) => {
 		} else if (msg[msg_type] == "connect_result") {
 		   console.log(`connect was accepted by ${msg.sid}`);
 		   begin_normal_operations();
-		} else if (msg[msg_type] == "result_deviceList") {
-			var device_keys = Object.keys(msg.data);
+		} else if (msg[msg_type] == "list_attached_result") {
+			var device_keys = Object.keys(msg.devices);
 			if (device_keys.length > 0 ){
+				console.log(JSON.stringify(msg.devices));
 				/* Choose a device randomly to display */
 				var choice = Math.floor(Math.random() * device_keys.length);
-				console.log(`Showing number ${(choice + 1)} of ${device_keys.length} attached device(s):`);
-				console.log(JSON.stringify(msg.data[device_keys[choice]], null, 2));
+				//console.log(`Showing number ${(choice + 1)} of ${device_keys.length} attached device(s) (${device_keys[choice]}):`);
+				console.log(JSON.stringify(msg.devices[device_keys[choice]], null, 2));
 			} else {
 				console.log(`No devices attached at ${msg.sid}`);
 			}
-		} else if (msg[msg_type] == "result_productList") {
+		} else if (msg[msg_type] == "product_list_result") {
 			var product_keys = Object.keys(msg.data);
 			if (product_keys.length > 0 ){
 				/* Choose a device randomly to display */
@@ -172,8 +173,8 @@ choose_server(target_serverId);
 begin_normal_operations = () => {
 	/*	At intervals, request some things.
 	*/
-	setTimeout(send_udp_message, 9000, (new Buffer.from('{"msg_type":"deviceList"}', 'UTF-8')));
-	setTimeout(send_udp_message, 18000, (new Buffer.from('{"msg_type":"productList"}', 'UTF-8')));
+	setTimeout(send_udp_message, 9000, (new Buffer.from('{"msg_type":"list_attached"}', 'UTF-8')));
+	setTimeout(send_udp_message, 18000, (new Buffer.from('{"msg_type":"product_list"}', 'UTF-8')));
 
 	setTimeout(send_udp_message, 4000, (new Buffer.from('{"msg_type":"method","pid_list":[],"uid":"","name":"setIndicatorLED","params":[["2"],true,true]}', 'UTF-8')));
 	setTimeout(send_udp_message, 15000, (new Buffer.from('{"msg_type":"method","pid_list":[],"uid":"","name":"setIndicatorLED","params":[["2"],false]}', 'UTF-8')));
