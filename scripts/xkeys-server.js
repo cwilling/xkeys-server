@@ -7,6 +7,7 @@ process.env.UV_THREADPOOL_SIZE = 48;
 
 const { hostname, networkInterfaces } = require('os');
 const ServerID = hostname();
+//const ServerID = "Chris' test UDP server"; 
 console.log("ServerID = " + ServerID);
 
 const dgram = require('dgram');
@@ -41,14 +42,22 @@ Object.entries(PRODUCTS).forEach(entry => {
 
 });
 
+/* Hex colour to rgb */
+hex2rgb = (hexval) => {
+	var result = [];
+	for (const i of [0,2,4]) { result.push(parseInt(hexval.slice(i, i+2), 16)); }
+	return result;
+}
+
 /*
 Proposed Topic heirarchy:
-	'/xkeys/SRC/PID/UID/index'
+	'/xkeys/SRC/product_id/unit_id/control_id'
+	(version 1.0.0 was '/xkeys/SRC/PID/UID/index')
 where:
 	SRC = source of msg - probably: server|node
 	PID = X-keys product id
 	UID = X-keys unit id (or devicePath if UID == 0)
-	index = device dependent index value
+	control_id = device dependent index value
 			e.g. button id
 
 Server will listen to:
@@ -59,7 +68,8 @@ Nodes could listen to (filtering appropriately):
 or:
 	/xkeys/#
 or, more specifically:
-	/xkeys/server/pid/uid
+	/xkeys/server/product_id/unit_id
+	(version 1.0.0 was /xkeys/server/pid/uid)
 	i.e. messages intended for a specific node only
 */
 
@@ -148,7 +158,7 @@ request_message_process = (type, message, ...moreArgs) => {
 				if (msg_transport == "udp") {
 					discover_result = {};
 					discover_result["msg_type"] = "discover_result";
-					discover_result["sid"] = ServerID;
+					discover_result["server_id"] = ServerID;
 					discover_result["xk_server_address"] = address_match;
 					discover_result["attached_devices"] = Object.keys(xkeys_devices);
 					discover_result["version"] = ServerVersion;
@@ -163,7 +173,7 @@ request_message_process = (type, message, ...moreArgs) => {
 				break;
 			case "connect":
 				if (msg_transport == "udp") {
-					console.log("request_message_process(): UDP msg.request was connect");
+					//console.log("request_message_process(): UDP msg.request was connect");
 					var udp_client_found = false;
 					for (var i=udp_clients.length;i>0;i--) {
 						udp_client_found = false;
@@ -174,24 +184,25 @@ request_message_process = (type, message, ...moreArgs) => {
 					}
 					if (!udp_client_found) {
 						// New client
-						udp_clients.push({"timestamp":Date.now(), "remote":rinfo});
+						// client_name is optional so create one if none sent
+						if (! msg.hasOwnProperty("client_name")) {
+							msg["client_name"] = "client_" + crypto.randomBytes(8).toString('hex');
+						}
+						udp_clients.push({"timestamp":Date.now(), "client_name":msg.client_name, "remote":rinfo});
+						//console.log(`Added new client: ${JSON.stringify(udp_clients[udp_clients.length-1])}`);
 						try {
 							connect_result = {};
 							connect_result["msg_type"] = "connect_result";
-							connect_result["sid"] = ServerID;
+							connect_result["server_id"] = ServerID;
 							connect_result["client_address"] = rinfo.address;
 							connect_result["client_port"] = rinfo.port;
-							if (msg.hasOwnProperty("client_name")) {
-								connect_result["client_name"] = msg.client_name;
-							} else {
-								// For now, generate a random name
-								connect_result["client_name"] = crypto.randomBytes(8).toString('hex');
-							}
+							connect_result["client_name"] = msg.client_name;
 							connect_result["attached_devices"] = Object.keys(xkeys_devices);
 							connect_result["version"] = ServerVersion;
 
 							//udp_server.send(JSON.stringify(connect_result), rinfo.port, rinfo.address);
 							send_udp_message(JSON.stringify(connect_result));
+							//console.log(`Sent ${JSON.stringify(connect_result)} to ${rinfo.address}:${rinfo.port}`);
 
 						} catch (err) {
 							console.log("send_udp_message() error: " + err);
@@ -201,11 +212,11 @@ request_message_process = (type, message, ...moreArgs) => {
 					/* Otherwise do nothing since we already have this client registered */
 
 				} else if (msg_transport == "mqtt") {
-					console.log("request_message_process(): MQTT msg.request was EOI");
+					//console.log("request_message_process(): MQTT msg.request was EOI");
 					/*	EOI isn't really part of MQTT establishment.
 					*	Should we dignify it with a response?
 					*/
-					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_EOI", "data":"OK"}), {qos:qos,retain:false});
+					client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_EOI", "data":"OK"}), {qos:qos,retain:false});
 
 				} else {
 					console.log("request_message_process(): UNKNOWN TYPE msg.request was EOI");
@@ -220,9 +231,9 @@ request_message_process = (type, message, ...moreArgs) => {
 					device_list[device_list.length-1]["temp_id"] = key;
 				}
 				if (msg_transport == "udp") {
-					udp_server.send(JSON.stringify({"msg_type":"list_attached_result","sid":ServerID, "devices":device_list}), rinfo.port, rinfo.address);
+					udp_server.send(JSON.stringify({"msg_type":"list_attached_result","server_id":ServerID, "devices":device_list}), rinfo.port, rinfo.address);
 				} else if (msg_transport == "mqtt") {
-					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
+					client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
 				}
 				break
 			case "deviceList":
@@ -236,80 +247,430 @@ request_message_process = (type, message, ...moreArgs) => {
 				}
 
 				if (msg_transport == "udp") {
-					udp_server.send(JSON.stringify({"msg_type":"result_deviceList","sid":ServerID,"data":device_list}), rinfo.port, rinfo.address);
+					udp_server.send(JSON.stringify({"msg_type":"result_deviceList","server_id":ServerID,"data":device_list}), rinfo.port, rinfo.address);
 				} else if (msg_transport == "mqtt") {
-					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
+					client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
 				}
 				break;
 
 			case "product_list":
 				if (msg_transport == "udp") {
-					udp_server.send(JSON.stringify({"msg_type":"product_list_result", "sid":ServerID, "data":PRODUCTS}), rinfo.port, rinfo.address);
+					udp_server.send(JSON.stringify({"msg_type":"product_list_result", "server_id":ServerID, "data":PRODUCTS}), rinfo.port, rinfo.address);
 				} else if (msg_transport == "mqtt") {
-					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
+					client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
 				}
 			case "productList":
 				/*	!!!! Only relevant to OLD 1.0.0 server - retained for backward compatibility (for now).
 				*	!!!! Clients should now use "msg_request":"product_list"
 				*/
 				if (msg_transport == "udp") {
-					udp_server.send(JSON.stringify({"sid":ServerID,"msg_type":"result_productList","data":PRODUCTS}), rinfo.port, rinfo.address);
+					udp_server.send(JSON.stringify({"server_id":ServerID,"msg_type":"result_productList","data":PRODUCTS}), rinfo.port, rinfo.address);
 				} else if (msg_transport == "mqtt") {
-					client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
+					client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
 				}
 				break;
+			case "list_clients":
+				var client_list = [];
+				for (const client of udp_clients) {
+					client_list.push({"client_address":client.remote.address, "client_port":client.remote.port, "client_name":client.client_name});
+				}
+				try {
+					//connect_result = {"msg_type":"list_clients_result","server_id":ServerID, "clients":client_list};
+					udp_server.send(JSON.stringify({"msg_type":"list_clients_result","server_id":ServerID, "clients":client_list}), rinfo.port, rinfo.address);
+				} catch (err) {
+					console.log("client_list_result_message() error: " + err);
+				}
+				break;
+			case "command":
+				/*	This is a 2.0.0 format method request.
+				*
+				*	Here we convert the command to a format
+				*	originally used for NodeRED method requests.
+				*	At the same time, we fill in default values
+				*	for optional parameters of the specified command.
+				*/
+				/*	First, setup any command components common to all command_type
+				*	e.g. product_id --> pid_list
+				*/
+				msg["pid_list"] = [];
+				if (msg.product_id > -1) { msg.pid_list.push(msg.product_id); }
+				// If (optional) "duplicate_id" is missing, it means order = 0.
+				if (! msg.hasOwnProperty("duplicate_id")) { msg["duplicate_id"] = 0; }
+
+				/*	Now set up components specific to particular command_type
+				*/
+				if (msg.command_type == "set_indicator_led") {
+					console.log("Command: set_indicator_led");
+					msg.name = "setIndicatorLED";
+					var params = [];
+					// control_id may come in as a single int or an array of ints.
+					// we convert to array if necessary.
+					if (typeof(msg.control_id) == "object") {
+						params.push(msg.control_id)
+					} else {
+						var ledids = []; ledids.push(msg.control_id); params.push(ledids);
+					}
+					// Convert int (1/0) to boolean
+					params.push(1 == msg.value);
+					// flash is optional
+					if (msg.hasOwnProperty("flash")) {
+						params.push(1 == msg.flash);
+					} else {
+						// No flash entry => no flashing required
+						// Add a nothing value (for use in later reply message)
+						msg["flash"] = 0;
+						params.push(false);
+					}
+					msg["params"] = params;
+
+				} else if (msg.command_type == "set_backlight") {
+					console.log("Command: set_backlight");
+					msg.name = "setBacklight";
+					var params = [];
+					// control_id may come in as a single int or an array of ints.
+					// we convert to array if necessary for params[0].
+					if (typeof(msg.control_id) == "object") {
+						params.push(msg.control_id)
+					} else {
+						var lampids = []; lampids.push(msg.control_id); params.push(lampids);
+					}
+					// params[1]: colour also doubles as on/off
+					if (msg.value == 0) {
+						params[1] = "000000";
+					} else if (msg.value == 1) {
+						params[1] = msg.color;
+					} else {
+						// Any other value is an error isn't it?
+					}
+					// params[2]: flash is optional?
+					if (msg.hasOwnProperty("flash")) {
+						params.push(1 == msg.flash);
+					} else {
+						// No flash entry => no flashing required
+						// Add a nothing value (for use in later reply message)
+						msg["flash"] = 0;
+						params.push(false);
+					}
+					msg["params"] = params;
+
+				} else if (msg.command_type == "write_lcd_display") {
+					console.log("Command: write_lcd_display");
+					msg.name = "writeLcdDisplay";
+					var params = [];
+					/*	Incoming msg.text may be
+					*	- text string, as exampled in DCD
+					*	- boolean, indicating clearing of the line nominated by msg.line
+					*	- array of 2 text strings (or boolean),
+					*	  indicating text for both LCD lines
+					*	For now, just implement the basic text string.
+					*/
+					var text_lines = ["",""];
+
+
+					//	params[0]
+					if (typeof(msg.text) == "string") {
+						if (msg.line == 1) {
+							text_lines[0] = msg.text;
+						} else if (msg.line == 2) {
+							text_lines[1] = msg.text;
+						} else {
+							// Illegal line number
+						}
+					} else if (typeof(msg.line) == "boolean") {
+					} else if (typeof(msg.line) == "object") {
+					} else {
+						// Unknown type
+					}
+					params.push(text_lines);
+					//	params[1]
+					if (msg.hasOwnProperty("backlight")) {
+						params.push(1 == msg.backlight);
+					} else {
+						// Add default backlight entry - assume on
+						msg["backlight"] = 1;
+						params.push(true);
+					}
+					msg["params"] = params;
+
+				} else if (msg.command_type == "set_flash_rate") {
+					// "params": [[],msg.payload.flashRate]
+					console.log("Command: set_flash_rate");
+					msg.name = "setFlashRate";
+					var params = [];
+
+					// params[0] is empty for this command
+					params.push([]);
+					// params[1] flashrate value
+					params.push(msg.value);
+
+					msg["params"] = params;
+
+				} else if (msg.command_type == "set_all_backlights") {
+					console.log("Command: set_all_backlights");
+					msg.name = "setAllBacklights";
+					var params = [];
+
+					// params[0] is empty for this command
+					params.push([]);
+
+					// params[1] boolean colour/on/off value
+					if (msg.value == 1) {
+						// Light on - what colour?
+						if (msg.hasOwnProperty("color")) {
+							params.push(msg.color);
+						} else {
+							params.push(true);
+							msg["color"] = -1;
+						}
+					} else if (msg.value == 0) {
+						params.push(false);
+						if (! msg.hasOwnProperty("color")) { msg["color"] = -1; }
+					} else {
+						// Unknown/wrong value
+					}
+
+					msg["params"] = params;
+
+				} else if (msg.command_type == "set_backlight_intensity") {
+					/*	TODO
+					*	In particular, we need a table mapping known colours
+					*	to red/blue values which this command uses.
+					*/
+					console.log("Command: set_backlight_intensity");
+					msg.name = "setBacklightIntensity";
+					var params = [];
+					var blue_red_pair = [];
+					if (typeof(msg.value) == "number") {
+						if (msg.color == "red") { blue_red_pair[0] = 0; blue_red_pair[1] = msg.value; }
+						else if (msg.color == "red") { blue_red_pair[0] = 0; blue_red_pair[1] = msg.value; }
+						else if (msg.color == "blue") { blue_red_pair[0] = msg.value; blue_red_pair[1] = 0; }
+						else if (msg.color == "purple") { blue_red_pair[0] = msg.value; blue_red_pair[1] = msg.value; }
+						else {
+							// Unknown colour
+							blue_red_pair[0] = msg.value; blue_red_pair[1] = msg.value;
+						}
+						params.push(blue_red_pair);
+					}
+					else if (typeof(msg.value) == "object") {
+						// In this case, expect an array already containing the blue & red values required
+						params.push(msg.value);
+						// Add/substitute dummy value for msg.colour to indicate it was unused
+						msg.color = -1;
+					}
+					else {
+						// Unknown value type. Abort.
+						// Error message?
+						return;
+					}
+
+					msg["params"] = params;
+
+				} else if (msg.command_type == "write_data") {
+					console.log("Command: write_data");
+					msg.name = "writeData";
+					var params = [];
+					if ((msg.hasOwnProperty("byte_array")) && (typeof(msg.byte_array) == "object")) {
+						params.push(msg.byte_array);
+					}
+
+					msg["params"] = params;
+
+				} else if (msg.command_type == "set_unit_id") {
+					/*	Since we touch the EEPROM with this command,
+					*	don't accept wildcards for product_id, unit_id, duplicate_id.
+					*/
+					console.log("Command: set_unit_id");
+					msg.name = "setUnitID";
+					var params = [];
+
+					if (msg.product_id < 0 || msg.unit_id < 0 || msg.duplicate_id < 0) {
+						// Not aceptable // Send error message?
+						console.log(`Command set_unit_id doesn't accept wildcards`);
+						return;
+					}
+					if (msg.new_unit_id < 0) { // Not aceptable // Send error message?
+						console.log(`Command set_unit_id needs a valid new_unit_id - not ${msg.new_unit_id}`);
+						return;
+					}
+
+					// params[0] is empty for this command
+					params.push([]);
+
+					// params[1] has the new unit_it
+					params.push(msg.new_unit_id);
+
+					msg["params"] = params;
+
+				} else if (msg.command_type == "save_backlight") {
+					/*	Since we touch the EEPROM with this command,
+					*	don't accept wildcards for product_id, unit_id, duplicate_id.
+					*/
+					console.log("Command: save_backlight");
+					msg.name = "saveBackLights";
+					var params = [];
+
+					if (msg.product_id < 0 || msg.unit_id < 0 || msg.duplicate_id < 0) {
+						// Not aceptable // Send error message?
+						console.log(`Command save_backlight doesn't accept wildcards`);
+						return;
+					}
+
+				} else {
+					console.log("Unhandled command");
+					return;
+				}
+			/*	No "break" for case "command"!
+			*
+			*	Having massaged the command into a format
+			*	suitable for processing by case "method",
+			*	we now want to fall through to case "method"
+			*/
 			case "method":
-				/*
-				*	Expect msg = {request:"method", pid_list:[e0,e1,...,eN], uid:UID, name:METHODNAME, params:[p0,p1,...,pN]}
+				/*	This is a 1.0.0 format method request
+				*
+				*	We expect messages in format:
+				*		{request:"method", pid_list:[e0,e1,...,eN], unit_id:UID, duplicate_id:ORDER, name:METHODNAME, params:[p0,p1,...,pN]}
 				*	where p0 = [k1,k2,...,kN] (dependent on method name)
 				*/
 				console.log("method request: " + message);
 				var devices = [];
 				Object.keys(xkeys_devices).forEach(function (item) {
-					//console.log("xkeys_devices item:" + item);
+					console.log("xkeys_devices item:" + item);
 					/*
 					*	pid_list == [] means target any attached device.
 					*/
 					if (msg.pid_list.length == 0) {
 						var regex;
-						if (msg.uid) {
-							//console.log("uid check: " + msg.uid);
-							regex = new RegExp("_" + msg.uid);
+						if (msg.unit_id > -1) {
+							//console.log("unit_id check 0: " + msg.unit_id);
+							regex = new RegExp("\[0-9\]+-" + msg.unit_id);
 							if (item.search(regex) > -1) {
-								//console.log("Found usable device: " + item);
-								devices.push(item);
+								// unit_id matches, what about duplicate_id?
+								if (msg.duplicate_id > -1 ) {
+									regex = new RegExp("\[0-9\]+-" + msg.unit_id + "-" + msg.duplicate_id);
+									if (item.search(regex) > -1) {
+										//console.log(`Found usable device 4: ${item}`);
+										devices.push(item);
+									}
+								} else if (msg.duplicate_id == -1) {
+									regex = new RegExp("\[0-9\]+-" + msg.unit_id + "-\[0-9\]+");
+									if (item.search(regex) > -1) {
+										//console.log(`Found usable device 4: ${item}`);
+										devices.push(item);
+									}
+								}
 							}
 						} else {
-							// No UID specified. Anything goes!
-							devices.push(item);
+							// no unit_id specified but check specified duplicate_id
+							if (msg.duplicate_id > -1) {
+								regex = new RegExp("\[0-9\]+-\[0-9\]+-" + msg.duplicate_id);
+								if (item.search(regex) > -1) {
+									//console.log(`Found usable device 2: ${item}`);
+									devices.push(item);
+								}
+							} else if (msg.duplicate_id == -1) {
+								// use all devices
+								devices.push(item);
+							}
 						}
 					} else {
+						// An endpoint has been specified
 						msg.pid_list.forEach(function (ep) {
 							//console.log("Checking endpoint: " + ep);
 							var regex;
-							if (msg.uid) {
-								//console.log("uid check: " + msg.uid);
-								regex = new RegExp(ep + "_" + msg.uid);
+							if (msg.unit_id > -1) {
+								//console.log("unit_id check 1: " + msg.unit_id);
+								regex = new RegExp(ep + "-" + msg.unit_id);
 								if (item.search(regex) > -1) {
-									//console.log("Found usable device: " + item);
-									devices.push(item);
+									// endpoint and unit_id both given, what about duplicate_id?
+									if (msg.duplicate_id > -1) {
+										// ep, unit_id, duplicate_id all given
+										regex = new RegExp(ep + "-" + msg.unit_id + "-" + msg.duplicate_id);
+										if (item.search(regex) > -1) {
+											//console.log("Found usable device 5: " + item);
+											devices.push(item);
+										}
+									} else if (msg.duplicate_id == -1) {
+										// ep & unit_id given, any duplicate_id will do
+										regex = new RegExp(ep + "-" + msg.unit_id + "-\[0-9\]+");
+										if (item.search(regex) > -1) {
+											//console.log("Found usable device 6: " + item);
+											devices.push(item);
+										}
+									}
+
 								}
 							} else {
-								//console.log(`uid check ${item}: (none)`);
-								regex = new RegExp(ep + "_");
-								if (item.search(regex) > -1) {
-									console.log("Found usable device: " + item);
-									devices.push(item);
+								// No unit_id specified - accept any unit_id
+								//console.log(`unit_id check 2 ${item}: (none)`);
+								// Check duplicate_id
+								if (msg.duplicate_id > -1) {
+									// no unit_id specified but check specified duplicate_id
+									regex = new RegExp(ep + "-\[0-9\]+-" + msg.duplicate_id);
+									if (item.search(regex) > -1) {
+										//console.log(`Found usable device 2: ${item}`);
+										devices.push(item);
+									}
+								} else if (msg.duplicate_id == -1) {
+									regex = new RegExp(ep + "-\[0-9\]+-\[0-9\]+");
+									if (item.search(regex) > -1) {
+										//console.log(`Found usable device 1: ${item}`);
+										devices.push(item);
+									}
 								}
 							}
 						})
 					}
 				});
-				devices.forEach( function (device) {
+
+				/*	command_result message.
+				*
+				*	Up to duplicate_id, message fields are common
+				*	to all command_types, so we set them up here
+				*	before anything is executed.
+				*
+				*	Fields that are specific to a command_type are
+				*	added below when that command type has been processed.
+				*/
+				var command_result = {};
+				command_result["msg_type"] = "command_result";
+				command_result["command_type"] = msg.command_type;
+				command_result["server_id"] = ServerID;
+				if (devices.length > 0) {
+					device_names = [];
+					devices.forEach( (device) => {
+						device_names.push(xkeys_devices[device].device.info.name);
+					})
+					command_result["device"] = device_names.toString();
+
+					command_result["device_list"] = devices;
+
+				} else {
+					//	Never reached because no devices satisfied device matching requirements
+					//	Not srictly an error but we could still return some sort of advice
+				}
+				if (msg.hasOwnProperty("product_id")) {
+					/*	Only commands via UDP have the product_id field
+					*	(NodeRED methods use pid_list)
+					*/
+					command_result["product_id"] = msg.product_id;
+				} else {
+					// This wasn't a command via UDP, so doesn't need a command_result.
+					// Use this later to determine whether to send command_result at all
+					// (or should UDP clients know when something has been changed by a NodeRED client?)
+				}
+				command_result["unit_id"] = msg.unit_id;
+				command_result["duplicate_id"] = msg.duplicate_id;
+				/*	Individual commands below will add fields specific to them */
+
+				/*
+				*	Process the command.
+				*/
+				devices.forEach( (device) => {
 					if (msg.name == "setIndicatorLED") {
 						//console.log("setIndicatorLED(): ");
 						/*
-						*	For each device matching pid_list & uid, call the named method with given params.
+						*	For each device matching pid_list & unit_id, call the named method with given params.
 						*	param p0 (msg.params[0]) is an array of led# to target, typically 1, 2, or 1 & 2.
 						*	param p1 (msg.params[1]) is a boolean denoting whether to turn LED on or off
 						*	param p2 (msg.params[2]) is a boolean denoting whether LED should be flashing or not
@@ -328,6 +689,11 @@ request_message_process = (type, message, ...moreArgs) => {
 							}
 						});
 
+						// Add command_result entries specific to this command_type
+						command_result["control_id"] = msg.control_id;
+						command_result["value"] = msg.value;
+						command_result["flash"] = msg.flash;
+
 					} else if (msg.name == "writeLcdDisplay") {
 						/*
 						*	Parameter p0 (msg.params[0]) is an array of strings (one entry for each line) for the device to display.
@@ -337,6 +703,10 @@ request_message_process = (type, message, ...moreArgs) => {
 							xkeys_devices[device].device.writeLcdDisplay(i+1, msg.params[0][i], msg.params[1]);
 						}
 
+						// Add command_result entries specific to this command_type
+						command_result["line"] = msg.line;
+						command_result["text"] = msg.text;
+
 					} else if (msg.name == "setFlashRate") {
 						/*
 							Flash rate is provided as parameter params[1]
@@ -345,37 +715,33 @@ request_message_process = (type, message, ...moreArgs) => {
 						if (isNaN(parseInt(msg.params[1]))) { return; }
 						xkeys_devices[device].device.setFrequency(parseInt(msg.params[1]));
 
+						// Add command_result entries specific to this command_type
+						command_result["value"] = msg.value;
+
 					} else if (msg.name == "setUnitID") {
 						/*
 						*	The new UnitID provided as parameter params[1]
-							(empty p0 is unused)
+						*	(empty p0 is unused)
 						*/
 						//console.log("About to run: setUnitId(" + parseInt(msg.params[1]) + ")");
 						xkeys_devices[device].device.setUnitId(parseInt(msg.params[1]));
+
+						// Add command_result entries specific to this command_type
+						command_result["target_unit_id"] = msg.unit_id;
+						command_result["new_unit_id"] = msg.params[1];
 
 						// Reboot this "new" device so that it is noticed by the system
 						xkeys_devices[device].device.rebootDevice();
 
 						// Remove the _old_ device from our local record
-						const regex = /_.*/;
-						var old_id = xkeys_devices[device].device.uniqueId.replace(regex, "_"+msg.uid);
-						if (Object.keys(xkeys_devices).includes(old_id)) {
-							//console.log("deleting: " + old_id);
-							delete xkeys_devices[old_id];
-						}
+						delete xkeys_devices[device];
+						console.log(`After removal, xkeys_devices = ${JSON.stringify(Object.keys(xkeys_devices))}`);
 
 					} else if (msg.name == "setBacklight") {
 						/*
 						*	For backlights, msg.params[0] is an array of buttonids to activate
 						*	                msg.params[1] is the hue to set
 						*	                msg.params[2] is true/false (flashing mode or not)
-						*/
-						/*
-						// Does this device have a backlight?
-						if (xkeys_devices[device].device.product.backLightType == 0 ) {
-							console.log("no backlight for " + xkeys_devices[device].device.product.name);
-							return;
-						}
 						*/
 
 						msg.params[0].forEach( (key) => {
@@ -387,9 +753,20 @@ request_message_process = (type, message, ...moreArgs) => {
 							xkeys_devices[device].device.setBacklight(buttonid, msg.params[1], msg.params[2]);
 						});
 
+						// Add command_result entries specific to this command_type
+						command_result["control_id"] = msg.control_id;
+						command_result["value"] = msg.value;
+						command_result["flash"] = msg.flash;
+
 					} else if (msg.name == "setAllBacklights") {
-						//console.log("Running: setAllBacklights(" + msg.params[1] + ")");
+						/*	params[0] unused
+						*	params[1] for colour/on/off
+						*/
 						xkeys_devices[device].device.setAllBacklights(msg.params[1]);
+
+						// Add command_result entries specific to this command_type
+						command_result["value"] = msg.value;
+						command_result["color"] = msg.color;
 
 					} else if (msg.name == "setBacklightIntensity") {
 						/*
@@ -399,18 +776,38 @@ request_message_process = (type, message, ...moreArgs) => {
 
 						xkeys_devices[device].device.setBacklightIntensity(msg.params[0][0], msg.params[0][1]);
 
+						// Add command_result entries specific to this command_type
+						command_result["value"] = msg.value;
+						command_result["color"] = msg.color;
+
 					} else if (msg.name == "saveBackLights") {
 						//console.log("Running: saveBackLights() for " + xkeys_devices[device].device.product.name);
 						xkeys_devices[device].device.saveBackLights();
+
+						// No command_result entries specific to this command_type
 
 					} else if (msg.name == "writeData") {
 						//console.log("Running: writeData(" + JSON.stringify(msg.params[0]) + ") for " + xkeys_devices[device].device.product.name);
 						xkeys_devices[device].device.writeData(msg.params[0]);
 
+						// Add command_result entries specific to this command_type
+						command_result["byte_array"] = msg.params[0];
+
 					} else {
 						console.log("Unsupported library method: " + msg.name);
 					}
 				});
+				if (msg.hasOwnProperty("product_id")) {
+					// NodeRED clients don't send product_id (they use pid_List)
+
+					if (devices.length < 1) {
+						console.log(`No device match to run command ${msg.command_type}`);
+						command_result["error"] = `No device match to run command ${msg.command_type}`;
+						udp_server.send(JSON.stringify(command_result), rinfo.port, rinfo.address);
+					} else {
+						send_udp_message(JSON.stringify(command_result));
+					}
+				}
 
 				/*	Nothing to do but ... */
 				if (msg_transport == "udp") {
@@ -452,7 +849,7 @@ client.on('error', (error) => {
 client.on('connect', () => {
     console.log('connected');
     startWatcher();
-    client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"hello","data":"Hello from Xkeys device server"}),{qos:qos,retain:false});
+    client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"hello","data":"Hello from Xkeys device server"}),{qos:qos,retain:false});
     client.subscribe({'/xkeys/node/#':{qos:qos}}, function (err) {
     	if (!err) {
       	    console.log(`xkeys-server ${ServerVersion} subscribed OK`);
@@ -474,14 +871,25 @@ client.on('connect', () => {
 		watcher.on('connected', (xkeysPanel) => {
 	   		console.log(`X-keys panel ${xkeysPanel.uniqueId} connected`);
 			add_xkeys_device(xkeysPanel);
-
 			update_client_device_list("");
+				var attach_msg = {"msg_type":"attach_event", "server_id":ServerID, "device":xkeysPanel.info.name,};
+				attach_msg["product_id"] = xkeysPanel.info.productId;
+				attach_msg["unit_id"] = xkeysPanel.info.unitId;
+				attach_msg["duplicate_id"] = xkeysPanel.duplicate_id;
+				attach_msg["attached_devices"] = Object.keys(xkeys_devices);
+				send_udp_message(JSON.stringify(attach_msg));
 
 			xkeysPanel.on('disconnected', () => {
-				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 				console.log(`X-keys panel ${temp_id} disconnected`)
 				delete xkeys_devices[temp_id];
 				update_client_device_list("");
+				var detach_msg = {"msg_type":"detach_event", "server_id":ServerID, "device":xkeysPanel.info.name,};
+				detach_msg["product_id"] = xkeysPanel.info.productId;
+				detach_msg["unit_id"] = xkeysPanel.info.unitId;
+				detach_msg["duplicate_id"] = xkeysPanel.duplicate_id;
+				detach_msg["attached_devices"] = Object.keys(xkeys_devices);
+				send_udp_message(JSON.stringify(detach_msg));
 			})
 			/*
 				RPIs version < 4 don't handle rebootDevice(), leaving xkeys_devices in an inconsistent state.
@@ -489,21 +897,21 @@ client.on('connect', () => {
 			*/
 			xkeysPanel.on('down', (btnIndex, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} down`)
-				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 				if (Object.keys(xkeys_devices).includes(temp_id)) {
-					var pid = xkeys_devices[temp_id].device.info.productId;
-					var uid = xkeys_devices[temp_id].device.info.unitId;
+					var product_id = xkeys_devices[temp_id].device.info.productId;
+					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("DOWN event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					metadata["type"] = "down";
-					metadata["shortnam"] = xkeys_products[pid.toString()];
-					var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
-					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					metadata["shortnam"] = xkeys_products[product_id.toString()];
+					var msg_topic = '/xkeys/server/button_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + btnIndex;
+					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 					// This is the v2.0.0 format
 					// value = 1 for down, 0 for up
-					var msg_udp = {"msg_type":"button_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-									"pid":pid,"uid":uid,"order":xkeysPanel.order, "index":btnIndex,
+					var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+									"product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id, "control_id":btnIndex,
 									"row":metadata.row,"col":metadata.col, "value":1,"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
@@ -513,19 +921,19 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[temp_id].device.info.productId;
-						var uid = xkeys_devices[temp_id].device.info.unitId;
+						var product_id = xkeys_devices[temp_id].device.info.productId;
+						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("DOWN event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "down";
-						metadata["shortnam"] = xkeys_products[pid.toString()];
-						var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
-						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						metadata["shortnam"] = xkeys_products[product_id.toString()];
+						var msg_topic = '/xkeys/server/button_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + btnIndex;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 						// This is the v2.0.0 format
 						// value = 1 for down, 0 for up
-						var msg_udp = {"msg_type":"button_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-										"pid":pid,"uid":uid,"order":xkeysPanel.order, "index":btnIndex,
+						var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+										"product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id, "control_id":btnIndex,
 										"row":metadata.row,"col":metadata.col, "value":1,"timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
@@ -533,21 +941,21 @@ client.on('connect', () => {
 			})
 			xkeysPanel.on('up', (btnIndex, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} up`)
-				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 				if (Object.keys(xkeys_devices).includes(temp_id)) {
-					var pid = xkeys_devices[temp_id].device.info.productId;
-					var uid = xkeys_devices[temp_id].device.info.unitId;
+					var product_id = xkeys_devices[temp_id].device.info.productId;
+					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("UP event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					metadata["type"] = "up";
-					metadata["shortnam"] = xkeys_products[pid.toString()];
-					var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
-					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					metadata["shortnam"] = xkeys_products[product_id.toString()];
+					var msg_topic = '/xkeys/server/button_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + btnIndex;
+					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 					// This is the v2.0.0 format
 					// value = 1 for down, 0 for up
-					var msg_udp = {"msg_type":"button_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-									"pid":pid,"uid":uid,"order":xkeysPanel.order, "index":btnIndex,
+					var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+									"product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id, "control_id":btnIndex,
 									"row":metadata.row,"col":metadata.col, "value":0,"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
@@ -557,19 +965,19 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[temp_id].device.info.productId;
-						var uid = xkeys_devices[temp_id].device.info.unitId;
+						var product_id = xkeys_devices[temp_id].device.info.productId;
+						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("UP event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "up";
-						metadata["shortnam"] = xkeys_products[pid.toString()];
-						var msg_topic = '/xkeys/server/button_event/' + pid + '/' + uid + '/' + btnIndex;
-						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						metadata["shortnam"] = xkeys_products[product_id.toString()];
+						var msg_topic = '/xkeys/server/button_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + btnIndex;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 						// This is the v2.0.0 format
 						// value = 1 for down, 0 for up
-						var msg_udp = {"msg_type":"button_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-										"pid":pid,"uid":uid,"order":xkeysPanel.order, "index":btnIndex,
+						var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+										"product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id, "control_id":btnIndex,
 										"row":metadata.row,"col":metadata.col, "value":0,"timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
@@ -577,22 +985,22 @@ client.on('connect', () => {
 			})
 			xkeysPanel.on('jog', (index, deltaPos, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index}), delta ${deltaPos}`)
-				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 				if (Object.keys(xkeys_devices).includes(temp_id)) {
-					var pid = xkeys_devices[temp_id].device.info.productId;
-					var uid = xkeys_devices[temp_id].device.info.unitId;
+					var product_id = xkeys_devices[temp_id].device.info.productId;
+					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 					metadata["type"] = "jog";
 					metadata["deltaPos"] = deltaPos;
-					metadata["shortnam"] = xkeys_products[pid.toString()];
-					var msg_topic = '/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index;
-					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					metadata["shortnam"] = xkeys_products[product_id.toString()];
+					var msg_topic = '/xkeys/server/jog_event/' + product_id + '/' + unit_id + '/' + index;
+					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 					// This is the v2.0.0 format
-					var msg_udp = {"msg_type":"jog_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-									"pid":pid, "uid":uid, "order":xkeysPanel.order,
-									"index":index, "value":deltaPos, "timestamp":metadata.timestamp};
+					var msg_udp = {"msg_type":"jog_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+									"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+									"control_id":index, "value":deltaPos, "timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
@@ -601,42 +1009,42 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[temp_id].device.info.productId;
-						var uid = xkeys_devices[temp_id].device.info.unitId;
+						var product_id = xkeys_devices[temp_id].device.info.productId;
+						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("JOG event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "jog";
 						metadata["deltaPos"] = deltaPos;
-						metadata["shortnam"] = xkeys_products[pid.toString()];
-						var msg_topic = '/xkeys/server/jog_event/' + pid + '/' + uid + '/' + index;
-						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						metadata["shortnam"] = xkeys_products[product_id.toString()];
+						var msg_topic = '/xkeys/server/jog_event/' + product_id + '/' + unit_id + '/' + index;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 						// This is the v2.0.0 format
-						var msg_udp = {"msg_type":"jog_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-										"pid":pid, "uid":uid, "order":xkeysPanel.order,
-										"index":index, "value":deltaPos, "timestamp":metadata.timestamp};
+						var msg_udp = {"msg_type":"jog_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+										"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+										"control_id":index, "value":deltaPos, "timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
 			xkeysPanel.on('shuttle', (index, shuttlePos, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index})`)
-				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 				if (Object.keys(xkeys_devices).includes(temp_id)) {
-					var pid = xkeys_devices[temp_id].device.info.productId;
-					var uid = xkeys_devices[temp_id].device.info.unitId;
+					var product_id = xkeys_devices[temp_id].device.info.productId;
+					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					metadata["type"] = "shuttle";
 					metadata["shuttlePos"] = shuttlePos;
-					metadata["shortnam"] = xkeys_products[pid.toString()];
-					var msg_topic = '/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index;
-					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					metadata["shortnam"] = xkeys_products[product_id.toString()];
+					var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + index;
+					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 					// This is the v2.0.0 format
-					var msg_udp = {"msg_type":"shuttle_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-									"pid":pid, "uid":uid, "order":xkeysPanel.order,
-									"index":index, "value":shuttlePos, "timestamp":metadata.timestamp};
+					var msg_udp = {"msg_type":"shuttle_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+									"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+									"control_id":index, "value":shuttlePos, "timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
 					add_unknown_xkeys_device(xkeysPanel)
@@ -645,41 +1053,41 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[temp_id].device.info.productId;
-						var uid = xkeys_devices[temp_id].device.info.unitId;
+						var product_id = xkeys_devices[temp_id].device.info.productId;
+						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "shuttle";
 						metadata["shuttlePos"] = shuttlePos;
-						metadata["shortnam"] = xkeys_products[pid.toString()];
-						var msg_topic = '/xkeys/server/shuttle_event/' + pid + '/' + uid + '/' + index;
-						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						metadata["shortnam"] = xkeys_products[product_id.toString()];
+						var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + index;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 						// This is the v2.0.0 format
-						var msg_udp = {"msg_type":"shuttle_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-										"pid":pid, "uid":uid, "order":xkeysPanel.order,
-										"index":index, "value":shuttlePos, "timestamp":metadata.timestamp};
+						var msg_udp = {"msg_type":"shuttle_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+										"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+										"control_id":index, "value":shuttlePos, "timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
 				}
 			})
 			xkeysPanel.on('joystick', (index, position, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} joystick (${index})`)
-				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 				if (Object.keys(xkeys_devices).includes(temp_id)) {
-					var pid = xkeys_devices[temp_id].device.info.productId;
-					var uid = xkeys_devices[temp_id].device.info.unitId;
+					var product_id = xkeys_devices[temp_id].device.info.productId;
+					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					metadata["type"] = "joystick";
 					metadata["position"] = position;
-					metadata["shortnam"] = xkeys_products[pid.toString()];
-					var msg_topic = '/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index;
-					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					metadata["shortnam"] = xkeys_products[product_id.toString()];
+					var msg_topic = '/xkeys/server/joystick_event/' + product_id + '/' + unit_id + '/' + index;
+					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 					// This is the v2.0.0 format
-					var msg_udp = {"msg_type":"joystick_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-									"pid":pid, "uid":uid, "order":xkeysPanel.order, "index":index,
+					var msg_udp = {"msg_type":"joystick_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+									"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id, "control_id":index,
 									"x":position.x, "y":position.y, "z":position.z, "deltaZ":position.deltaZ,
 									"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
@@ -690,19 +1098,19 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[temp_id].device.info.productId;
-						var uid = xkeys_devices[temp_id].device.info.unitId;
+						var product_id = xkeys_devices[temp_id].device.info.productId;
+						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "joystick";
 						metadata["position"] = position;
-						metadata["shortnam"] = xkeys_products[pid.toString()];
-						var msg_topic = '/xkeys/server/joystick_event/' + pid + '/' + uid + '/' + index;
-						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						metadata["shortnam"] = xkeys_products[product_id.toString()];
+						var msg_topic = '/xkeys/server/joystick_event/' + product_id + '/' + unit_id + '/' + index;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 						// This is the v2.0.0 format
-						var msg_udp = {"msg_type":"joystick_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-										"pid":pid, "uid":uid, "order":xkeysPanel.order, "index":index,
+						var msg_udp = {"msg_type":"joystick_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+										"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id, "control_id":index,
 										"x":position.x, "y":position.y, "z":position.z, "deltaZ":position.deltaZ,
 										"timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
@@ -711,21 +1119,21 @@ client.on('connect', () => {
 			})
 			xkeysPanel.on('tbar', (index, position, metadata) => {
 				//console.log(`X-keys panel ${xkeysPanel.info.name} tbar (${index})`)
-				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.order;
+				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 				if (Object.keys(xkeys_devices).includes(temp_id)) {
-					var pid = xkeys_devices[temp_id].device.info.productId;
-					var uid = xkeys_devices[temp_id].device.info.unitId;
+					var product_id = xkeys_devices[temp_id].device.info.productId;
+					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("TBAR event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					metadata["type"] = "tbar";
 					metadata["position"] = position;
-					metadata["shortnam"] = xkeys_products[pid.toString()];
-					var msg_topic = '/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index;
-					var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+					metadata["shortnam"] = xkeys_products[product_id.toString()];
+					var msg_topic = '/xkeys/server/tbar_event/' + product_id + '/' + unit_id + '/' + index;
+					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 					// This is the 2.0.0 format
-					var msg_udp = {"msg_type":"tbar_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-									"pid":pid, "uid":uid, "index":index, "order":xkeysPanel.order,
+					var msg_udp = {"msg_type":"tbar_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+									"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id, "control_id":index,
 									"value":position,"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				} else {
@@ -735,19 +1143,19 @@ client.on('connect', () => {
 						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
-						var pid = xkeys_devices[temp_id].device.info.productId;
-						var uid = xkeys_devices[temp_id].device.info.unitId;
+						var product_id = xkeys_devices[temp_id].device.info.productId;
+						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("TBAR event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 						metadata["type"] = "tbar";
 						metadata["position"] = position;
-						metadata["shortnam"] = xkeys_products[pid.toString()];
-						var msg_topic = '/xkeys/server/tbar_event/' + pid + '/' + uid + '/' + index;
-						var msg_pload = {"sid":ServerID,"request":"device_event", "data":metadata};
+						metadata["shortnam"] = xkeys_products[product_id.toString()];
+						var msg_topic = '/xkeys/server/tbar_event/' + product_id + '/' + unit_id + '/' + index;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
 						// This is the 2.0.0 format
-						var msg_udp = {"msg_type":"tbar_event", "sid":ServerID, "device":xkeys_products[pid.toString()],
-										"pid":pid, "uid":uid, "index":index, "order":xkeysPanel.order,
+						var msg_udp = {"msg_type":"tbar_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+										"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id, "control_id":index,
 										"value":position,"timestamp":metadata.timestamp};
 						send_udp_message(JSON.stringify(msg_udp));
 					})
@@ -763,13 +1171,13 @@ client.on('connect', () => {
 		(probably same devices with UID still == 0)
 	*/
     add_xkeys_device = (xkeysPanel) => {
-		var order = 0;
+		var duplicate_id = 0;
 		var temp_id_base = xkeysPanel.uniqueId.replace(/_/g, "-");
-		while ((temp_id_base + '-' + order) in xkeys_devices) {
-			order += 1;
+		while ((temp_id_base + '-' + duplicate_id) in xkeys_devices) {
+			duplicate_id += 1;
 		}
-		xkeysPanel["order"] = order;
-		var temp_id = temp_id_base + "-" + xkeysPanel.order;
+		xkeysPanel["duplicate_id"] = duplicate_id;
+		var temp_id = temp_id_base + "-" + xkeysPanel.duplicate_id;
 		console.log(`New device entry: ${temp_id}`);
 		xkeys_devices[temp_id] = {"owner": "", "device": xkeysPanel};
 
@@ -834,18 +1242,18 @@ function update_client_device_list (topic) {
 	//console.log("update_client_device_list(): " + JSON.stringify(device_list));
 	if (topic.length > 0) {
 		//console.log("Publish result_deviceList to:" + topic.replace("node","server"));
-   		client.publish(topic.replace("node","server"), JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
-		send_udp_message(JSON.stringify({"topic":topic.replace("node","server"),"sid":ServerID, "request":"result_deviceList", "data":device_list}));
+   		client.publish(topic.replace("node","server"), JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
+		send_udp_message(JSON.stringify({"topic":topic.replace("node","server"),"server_id":ServerID, "request":"result_deviceList", "data":device_list}));
 	} else {
-		//console.log("Publish result_deviceList");
-   		client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
-		send_udp_message(JSON.stringify({"topic":"/xkeys/server","sid":ServerID, "request":"result_deviceList", "data":device_list}));
+		console.log("Publish result_deviceList");
+   		client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
+		send_udp_message(JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}));
 	}
 }
 
 sendHeartbeat = (client) => {
 	//console.log("heartbeat");
-  	client.publish('/xkeys/server', JSON.stringify({"sid":ServerID, "request":"heartbeat"}), {qos:qos,retain:false});
+  	client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"heartbeat"}), {qos:qos,retain:false});
 }
 
 
