@@ -61,35 +61,35 @@ socket.on("message", (message, rinfo) => {
 });
 
 
-choose_server = (sid) => {
+choose_server = (server_id) => {
 	if (discovered_hosts.length == 0) {
 		/*	No servers found so try again.
 		*/
 		console.log("Finding server ...");
 		socket.send(message, 0, message.length, discovery_port, '255.255.255.255', function(err, bytes) { });
-		setTimeout(choose_server, 1000, sid);
+		setTimeout(choose_server, 1000, server_id);
 	} else {
 		console.log(`discovered_hosts: ${JSON.stringify(discovered_hosts)}`);
 		/*	Choose which of the servers that replied to use.
 		*	For brevity/convenience, we choose the first server we received a reply from.
 		*	A normal app may have a more sophisticated way to choose e.g. user input.
 		*/
-		if (sid) {
-			/*	 From discovered_hosts[], extract the entry whose sid matches
+		if (server_id) {
+			/*	 From discovered_hosts[], extract the entry whose server_id matches
 			*/
-			const choice = discovered_hosts.find(entry => { return entry.sid === sid ; });
+			const choice = discovered_hosts.find(entry => { return entry.server_id === server_id ; });
 			if (choice) {
-				console.log(`Choice: ${choice.sid} at ${choice.xk_server_address}`);
+				console.log(`Choice: ${choice.server_id} at ${choice.xk_server_address}`);
 			} else {
 				/* Something went wrong so start all over */
-				console.log(`Couldn't find server with SID matching ${sid}`);
+				console.log(`Couldn't find server with SID matching ${server_id}`);
 				console.log("Finding server ...");
 				socket.send(message, 0, message.length, discovery_port, '255.255.255.255', function(err, bytes) { });
-				setTimeout(choose_server, 1000, sid);
+				setTimeout(choose_server, 1000, server_id);
 			}
 		} else {
 			const choice = discovered_hosts[0];
-			console.log(`Choice: ${choice.sid} at ${choice.xk_server_address}`);
+			console.log(`Choice: ${choice.server_id} at ${choice.xk_server_address}`);
 		}
 		/*	Having chosen a server, an EOI message would usually be sent now
 		*	but since we're just demonstrating discovery here,
