@@ -77,6 +77,8 @@ client.on('message', (message, remote) => {
 			console.log(`Received command_result: ${JSON.stringify(msg)}`);
 		} else if (msg[msg_type] == "list_clients_result") {
 			console.log(`Received list_clients_result: ${JSON.stringify(msg)}`);
+		} else if (msg[msg_type] == "disconnect_result") {
+			console.log(`Received disconnect_result: ${JSON.stringify(msg)}`);
 		} else if (/.*_event/.exec(msg[msg_type])) {
 			/*	See all events */
 			console.log(JSON.stringify(JSON.parse(message)));
@@ -230,6 +232,9 @@ begin_normal_operations = () => {
 
 	// list_clients
 	setTimeout(send_udp_message, 5000, (new Buffer.from('{"msg_type":"list_clients"}', 'UTF-8')));
+
+	// disconnect
+	//setTimeout(send_udp_message, 9000, (new Buffer.from('{"msg_type":"disconnect"}', 'UTF-8')));
 
 }
 
