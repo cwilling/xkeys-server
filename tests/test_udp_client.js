@@ -50,8 +50,8 @@ client.on('message', (message, remote) => {
 				discovered_hosts.push(msg);
 			}
 		} else if (msg[msg_type] == "connect_result") {
-		   console.log(`connect was accepted by ${msg.server_id}`);
-		   begin_normal_operations();
+			console.log(`Received connect_result: ${JSON.stringify(msg)}`);
+			//begin_normal_operations();
 		} else if (msg[msg_type] == "list_attached_result") {
 			var device_keys = Object.keys(msg.devices);
 			if (device_keys.length > 0 ){
@@ -182,6 +182,7 @@ begin_normal_operations = () => {
 	//setTimeout(send_udp_message, 9000, (new Buffer.from('{"msg_type":"list_attached"}', 'UTF-8')));
 	//setTimeout(send_udp_message, 18000, (new Buffer.from('{"msg_type":"product_list"}', 'UTF-8')));
 
+
 	// LEDs
 	//setTimeout(send_udp_message, 4000, (new Buffer.from('{"msg_type":"command","command_type":"set_indicator_led","product_id":1029,"unit_id":-1,"duplicate_id":-1,"control_id":2,"value":1,"flash":1}', 'UTF-8')));
 	//setTimeout(send_udp_message, 15000, (new Buffer.from('{"msg_type":"command","command_type":"set_indicator_led","product_id":-1,"unit_id":-1,"duplicate_id":-1,"control_id":2,"value":0}', 'UTF-8')));
@@ -234,8 +235,16 @@ begin_normal_operations = () => {
 	setTimeout(send_udp_message, 5000, (new Buffer.from('{"msg_type":"list_clients"}', 'UTF-8')));
 
 	// disconnect
-	//setTimeout(send_udp_message, 9000, (new Buffer.from('{"msg_type":"disconnect"}', 'UTF-8')));
+	//setTimeout(send_udp_message, 12000, (new Buffer.from('{"msg_type":"disconnect"}', 'UTF-8')));
 
 }
 
+//	Another connect (change name?)
+setTimeout(send_udp_message, 3000, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
+setTimeout(send_udp_message, 5000, (new Buffer.from('{"msg_type":"connect", "client_name":"topsy turvy"}', 'UTF-8')));
+setTimeout(send_udp_message, 7000, (new Buffer.from('{"msg_type":"connect", "client_name":"topsy turvy"}', 'UTF-8')));
+setTimeout(send_udp_message, 8000, (new Buffer.from('{"msg_type":"connect", "client_name":"daisy"}', 'UTF-8')));
+setTimeout(send_udp_message, 11000, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
+
+setTimeout(send_udp_message, 15000, (new Buffer.from('{"msg_type":"list_clients"}', 'UTF-8')));
 
