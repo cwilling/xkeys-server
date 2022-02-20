@@ -174,46 +174,62 @@ request_message_process = (type, message, ...moreArgs) => {
 			case "connect":
 				if (msg_transport == "udp") {
 					//console.log("request_message_process(): UDP msg.request was connect");
-					var udp_client_found = false;
-					for (var i=udp_clients.length;i>0;i--) {
-						udp_client_found = false;
-						if ((udp_clients[i-1].remote.address == rinfo.address) && (udp_clients[i-1].remote.port == rinfo.port)) {
-							udp_client_found = true;
-							break;
-						}
-					}
-					if (!udp_client_found) {
+
+					//	Start building the connect_result
+					var connect_result = {"msg_type":"connect_result", "server_id":ServerID};
+					connect_result["client_address"] = rinfo.address;
+					connect_result["client_port"] = rinfo.port;
+
+					//	Determine new or returning client
+					const index = udp_clients.findIndex(item => item.remote.address === rinfo.address && item.remote.port === rinfo.port);
+					if (index < 0) {
 						// New client
 						// client_name is optional so create one if none sent
-						if (! msg.hasOwnProperty("client_name")) {
+						if (msg.hasOwnProperty("client_name")) {
+							//	client nominated a name but check it hasn't already been used
+							const name_used = udp_clients.findIndex(item => item.client_name === msg.client_name);
+							if (name_used > -1 ) {
+								//	Requested client_name already used - change it
+								msg["client_name"] = udp_clients[name_used].client_name + "_" + crypto.randomBytes(8).toString('hex');
+							}
+						} else {
+							//	client needs a name
 							msg["client_name"] = "client_" + crypto.randomBytes(8).toString('hex');
 						}
 						udp_clients.push({"timestamp":Date.now(), "client_name":msg.client_name, "remote":rinfo});
 						//console.log(`Added new client: ${JSON.stringify(udp_clients[udp_clients.length-1])}`);
-						try {
-							connect_result = {};
-							connect_result["msg_type"] = "connect_result";
-							connect_result["server_id"] = ServerID;
-							connect_result["client_address"] = rinfo.address;
-							connect_result["client_port"] = rinfo.port;
-							connect_result["client_name"] = msg.client_name;
-							connect_result["attached_devices"] = Object.keys(xkeys_devices);
-							connect_result["version"] = ServerVersion;
-
-							//udp_server.send(JSON.stringify(connect_result), rinfo.port, rinfo.address);
-							send_udp_message(JSON.stringify(connect_result));
-							//console.log(`Sent ${JSON.stringify(connect_result)} to ${rinfo.address}:${rinfo.port}`);
-
-						} catch (err) {
-							console.log("send_udp_message() error: " + err);
+					} else {
+						/*	An existing client is connecting again
+						*	with a new client name?
+						*/
+						if (msg.hasOwnProperty("client_name")) {
+							//	client nominated a name but check it hasn't already been used
+							const name_used = udp_clients.findIndex(item => item.client_name === msg.client_name);
+							if (name_used < 0 ) {
+								//	No one uses his name yet so claim it.
+								udp_clients[index].client_name = msg.client_name;
+							} else {
+								//	Requested client_name is already used by someone.
+								//	If used by someone else, we can't use it i.e nothing to do
+								//	If used by us already, then nothing to do
+							}
+						} else {
+							//	No new name provided - use existing
+							msg.client_name = udp_clients[index].client_name;
 						}
-						console.log(`New client at ${rinfo.address}:${rinfo.port}`);
 					}
-					/* Otherwise do nothing since we already have this client registered */
+					// 	Remainder of connect_result
+					connect_result["client_name"] = msg.client_name;
+					connect_result["attached_devices"] = Object.keys(xkeys_devices);
+					connect_result["version"] = ServerVersion;
+
+					//udp_server.send(JSON.stringify(connect_result), rinfo.port, rinfo.address);
+					send_udp_message(JSON.stringify(connect_result));
+					//console.log(`Sent ${JSON.stringify(connect_result)} to ${rinfo.address}:${rinfo.port}`);
 
 				} else if (msg_transport == "mqtt") {
 					/*	"connect" isn't part of MQTT establishment.
-					*	Should we dignify it with a response?
+					*	Should we supply a response?
 					*/
 
 				} else {
@@ -246,7 +262,7 @@ request_message_process = (type, message, ...moreArgs) => {
 				} else if (msg_transport == "mqtt") {
 					console.log("request_message_process(): MQTT msg.type was disconnect");
 					/*	EOI isn't really part of MQTT establishment.
-					*	Should we dignify it with a response?
+					*	Should we supply a response?
 					*/
 
 				} else {
