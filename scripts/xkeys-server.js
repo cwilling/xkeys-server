@@ -212,16 +212,48 @@ request_message_process = (type, message, ...moreArgs) => {
 					/* Otherwise do nothing since we already have this client registered */
 
 				} else if (msg_transport == "mqtt") {
-					//console.log("request_message_process(): MQTT msg.request was EOI");
+					/*	"connect" isn't part of MQTT establishment.
+					*	Should we dignify it with a response?
+					*/
+
+				} else {
+					console.log("request_message_process(): UNKNOWN TRANSPORT TYPE for msg.type connect");
+				}
+				break;
+
+			case "disconnect":
+				if (msg_transport == "udp") {
+					// Remove this client from udp_clients
+					const index = udp_clients.findIndex(item => item.remote.address === rinfo.address && item.remote.port === rinfo.port);
+					if (index < 0 ) {
+						// not found
+						console.log(`disconnect(): couldn't find ${rinfo} to disconnect`);
+						udp_server.send(JSON.stringify({"msg_type":"disconnect_result","server_id":ServerID, "error":"Unknown client to disconnect"}), rinfo.port, rinfo.address);
+					} else {
+						console.log(`disconnecting ${udp_clients[index].client_name}`);
+						const disconnect_result = {"msg_type":"disconnect_result","server_id":ServerID};
+						disconnect_result["client_address"] = udp_clients[index].remote.address;
+						disconnect_result["client_port"] = udp_clients[index].remote.port;
+						disconnect_result["client_name"] = udp_clients[index].client_name;
+						udp_clients.splice(index, 1);
+						// To disconnecting client (all client messages must have a response)
+						udp_server.send(JSON.stringify(disconnect_result), rinfo.port, rinfo.address);
+						// To remaining clients
+						send_udp_message(JSON.stringify(disconnect_result));
+						//console.log(`clients remaining: ${JSON.stringify(udp_clients)}`);
+					}
+
+				} else if (msg_transport == "mqtt") {
+					console.log("request_message_process(): MQTT msg.type was disconnect");
 					/*	EOI isn't really part of MQTT establishment.
 					*	Should we dignify it with a response?
 					*/
-					client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_EOI", "data":"OK"}), {qos:qos,retain:false});
 
 				} else {
-					console.log("request_message_process(): UNKNOWN TYPE msg.request was EOI");
+					console.log("request_message_process(): UNKNOWN TRANSPORT TYPE msg.type was connect");
 				}
 				break;
+
 			case "list_attached":
 				/*	Generate latest device list */
 				var device_list = [];
