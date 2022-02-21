@@ -10,6 +10,9 @@
 *	API described at https://gitlab.com/chris.willing/xkeys-server/-/tree/main/api
 */
 
+//const { PRODUCTS } = require('../node_modules/@xkeys-lib/core/dist/products');
+const PRODUCTS = require('./btest/products');
+console.log(`package products = ${PRODUCTS}`);
 
 let target_serverId;
 const myArgs = process.argv.slice(2);
@@ -239,6 +242,7 @@ begin_normal_operations = () => {
 
 }
 
+/*
 //	Another connect (change name?)
 setTimeout(send_udp_message, 3000, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
 setTimeout(send_udp_message, 5000, (new Buffer.from('{"msg_type":"connect", "client_name":"topsy turvy"}', 'UTF-8')));
@@ -251,5 +255,10 @@ setTimeout(send_udp_message, 11000, (new Buffer.from('{"msg_type":"connect"}', '
 setTimeout(send_udp_message, 15000, (new Buffer.from('{"msg_type":"list_clients"}', 'UTF-8')));
 
 setTimeout(send_udp_message, 16000, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
+setTimeout(send_udp_message, 18000, (new Buffer.from('{"msg_type":"product_list"}', 'UTF-8')));
 
 setTimeout(send_udp_message, 27000, (new Buffer.from('{"msg_type":"list_clients"}', 'UTF-8')));
+*/
+
+product_list_message = {"msg_type":"new_products", "data":PRODUCTS};
+setTimeout(send_udp_message, 4000, (JSON.stringify(product_list_message)));

@@ -30,7 +30,8 @@ const qos = 2;
 var path = require('path');
 const { XKeysWatcher } = require('xkeys');
 const XKeys = require('xkeys');
-const { PRODUCTS } = require('@xkeys-lib/core/dist/products');
+//const { PRODUCTS } = require('@xkeys-lib/core/dist/products');
+var { PRODUCTS } = require('@xkeys-lib/core/dist/products');
 
 /* An XKeysWatcher */
 let watcher;
@@ -113,9 +114,13 @@ request_message_process = (type, message, ...moreArgs) => {
 		} else {
 			msg_type = 'request'; 
 		}
-		console.log(`${msg_transport} message request: ${msg[msg_type]}`);
+		console.log(`${msg_transport} msg_type: ${msg[msg_type]}`);
 
 		switch (msg[msg_type]) {
+			case "new_products":
+				PRODUCTS = msg.data.PRODUCTS;
+				console.log(`XK24RGB name: ${JSON.stringify(PRODUCTS.XK24RGB.name)}`);
+				break;
 			case "discover":
 				/*	Since we exist on 0.0.0.0 i.e. every available interface,
 				*	and therefore have possibly multiple IP addresses,
