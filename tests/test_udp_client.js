@@ -242,9 +242,14 @@ begin_normal_operations = () => {
 //	Another connect (change name?)
 setTimeout(send_udp_message, 3000, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
 setTimeout(send_udp_message, 5000, (new Buffer.from('{"msg_type":"connect", "client_name":"topsy turvy"}', 'UTF-8')));
+setTimeout(send_udp_message, 6000, (new Buffer.from('{"msg_type":"disconnect"}', 'UTF-8')));
+
 setTimeout(send_udp_message, 7000, (new Buffer.from('{"msg_type":"connect", "client_name":"topsy turvy"}', 'UTF-8')));
 setTimeout(send_udp_message, 8000, (new Buffer.from('{"msg_type":"connect", "client_name":"daisy"}', 'UTF-8')));
 setTimeout(send_udp_message, 11000, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
 
 setTimeout(send_udp_message, 15000, (new Buffer.from('{"msg_type":"list_clients"}', 'UTF-8')));
 
+setTimeout(send_udp_message, 16000, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
+
+setTimeout(send_udp_message, 27000, (new Buffer.from('{"msg_type":"list_clients"}', 'UTF-8')));
