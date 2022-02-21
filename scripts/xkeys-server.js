@@ -109,6 +109,7 @@ request_message_process = (type, message, ...moreArgs) => {
 		let msg_type;
 		if (msg.hasOwnProperty('msg_type')) {
 			msg_type = 'msg_type'; 
+			reset_client_ttl_timer(rinfo);
 		} else {
 			msg_type = 'request'; 
 		}
@@ -1330,6 +1331,24 @@ send_udp_message = (msg) => {
 	}
 }
 
+/*	reset_client_ttl_timer(client)
+*
+*	Restart the timer sequence for this client.
+*	Typically used whenever a client message is received.
+*/
+reset_client_ttl_timer = (rinfo) => {
+	//	Check that the client is known
+	const index = udp_clients.findIndex(item => item.remote.address === rinfo.address && item.remote.port === rinfo.port);
+	if (index > -1) {
+		//	Reset the timeout object
+		clearTimeout(udp_clients[index].ttl_timer);
+		udp_clients[index].ttl_timer = setTimeout(send_ttl_warning, TIMEOUT_CLIENT_TTL, udp_clients[index]);
+		udp_clients[index].warnings = 0;
+	} else {
+		//	Unknown client (discover or connect client?)
+	}
+}
+
 /*	send_ttl_warning(client)
 *
 *	If the client has not communicated within a certain time,
@@ -1377,7 +1396,7 @@ add_udp_client = (client) => {
 	} else {
 		/*	This an existing client so this is either
 		*	- a keep alive connect
-		*	- a change of name connet
+		*	- a change of name connect
 		*/
 		//	In any case, cancel any existing timer & restart it
 		clearTimeout(udp_clients[index].ttl_timer);
