@@ -6,7 +6,7 @@ const ServerVersion = require('../package.json').version;
 process.env.UV_THREADPOOL_SIZE = 48;
 
 const { hostname, networkInterfaces } = require('os');
-const ServerID = hostname();
+const ServerID = "XKS_" + hostname();
 //const ServerID = "Chris' test UDP server"; 
 console.log("ServerID = " + ServerID);
 
@@ -15,7 +15,13 @@ const udp_server = dgram.createSocket('udp4');
 const udp_host = '0.0.0.0';
 const udp_port = 48895;
 const udp_clients = [];
-const udp_expiry = 20000;
+
+/*	Suggested timeouts are 10mins (600000) for ttl and 2mins (120000)for warnings.
+*	Shorter times temporarily for testing only
+*/
+const TIMEOUT_CLIENT_TTL = 10000;
+const TIMEOUT_CLIENT_WARNING = 2000;
+const CLIENT_TTL_WARNINGS = 3;
 
 const crypto = require('crypto');
 
@@ -196,8 +202,7 @@ request_message_process = (type, message, ...moreArgs) => {
 							//	client needs a name
 							msg["client_name"] = "client_" + crypto.randomBytes(8).toString('hex');
 						}
-						udp_clients.push({"timestamp":Date.now(), "client_name":msg.client_name, "remote":rinfo});
-						//console.log(`Added new client: ${JSON.stringify(udp_clients[udp_clients.length-1])}`);
+						add_udp_client({"timestamp":Date.now(), "client_name":msg.client_name, "remote":rinfo});
 					} else {
 						/*	An existing client is connecting again
 						*	with a new client name?
@@ -217,6 +222,7 @@ request_message_process = (type, message, ...moreArgs) => {
 							//	No new name provided - use existing
 							msg.client_name = udp_clients[index].client_name;
 						}
+						add_udp_client({"timestamp":Date.now(), "client_name":msg.client_name, "remote":rinfo});
 					}
 					// 	Remainder of connect_result
 					connect_result["client_name"] = msg.client_name;
@@ -239,25 +245,7 @@ request_message_process = (type, message, ...moreArgs) => {
 
 			case "disconnect":
 				if (msg_transport == "udp") {
-					// Remove this client from udp_clients
-					const index = udp_clients.findIndex(item => item.remote.address === rinfo.address && item.remote.port === rinfo.port);
-					if (index < 0 ) {
-						// not found
-						console.log(`disconnect(): couldn't find ${rinfo} to disconnect`);
-						udp_server.send(JSON.stringify({"msg_type":"disconnect_result","server_id":ServerID, "error":"Unknown client to disconnect"}), rinfo.port, rinfo.address);
-					} else {
-						console.log(`disconnecting ${udp_clients[index].client_name}`);
-						const disconnect_result = {"msg_type":"disconnect_result","server_id":ServerID};
-						disconnect_result["client_address"] = udp_clients[index].remote.address;
-						disconnect_result["client_port"] = udp_clients[index].remote.port;
-						disconnect_result["client_name"] = udp_clients[index].client_name;
-						udp_clients.splice(index, 1);
-						// To disconnecting client (all client messages must have a response)
-						udp_server.send(JSON.stringify(disconnect_result), rinfo.port, rinfo.address);
-						// To remaining clients
-						send_udp_message(JSON.stringify(disconnect_result));
-						//console.log(`clients remaining: ${JSON.stringify(udp_clients)}`);
-					}
+					remove_udp_client(rinfo);
 
 				} else if (msg_transport == "mqtt") {
 					console.log("request_message_process(): MQTT msg.type was disconnect");
@@ -1329,25 +1317,114 @@ udp_server.bind(udp_port, udp_host);
 /*	send_udp_message(msg)
 *	send the message to all known clients
 */
-function send_udp_message (msg) {
+send_udp_message = (msg) => {
 	//console.log("send_udp_message(), clients = " + udp_clients.length);
 	//console.log("send_udp_message(), mesg = " + msg);
-	for (var i=udp_clients.length;i>0;i--) {
-		var rinfo = udp_clients[i-1].remote;
+
+	for (const client of udp_clients) {
 		try {
-			udp_server.send(msg, rinfo.port, rinfo.address);
+			udp_server.send(msg, client.remote.port, client.remote.address);
 		} catch (err) {
 			console.log("send_udp_message() error: " + err);
 		}
-		//console.log("Sent msg to: " + rinfo.address + ":" + rinfo.port);
 	}
 }
 
-function check_udp_clients() {
-	//console.log("check_udp_clients(), clients# = " + udp_clients.length);
-	for (var i=udp_clients.length;i>0;i--) {
-		console.log(JSON.stringify(udp_clients[i-1]) + " " + i);
+/*	send_ttl_warning(client)
+*
+*	If the client has not communicated within a certain time,
+*	we send it two warnings that it should communicate somehow
+*	(perhaps with another connect message)
+*	
+*/
+send_ttl_warning = (client) => {
+	client.warnings += 1;
+	console.log(`send_ttl_warning() ${client.warnings}`);
+
+	if (client.warnings < CLIENT_TTL_WARNINGS) {
+		//	Send another warning
+		const disconnect_warning = {"msg_type":"disconnect_warning","server_id":ServerID};
+		disconnect_warning["client_address"] = client.remote.address;
+		disconnect_warning["client_port"] = client.remote.port;
+		disconnect_warning["client_name"] = client.client_name;
+		// To warned client only?
+		udp_server.send(JSON.stringify(disconnect_warning), client.remote.port, client.remote.address);
+
+		// 	Check again later
+		client.ttl_timer = setTimeout(send_ttl_warning, TIMEOUT_CLIENT_WARNING, client);
+
+	} else {
+		//	Enough warnings - disconnect the client
+		console.log(`send_ttl_warning() time to die (warnings = ${client.warnings} for ${client.client_name})`);
+		remove_udp_client(client.remote);
 	}
 }
-//setInterval(check_udp_clients, 4000);
+/*	add_udp_client(client)
+*
+*	This is the preferred method to establish a client presence
+*	in the udp_clients list (rather than udp_clients.push()).
+*/
+add_udp_client = (client) => {
+	console.log(`add_udp_client() add`);
+
+	const index = udp_clients.findIndex(item => item.remote.address === client.remote.address && item.remote.port === client.remote.port);
+	if (index < 0) {
+		//	Add a timeout object
+		client["ttl_timer"] = setTimeout(send_ttl_warning, TIMEOUT_CLIENT_TTL, client);
+		client["warnings"] = 0;
+		udp_clients.push(client);
+
+	} else {
+		/*	This an existing client so this is either
+		*	- a keep alive connect
+		*	- a change of name connet
+		*/
+		//	In any case, cancel any existing timer & restart it
+		clearTimeout(udp_clients[index].ttl_timer);
+		udp_clients[index].ttl_timer = setTimeout(send_ttl_warning, TIMEOUT_CLIENT_TTL, udp_clients[index]);
+		udp_clients[index].warnings = 0;
+
+		//	In case of a name change
+		udp_clients[index].client_name = client.client_name;
+	}
+	show_udp_clients()
+
+}
+
+/*	remove_udp_client(rinfo)
+*
+*	Preferred method to remove a client from udp_clients.
+*	As well as simple removal (splice) we also remove ttl timer
+*	and send a disconnect_result message.
+*/
+remove_udp_client = (rinfo) => {
+	// Remove this client from udp_clients
+	const index = udp_clients.findIndex(item => item.remote.address === rinfo.address && item.remote.port === rinfo.port);
+	if (index < 0 ) {
+		// not found
+		console.log(`remove_udp_client(): couldn't find ${JSON.stringify(rinfo)} to disconnect`);
+		udp_server.send(JSON.stringify({"msg_type":"disconnect_result","server_id":ServerID, "error":"Unknown client to disconnect"}), rinfo.port, rinfo.address);
+	} else {
+		console.log(`disconnecting ${udp_clients[index].client_name}`);
+		//	First remove ttl timer
+		clearTimeout(udp_clients[index].ttl_timer);
+
+		const disconnect_result = {"msg_type":"disconnect_result","server_id":ServerID};
+		disconnect_result["client_address"] = udp_clients[index].remote.address;
+		disconnect_result["client_port"] = udp_clients[index].remote.port;
+		disconnect_result["client_name"] = udp_clients[index].client_name;
+		udp_clients.splice(index, 1);
+		// To disconnecting client (all client messages must have a response)
+		udp_server.send(JSON.stringify(disconnect_result), rinfo.port, rinfo.address);
+		// To remaining clients
+		send_udp_message(JSON.stringify(disconnect_result));
+	}
+}
+
+show_udp_clients = () => {
+	for (const client of udp_clients) {
+		const client_display = {"client_name":client.client_name, "remote":client.remote, "warnings":client.warnings};
+		console.log(`${JSON.stringify(client_display)}`);
+	}
+}
 
