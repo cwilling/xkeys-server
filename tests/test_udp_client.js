@@ -82,6 +82,8 @@ client.on('message', (message, remote) => {
 			console.log(`Received list_clients_result: ${JSON.stringify(msg)}`);
 		} else if (msg[msg_type] == "disconnect_result") {
 			console.log(`Received disconnect_result: ${JSON.stringify(msg)}`);
+		} else if (msg[msg_type] == "error") {
+			console.log(`Received ERROR msg: ${JSON.stringify(msg)}`);
 		} else if (/.*_event/.exec(msg[msg_type])) {
 			/*	See all events */
 			console.log(JSON.stringify(JSON.parse(message)));
@@ -102,6 +104,7 @@ client.on('message', (message, remote) => {
 
 send_udp_message = (message) => {
 	/*	Before sending message, check that it's valid JSON */
+	/*
 	var msg = "";
 	try {
 		msg = JSON.parse(message);
@@ -111,12 +114,13 @@ send_udp_message = (message) => {
 		console.log(err);
 		return;
 	}
+	*/
 
 	client.send(message, 0, message.length, server_port, server_addr, (err, bytes) => {
 		if (err) {
 			throw err;
 		}
-		console.log(`Sending ${msg["msg_type"]} request to ${server_addr}:${server_port}`);
+		//console.log(`Sending ${msg["msg_type"]} request to ${server_addr}:${server_port}`);
 	});
 }
 
@@ -141,7 +145,7 @@ choose_server = (server_id) => {
 				console.log(`Choice: ${target.server_id} at ${target.data}`);
 				server_addr = target.data;
 				client.setBroadcast(false);
-				send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
+				//send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
 			} else {
 				/* Something went wrong so start all over */
 				console.log(`Couldn't find server with SID matching ${server_id}`);
@@ -154,7 +158,7 @@ choose_server = (server_id) => {
 			console.log(`Choosing server: ${choice.server_id} at ${choice.xk_server_address}`);
 			server_addr = choice.xk_server_address;
 			client.setBroadcast(false);
-			send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
+			//send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
 		}
 	}
 }
@@ -260,5 +264,16 @@ setTimeout(send_udp_message, 18000, (new Buffer.from('{"msg_type":"product_list"
 setTimeout(send_udp_message, 27000, (new Buffer.from('{"msg_type":"list_clients"}', 'UTF-8')));
 */
 
+/*
 product_list_message = {"msg_type":"new_products", "data":PRODUCTS};
 setTimeout(send_udp_message, 4000, (JSON.stringify(product_list_message)));
+*/
+
+setTimeout(send_udp_message, 3000, (new Buffer.from('{"msg_type":"list_clients"}', 'UTF-8')));
+
+// Faulty
+//(no msg_type)
+setTimeout(send_udp_message, 6000, (new Buffer.from('{"client_name":"daisy"}', 'UTF-8')));
+
+//(bad syntax)
+setTimeout(send_udp_message, 6000, (new Buffer.from('{msg_type":"connect", "client_name":"daisy"}', 'UTF-8')));

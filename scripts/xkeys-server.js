@@ -96,28 +96,54 @@ request_message_process = (type, message, ...moreArgs) => {
 	let topic;
 	let rinfo;
 
+    var msg = ""
 	if (msg_transport == "udp") {
 		rinfo = moreArgs[0];
+
+		/* Basic syntax check */
+		try {
+			msg = JSON.parse(message);
+			if (! msg.hasOwnProperty('msg_type')) {
+				//	UDP messages MUST have this field
+				console.log(`UDP message without msg_type rejected`);
+				udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Illegal message format: 'msg_type' is missing", "error_echo":msg}), rinfo.port, rinfo.address);
+				return;
+			}
+		}
+		catch (err) {
+			// Probably a JSON syntax error
+			udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"" + err, "error_echo":message.toString()}), rinfo.port, rinfo.address);
+			return;
+		}
 	} else if (msg_transport == "mqtt") {
 		topic = moreArgs[0];
 	}
 
 	/* Does the message comply? */
-    var msg = ""
     try {
 		msg = JSON.parse(message);
 		/*	Accommodate new message structure */
 		let msg_type;
 		if (msg.hasOwnProperty('msg_type')) {
+			//	New UDP message
 			msg_type = 'msg_type'; 
 			reset_client_ttl_timer(rinfo);
 		} else {
+			//	Old (pre UDP) message request
 			msg_type = 'request'; 
 		}
 		console.log(`${msg_transport} msg_type: ${msg[msg_type]}`);
 
 		switch (msg[msg_type]) {
 			case "new_products":
+				//	UDP only test command
+				if (is_connected(rinfo)) {
+					udp_server.send(JSON.stringify({"msg_type":"new_products_result","server_id":ServerID}), rinfo.port, rinfo.address);
+				} else {
+					//	Send error unconnected message
+					udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":msg}), rinfo.port, rinfo.address);
+					break;
+				}
 				PRODUCTS = msg.data.PRODUCTS;
 				console.log(`XK24RGB name: ${JSON.stringify(PRODUCTS.XK24RGB.name)}`);
 				break;
@@ -255,7 +281,7 @@ request_message_process = (type, message, ...moreArgs) => {
 
 				} else if (msg_transport == "mqtt") {
 					console.log("request_message_process(): MQTT msg.type was disconnect");
-					/*	EOI isn't really part of MQTT establishment.
+					/*	EOI/connect isn't really part of MQTT establishment.
 					*	Should we supply a response?
 					*/
 
@@ -273,14 +299,19 @@ request_message_process = (type, message, ...moreArgs) => {
 					device_list[device_list.length-1]["temp_id"] = key;
 				}
 				if (msg_transport == "udp") {
-					udp_server.send(JSON.stringify({"msg_type":"list_attached_result","server_id":ServerID, "devices":device_list}), rinfo.port, rinfo.address);
+					if (is_connected(rinfo)) {
+						udp_server.send(JSON.stringify({"msg_type":"list_attached_result","server_id":ServerID, "devices":device_list}), rinfo.port, rinfo.address);
+					} else {
+						//	Send error unconnected message
+						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":msg}), rinfo.port, rinfo.address);
+					}
 				} else if (msg_transport == "mqtt") {
 					client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
 				}
 				break
 			case "deviceList":
-				/*	!!!! Only relevant to OLD 1.0.0 server - retained for backward compatibility (for now).
-				*	!!!! Clients should now use "msg_request":"list_attached"
+				/*	!!! Only relevant to OLD 1.0.0 server - retained for backward compatibility (for now).
+				*	!!! Clients should now use "msg_request":"list_attached"
 				*/
 				/*	Generate latest device list */
 				var device_list = {};
@@ -297,13 +328,18 @@ request_message_process = (type, message, ...moreArgs) => {
 
 			case "product_list":
 				if (msg_transport == "udp") {
-					udp_server.send(JSON.stringify({"msg_type":"product_list_result", "server_id":ServerID, "data":PRODUCTS}), rinfo.port, rinfo.address);
+					if (is_connected(rinfo)) {
+						udp_server.send(JSON.stringify({"msg_type":"product_list_result", "server_id":ServerID, "data":PRODUCTS}), rinfo.port, rinfo.address);
+					} else {
+						//	Send error unconnected message
+						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":msg}), rinfo.port, rinfo.address);
+					}
 				} else if (msg_transport == "mqtt") {
 					client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
 				}
 			case "productList":
-				/*	!!!! Only relevant to OLD 1.0.0 server - retained for backward compatibility (for now).
-				*	!!!! Clients should now use "msg_request":"product_list"
+				/*	!!! Only relevant to OLD 1.0.0 server - retained for backward compatibility (for now).
+				*	!!! Clients should now use "msg_request":"product_list"
 				*/
 				if (msg_transport == "udp") {
 					udp_server.send(JSON.stringify({"server_id":ServerID,"msg_type":"result_productList","data":PRODUCTS}), rinfo.port, rinfo.address);
@@ -317,8 +353,15 @@ request_message_process = (type, message, ...moreArgs) => {
 					client_list.push({"client_address":client.remote.address, "client_port":client.remote.port, "client_name":client.client_name});
 				}
 				try {
+					if (is_connected(rinfo)) {
+						console.log("Is connected OK");
+						udp_server.send(JSON.stringify({"msg_type":"list_clients_result","server_id":ServerID, "clients":client_list}), rinfo.port, rinfo.address);
+					} else {
+						console.log("NOT connected OK");
+						//	Send error unconnected message
+						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":msg}), rinfo.port, rinfo.address);
+					}
 					//connect_result = {"msg_type":"list_clients_result","server_id":ServerID, "clients":client_list};
-					udp_server.send(JSON.stringify({"msg_type":"list_clients_result","server_id":ServerID, "clients":client_list}), rinfo.port, rinfo.address);
 				} catch (err) {
 					console.log("client_list_result_message() error: " + err);
 				}
@@ -334,6 +377,12 @@ request_message_process = (type, message, ...moreArgs) => {
 				/*	First, setup any command components common to all command_type
 				*	e.g. product_id --> pid_list
 				*/
+				/*	Step 0 - check client is connected
+				*/
+				if (! is_connected(rinfo)) {
+					udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":msg}), rinfo.port, rinfo.address);
+					break;
+				}
 				msg["pid_list"] = [];
 				if (msg.product_id > -1) { msg.pid_list.push(msg.product_id); }
 				// If (optional) "duplicate_id" is missing, it means order = 0.
@@ -1336,6 +1385,16 @@ send_udp_message = (msg) => {
 	}
 }
 
+
+/*	check_connected (msg, rinfo)
+*
+*	Return true if sender in known in udp_clients.
+*	Otherwise return false.
+*/
+is_connected = (rinfo) => {
+	return (udp_clients.findIndex(item => item.remote.address === rinfo.address && item.remote.port === rinfo.port) > -1);
+}
+
 /*	reset_client_ttl_timer(client)
 *
 *	Restart the timer sequence for this client.
@@ -1344,13 +1403,13 @@ send_udp_message = (msg) => {
 reset_client_ttl_timer = (rinfo) => {
 	//	Check that the client is known
 	const index = udp_clients.findIndex(item => item.remote.address === rinfo.address && item.remote.port === rinfo.port);
-	if (index > -1) {
+	if (index < 0) {
+		//	Unknown client (discover or connect client?)
+	} else {
 		//	Reset the timeout object
 		clearTimeout(udp_clients[index].ttl_timer);
 		udp_clients[index].ttl_timer = setTimeout(send_ttl_warning, TIMEOUT_CLIENT_TTL, udp_clients[index]);
 		udp_clients[index].warnings = 0;
-	} else {
-		//	Unknown client (discover or connect client?)
 	}
 }
 
