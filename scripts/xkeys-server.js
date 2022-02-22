@@ -119,10 +119,13 @@ request_message_process = (type, message, ...moreArgs) => {
 		topic = moreArgs[0];
 	}
 
-	/* Does the message comply? */
-    try {
+	/* Process the incoming message */
+	try {
 		msg = JSON.parse(message);
-		/*	Accommodate new message structure */
+		/*	Determine whether this is an old style
+		*	"request" message or new style "msg_type" message
+		* 	since we have to deal with both.
+		*/
 		let msg_type;
 		if (msg.hasOwnProperty('msg_type')) {
 			//	New UDP message
@@ -149,7 +152,7 @@ request_message_process = (type, message, ...moreArgs) => {
 				break;
 			case "discover":
 				/*	Since we exist on 0.0.0.0 i.e. every available interface,
-				*	and therefore have possibly multiple IP addresses,
+				*	and therefore possibly have multiple IP addresses,
 				*	find the best IP address to provide the client with.
 				*/
 				const nifs = networkInterfaces();
@@ -194,9 +197,7 @@ request_message_process = (type, message, ...moreArgs) => {
 				}
 
 				if (msg_transport == "udp") {
-					discover_result = {};
-					discover_result["msg_type"] = "discover_result";
-					discover_result["server_id"] = ServerID;
+					discover_result = {"msg_type":"discover_result", "server_id":ServerID};
 					discover_result["xk_server_address"] = address_match;
 					discover_result["attached_devices"] = Object.keys(xkeys_devices);
 					discover_result["version"] = ServerVersion;
@@ -1323,7 +1324,7 @@ client.on('message', (topic, message) => {
 })
 
 // Send a (possibly unsolicited) device list
-function update_client_device_list (topic) {
+update_client_device_list = (topic) => {
 
 	var device_list = {};
 	for (const key of Object.keys(xkeys_devices) ) {
@@ -1370,11 +1371,19 @@ udp_server.on('closed', (rinfo) => {
 udp_server.bind(udp_port, udp_host);
 
 /*	send_udp_message(msg)
-*	send the message to all known clients
+*
+*	send the msg to all known clients
 */
 send_udp_message = (msg) => {
-	//console.log("send_udp_message(), clients = " + udp_clients.length);
 	//console.log("send_udp_message(), mesg = " + msg);
+	//	Ensure we're sending valid (parsable) JSON
+	try {
+		var message = JSON.parse(msg);
+	}
+	catch (err) {
+		console.log(`send_udp_message(): Exception parsing msg. ${err}`);
+		return;
+	}
 
 	for (const client of udp_clients) {
 		try {
