@@ -1,33 +1,111 @@
 #!/usr/bin/env node
 
-const ServerVersion = require('../package.json').version;
+
+const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
+const xdgBasedir = require('xdg-basedir');
+
+const default_config = {
+	"ServerVersion"	: require('../package.json').version,
+	"hostname"		: require('os').hostname(),
+	"host_address"	: "0.0.0.0",
+	"host_port"		: 48895,
+	"timeout_client_ttl"	: 10000,
+	"timeout_client_warning_ttl" : 2000,
+	"client_ttl_warnings"	: 2
+}
+
+/*	Load config file or create one from defaults
+*/
+let config;
+try {
+	const config_dir = path.join(xdgBasedir.config, "xkeys-server");
+	if (! fs.existsSync(config_dir)) {
+		fs.mkdirSync(config_dir, true);
+		console.log(`Creating ${config_dir} `);
+	}
+	console.log(`${config_dir} exists`);
+	const config_file = path.join(config_dir, "xkeys-server.conf");
+	if (! fs.existsSync(config_file)) {
+		const data = JSON.stringify(default_config, null, 2);
+		fs.writeFileSync(config_file, data, 'utf8');
+	}
+	try {
+		const data = fs.readFileSync(config_file, 'utf8');
+		config = JSON.parse(data);
+		//	Here we should check that the values are reasonable.
+		//	e.g. external apps shouldn't be imposing version number so might be empty
+		var is_dirty = false;
+		if (config.ServerVersion.length == 0) {
+			config.ServerVersion = require('../package.json').version;
+			is_dirty = true
+		}
+		if (config.hostname.length == 0) {
+			config.hostname = require('os').hostname();
+			is_dirty = true
+		}
+		if (config.host_address.length == 0) {
+			config.host_address = "0.0.0.0";
+			is_dirty = true
+		}
+		if (config.host_port < 0 || config.host_port > 65535) {
+			config.host_port = 48895;
+			is_dirty = true
+		}
+		if (config.timeout_client_ttl < 0) {
+			config.timeout_client_ttl = 10000;
+			is_dirty = true
+		}
+		if (config.timeout_client_warning_ttl < 0) {
+			config.timeout_client_warning_ttl = 2000;
+			is_dirty = true
+		}
+		if (config.client_ttl_warnings < 0) {
+			config.client_ttl_warnings = 2;
+			is_dirty = true
+		}
+		if (is_dirty) {
+			const new_data = JSON.stringify(config, null, 2);
+			fs.writeFileSync(config_file, new_data, 'utf8');
+		}
+	}
+	catch (err) {
+		console.log(`ERROR  ${err}`);
+		process.exit(1);
+	}
+}
+catch (err) {
+	console.log(`ERROR ${err}`);
+
+	//	Fall back to default configuration
+	config = default_config;
+}
+//console.log(`config = ${JSON.stringify(config)}`);
 
 //var { env } = require('process');
 process.env.UV_THREADPOOL_SIZE = 48;
 
-const { hostname, networkInterfaces } = require('os');
-const ServerID = "XKS_" + hostname();
-//const ServerID = "Chris' test UDP server"; 
+const { networkInterfaces } = require('os');
+const ServerID = "XKS_" + config.hostname;
+//const ServerID = "XKS_Chris' test UDP server"; 
 console.log("ServerID = " + ServerID);
 
 const dgram = require('dgram');
 const udp_server = dgram.createSocket('udp4');
-const udp_host = '0.0.0.0';
-const udp_port = 48895;
+const udp_host = config.host_address;
+const udp_port = config.host_port;
 const udp_clients = [];
 
 /*	Suggested timeouts are 10mins (600000) for ttl and 2mins (120000)for warnings.
 *	Shorter times temporarily for testing only
 */
-const TIMEOUT_CLIENT_TTL = 10000;
-const TIMEOUT_CLIENT_WARNING = 2000;
-const CLIENT_TTL_WARNINGS = 3;
-
-const crypto = require('crypto');
+const TIMEOUT_CLIENT_TTL = config.timeout_client_ttl;
+const TIMEOUT_CLIENT_WARNING_TTL = config.timeout_client_warning_ttl;
+const CLIENT_TTL_WARNINGS = config.client_ttl_warnings;
 
 var mqtt = require('mqtt');
 const qos = 2;
-var path = require('path');
 const { XKeysWatcher } = require('xkeys');
 const XKeys = require('xkeys');
 //const { PRODUCTS } = require('@xkeys-lib/core/dist/products');
@@ -200,7 +278,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					discover_result = {"msg_type":"discover_result", "server_id":ServerID};
 					discover_result["xk_server_address"] = address_match;
 					discover_result["attached_devices"] = Object.keys(xkeys_devices);
-					discover_result["version"] = ServerVersion;
+					discover_result["version"] = config.ServerVersion;
 
 					//console.log("sending discover_result message");
 					udp_server.send(JSON.stringify(discover_result), rinfo.port, rinfo.address);
@@ -260,7 +338,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					// 	Remainder of connect_result
 					connect_result["client_name"] = msg.client_name;
 					connect_result["attached_devices"] = Object.keys(xkeys_devices);
-					connect_result["version"] = ServerVersion;
+					connect_result["version"] = config.ServerVersion;
 
 					//udp_server.send(JSON.stringify(connect_result), rinfo.port, rinfo.address);
 					send_udp_message(JSON.stringify(connect_result));
@@ -944,7 +1022,7 @@ client.on('connect', () => {
     client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"hello","data":"Hello from Xkeys device server"}),{qos:qos,retain:false});
     client.subscribe({'/xkeys/node/#':{qos:qos}}, function (err) {
     	if (!err) {
-      	    console.log(`xkeys-server ${ServerVersion} subscribed OK`);
+      	    console.log(`xkeys-server ${config.ServerVersion} subscribed OK`);
     	} else {
 			// Any point in going on?
 			console.log('Subscription failed: ' + err);
@@ -1443,7 +1521,7 @@ send_ttl_warning = (client) => {
 		udp_server.send(JSON.stringify(disconnect_warning), client.remote.port, client.remote.address);
 
 		// 	Check again later
-		client.ttl_timer = setTimeout(send_ttl_warning, TIMEOUT_CLIENT_WARNING, client);
+		client.ttl_timer = setTimeout(send_ttl_warning, TIMEOUT_CLIENT_WARNING_TTL, client);
 
 	} else {
 		//	Enough warnings - disconnect the client

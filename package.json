@@ -15,6 +15,7 @@
     "x-keys"
   ],
   "dependencies": {
+	"xdg-basedir": "^4.0.0",
     "mqtt": "^4.2.8",
     "usb-detection": "^4.13.0",
     "xkeys": "^2.3.2"
