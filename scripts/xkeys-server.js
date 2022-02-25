@@ -184,7 +184,7 @@ request_message_process = (type, message, ...moreArgs) => {
 			if (! msg.hasOwnProperty('msg_type')) {
 				//	UDP messages MUST have this field
 				console.log(`UDP message without msg_type rejected`);
-				udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Illegal message format: 'msg_type' is missing", "error_echo":msg}), rinfo.port, rinfo.address);
+				udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Illegal message format: 'msg_type' is missing", "error_echo":message}), rinfo.port, rinfo.address);
 				return;
 			}
 		}
@@ -222,7 +222,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					udp_server.send(JSON.stringify({"msg_type":"new_products_result","server_id":ServerID}), rinfo.port, rinfo.address);
 				} else {
 					//	Send error unconnected message
-					udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":msg}), rinfo.port, rinfo.address);
+					udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":message}), rinfo.port, rinfo.address);
 					break;
 				}
 				PRODUCTS = msg.data.PRODUCTS;
@@ -369,6 +369,24 @@ request_message_process = (type, message, ...moreArgs) => {
 				}
 				break;
 
+			case "reflect":
+				if (! msg.hasOwnProperty("message")) {
+					if (msg_transport == "udp") {
+						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"No message supplie for reflect request", "error_echo":message}), rinfo.port, rinfo.address);
+					}
+				}
+				if (msg_transport == "udp") {
+					if (is_connected(rinfo)) {
+						send_udp_message(JSON.stringify(msg.message));
+					} else {
+						//	Send error unconnected message
+						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":message}), rinfo.port, rinfo.address);
+					}
+				} else if (msg_transport == "mqtt") {
+					client.publish('/xkeys/server/reflect', JSON.stringify(msg.message), {qos:qos,retain:false});
+				}
+				break
+
 			case "list_attached":
 				/*	Generate latest device list */
 				var device_list = [];
@@ -382,7 +400,7 @@ request_message_process = (type, message, ...moreArgs) => {
 						udp_server.send(JSON.stringify({"msg_type":"list_attached_result","server_id":ServerID, "devices":device_list}), rinfo.port, rinfo.address);
 					} else {
 						//	Send error unconnected message
-						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":msg}), rinfo.port, rinfo.address);
+						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":message}), rinfo.port, rinfo.address);
 					}
 				} else if (msg_transport == "mqtt") {
 					client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
@@ -410,8 +428,8 @@ request_message_process = (type, message, ...moreArgs) => {
 					if (is_connected(rinfo)) {
 						udp_server.send(JSON.stringify({"msg_type":"product_list_result", "server_id":ServerID, "data":PRODUCTS}), rinfo.port, rinfo.address);
 					} else {
-						//	Send error unconnected message
-						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":msg}), rinfo.port, rinfo.address);
+						//	Send error unconnected messamessage
+						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":message}), rinfo.port, rinfo.address);
 					}
 				} else if (msg_transport == "mqtt") {
 					client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_productList", "data":PRODUCTS}), {qos:qos,retain:false});
@@ -438,7 +456,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					} else {
 						console.log("NOT connected OK");
 						//	Send error unconnected message
-						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":msg}), rinfo.port, rinfo.address);
+						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":message}), rinfo.port, rinfo.address);
 					}
 					//connect_result = {"msg_type":"list_clients_result","server_id":ServerID, "clients":client_list};
 				} catch (err) {
@@ -459,7 +477,7 @@ request_message_process = (type, message, ...moreArgs) => {
 				/*	Step 0 - check client is connected
 				*/
 				if (! is_connected(rinfo)) {
-					udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":msg}), rinfo.port, rinfo.address);
+					udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":message}), rinfo.port, rinfo.address);
 					break;
 				}
 				msg["pid_list"] = [];
@@ -1163,7 +1181,7 @@ client.on('connect', () => {
 					metadata["type"] = "jog";
 					metadata["deltaPos"] = deltaPos;
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
-					var msg_topic = '/xkeys/server/jog_event/' + product_id + '/' + unit_id + '/' + index;
+					var msg_topic = '/xkeys/server/jog_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id +  '/' + index;
 					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
@@ -1185,7 +1203,7 @@ client.on('connect', () => {
 						metadata["type"] = "jog";
 						metadata["deltaPos"] = deltaPos;
 						metadata["shortnam"] = xkeys_products[product_id.toString()];
-						var msg_topic = '/xkeys/server/jog_event/' + product_id + '/' + unit_id + '/' + index;
+						var msg_topic = '/xkeys/server/jog_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
@@ -1207,7 +1225,7 @@ client.on('connect', () => {
 					metadata["type"] = "shuttle";
 					metadata["shuttlePos"] = shuttlePos;
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
-					var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + index;
+					var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
@@ -1229,7 +1247,7 @@ client.on('connect', () => {
 						metadata["type"] = "shuttle";
 						metadata["shuttlePos"] = shuttlePos;
 						metadata["shortnam"] = xkeys_products[product_id.toString()];
-						var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + index;
+						var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
@@ -1251,7 +1269,7 @@ client.on('connect', () => {
 					metadata["type"] = "joystick";
 					metadata["position"] = position;
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
-					var msg_topic = '/xkeys/server/joystick_event/' + product_id + '/' + unit_id + '/' + index;
+					var msg_topic = '/xkeys/server/joystick_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + "/" + index;
 					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
@@ -1274,7 +1292,7 @@ client.on('connect', () => {
 						metadata["type"] = "joystick";
 						metadata["position"] = position;
 						metadata["shortnam"] = xkeys_products[product_id.toString()];
-						var msg_topic = '/xkeys/server/joystick_event/' + product_id + '/' + unit_id + '/' + index;
+						var msg_topic = '/xkeys/server/joystick_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + "/" + index;
 						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
@@ -1297,7 +1315,7 @@ client.on('connect', () => {
 					metadata["type"] = "tbar";
 					metadata["position"] = position;
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
-					var msg_topic = '/xkeys/server/tbar_event/' + product_id + '/' + unit_id + '/' + index;
+					var msg_topic = '/xkeys/server/tbar_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
@@ -1319,7 +1337,7 @@ client.on('connect', () => {
 						metadata["type"] = "tbar";
 						metadata["position"] = position;
 						metadata["shortnam"] = xkeys_products[product_id.toString()];
-						var msg_topic = '/xkeys/server/tbar_event/' + product_id + '/' + unit_id + '/' + index;
+						var msg_topic = '/xkeys/server/tbar_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
 						client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 
