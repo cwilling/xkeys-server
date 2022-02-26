@@ -84,6 +84,9 @@ client.on('message', (message, remote) => {
 			console.log(`Received disconnect_result: ${JSON.stringify(msg)}`);
 		} else if (msg[msg_type] == "error") {
 			console.log(`Received ERROR msg: ${JSON.stringify(msg)}`);
+		} else if (msg[msg_type] == "button_event") {
+			// Reflect test
+			console.log(`Received REFLECTED message: ${JSON.stringify(msg)}`);
 		} else if (/.*_event/.exec(msg[msg_type])) {
 			/*	See all events */
 			console.log(JSON.stringify(JSON.parse(message)));
@@ -269,11 +272,17 @@ product_list_message = {"msg_type":"new_products", "data":PRODUCTS};
 setTimeout(send_udp_message, 4000, (JSON.stringify(product_list_message)));
 */
 
-setTimeout(send_udp_message, 3000, (new Buffer.from('{"msg_type":"list_clients"}', 'UTF-8')));
+//setTimeout(send_udp_message, 3000, (new Buffer.from('{"msg_type":"list_clients"}', 'UTF-8')));
 
 // Faulty
 //(no msg_type)
-setTimeout(send_udp_message, 6000, (new Buffer.from('{"client_name":"daisy"}', 'UTF-8')));
+//setTimeout(send_udp_message, 6000, (new Buffer.from('{"client_name":"daisy"}', 'UTF-8')));
 
 //(bad syntax)
-setTimeout(send_udp_message, 6000, (new Buffer.from('{msg_type":"connect", "client_name":"daisy"}', 'UTF-8')));
+//setTimeout(send_udp_message, 6000, (new Buffer.from('{msg_type":"connect", "client_name":"daisy"}', 'UTF-8')));
+
+//(reflection)
+var amessage = {"msg_type":"button_event", "server_id":"MHHDELL", "device":"XKE124TBAR", "product_id":1278, "unit_id":1, "duplicate_id":0, "control_id":8, "row":8, "col":1, "value":0, "timestamp":730421776};
+var request_message = {"msg_type":"reflect", "message":amessage};
+setTimeout(send_udp_message, 1000, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
+setTimeout(send_udp_message, 2000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
