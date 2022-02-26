@@ -12,8 +12,8 @@ const default_config = {
 	"hostname"		: require('os').hostname(),
 	"host_address"	: "0.0.0.0",
 	"host_port"		: 48895,
-	"timeout_client_ttl"	: 10000,
-	"timeout_client_warning_ttl" : 2000,
+	"timeout_client_ttl"	: 600000,
+	"timeout_client_warning_ttl" : 120000,
 	"client_ttl_warnings"	: 2
 }
 
