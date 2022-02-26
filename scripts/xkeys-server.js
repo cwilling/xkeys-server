@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const xdgBasedir = require('xdg-basedir');
+//const xlate = require('./xkeys-xlate')
 
 const default_config = {
 	"ServerVersion"	: require('../package.json').version,
@@ -378,12 +379,18 @@ request_message_process = (type, message, ...moreArgs) => {
 				if (msg_transport == "udp") {
 					if (is_connected(rinfo)) {
 						send_udp_message(JSON.stringify(msg.message));
-					} else {
-						//	Send error unconnected message
-						udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"Client not connected. Try 'msg_type':'connect'.", "error_echo":message}), rinfo.port, rinfo.address);
 					}
-				} else if (msg_transport == "mqtt") {
-					client.publish('/xkeys/server/reflect', JSON.stringify(msg.message), {qos:qos,retain:false});
+
+					// Create topic & message based on content of the message to be reflected.
+					// This is just an example for specific message - would need something more generic for real world.
+					//var xlated_msg = xlate.xlate2node(JSON.stringify(msg.message));
+					var msg_topic = '/xkeys/server/button_event/' + msg.message.product_id + '/' + msg.message.unit_id + '/' + msg.message.duplicate_id + '/' + msg.message.control_id;
+					var metadata = {"row":msg.message.row, "col":msg.message.col,"timestamp":msg.message.timestamp};
+					metadata["type"] = msg.message.value==0?"up":"down";
+					metadata["shortname"] = msg.message.device;
+					var msg_pload = {"server_id":msg.message.server_id,"request":"device_event", "data":metadata};
+					console.log(`msg_topic = ${msg_topic}`);
+					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 				}
 				break
 

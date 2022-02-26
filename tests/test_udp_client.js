@@ -148,7 +148,7 @@ choose_server = (server_id) => {
 				console.log(`Choice: ${target.server_id} at ${target.data}`);
 				server_addr = target.data;
 				client.setBroadcast(false);
-				//send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
+				send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
 			} else {
 				/* Something went wrong so start all over */
 				console.log(`Couldn't find server with SID matching ${server_id}`);
@@ -161,7 +161,7 @@ choose_server = (server_id) => {
 			console.log(`Choosing server: ${choice.server_id} at ${choice.xk_server_address}`);
 			server_addr = choice.xk_server_address;
 			client.setBroadcast(false);
-			//send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
+			send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
 		}
 	}
 }
@@ -282,7 +282,11 @@ setTimeout(send_udp_message, 4000, (JSON.stringify(product_list_message)));
 //setTimeout(send_udp_message, 6000, (new Buffer.from('{msg_type":"connect", "client_name":"daisy"}', 'UTF-8')));
 
 //(reflection)
-var amessage = {"msg_type":"button_event", "server_id":"MHHDELL", "device":"XKE124TBAR", "product_id":1278, "unit_id":1, "duplicate_id":0, "control_id":8, "row":8, "col":1, "value":0, "timestamp":730421776};
-var request_message = {"msg_type":"reflect", "message":amessage};
-setTimeout(send_udp_message, 1000, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
+//setTimeout(send_udp_message, 1000, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
+var button_on = {"msg_type":"button_event", "server_id":"MHHDELL", "device":"XK64JOGTBAR", "product_id":1325, "unit_id":1, "duplicate_id":0, "control_id":80, "row":8, "col":10, "value":1, "timestamp":730421776};
+var button_off = {"msg_type":"button_event", "server_id":"MHHDELL", "device":"XK64JOGTBAR", "product_id":1325, "unit_id":1, "duplicate_id":0, "control_id":72, "row":8, "col":9, "value":1, "timestamp":740421776};
+
+var request_message = {"msg_type":"reflect", "message":button_on};
 setTimeout(send_udp_message, 2000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
+var request_message = {"msg_type":"reflect", "message":button_off};
+setTimeout(send_udp_message, 5000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
