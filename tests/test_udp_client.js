@@ -32,7 +32,7 @@ client.bind( () => {
 
 
 client.on('message', (message, remote) => {
-	//console.log('Msg Rcvd: ' + JSON.stringify(JSON.parse(message), null, 2) + "  from: " + JSON.stringify(remote));
+	console.log('Msg Rcvd: ' + JSON.stringify(JSON.parse(message), null, 2) + "  from: " + JSON.stringify(remote));
 	//console.log(`Msg Rcvd: ${JSON.stringify(JSON.parse(message))} from: ${JSON.stringify(remote)})`);
 	var msg = "";
 	try{
@@ -285,8 +285,28 @@ setTimeout(send_udp_message, 4000, (JSON.stringify(product_list_message)));
 //setTimeout(send_udp_message, 1000, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
 var button_on = {"msg_type":"button_event", "server_id":"MHHDELL", "device":"XK64JOGTBAR", "product_id":1325, "unit_id":1, "duplicate_id":0, "control_id":80, "row":8, "col":10, "value":1, "timestamp":730421776};
 var button_off = {"msg_type":"button_event", "server_id":"MHHDELL", "device":"XK64JOGTBAR", "product_id":1325, "unit_id":1, "duplicate_id":0, "control_id":72, "row":8, "col":9, "value":1, "timestamp":740421776};
+var jog = {"msg_type":"jog_event","server_id":"XKS_fred","device":"XKE-64 Jog T-bar","product_id":1325,"unit_id":1,"duplicate_id":0,"control_id":0,"value":-1,"timestamp":58992336}
+var shuttle_1 = {"msg_type":"shuttle_event","server_id":"XKS_fred","device":"XKE-64 Jog T-bar","product_id":1325,"unit_id":1,"duplicate_id":0,"control_id":0,"value":2,"timestamp":59384488}
+var shuttle_2 = {"msg_type":"shuttle_event","server_id":"XKS_fred","device":"XKE-64 Jog T-bar","product_id":1325,"unit_id":1,"duplicate_id":0,"control_id":0,"value":1,"timestamp":59384679}
+var shuttle_3 = {"msg_type":"shuttle_event","server_id":"XKS_fred","device":"XKE-64 Jog T-bar","product_id":1325,"unit_id":1,"duplicate_id":0,"control_id":0,"value":0,"timestamp":59384679}
+var joystick = {"msg_type":"joystick_event","server_id":"XKS_fred","device":"XK-12 Joystick","product_id":1065,"unit_id":3,"duplicate_id":0,"control_id":0,"x":0,"y":-19,"z":14,"deltaZ":-6,"timestamp":8179}
+var tbar = {"msg_type":"tbar_event","server_id":"XKS_fred","device":"XKE-64 Jog T-bar","product_id":1325,"unit_id":1,"duplicate_id":0,"control_id":0,"value":37,"timestamp":61466765}
 
+
+
+/*
 var request_message = {"msg_type":"reflect", "message":button_on};
 setTimeout(send_udp_message, 2000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
 var request_message = {"msg_type":"reflect", "message":button_off};
 setTimeout(send_udp_message, 5000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
+var request_message = {"msg_type":"reflect", "message":jog};
+setTimeout(send_udp_message, 2000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
+var request_message = {"msg_type":"reflect", "message":shuttle_1};
+setTimeout(send_udp_message, 2000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
+var request_message = {"msg_type":"reflect", "message":shuttle_2};
+setTimeout(send_udp_message, 3500, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
+var request_message = {"msg_type":"reflect", "message":shuttle_3};
+setTimeout(send_udp_message, 5000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
+*/
+var request_message = {"msg_type":"reflect", "message":tbar};
+setTimeout(send_udp_message, 2000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
