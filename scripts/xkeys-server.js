@@ -1071,7 +1071,7 @@ client.on('connect', () => {
 		watcher.on('connected', (xkeysPanel) => {
 	   		console.log(`X-keys panel ${xkeysPanel.uniqueId} connected`);
 			add_xkeys_device(xkeysPanel);
-			//update_client_device_list("");
+			update_client_device_list("");
 				var attach_msg = {"msg_type":"attach_event", "server_id":ServerID, "device":xkeysPanel.info.name,};
 				attach_msg["product_id"] = xkeysPanel.info.productId;
 				attach_msg["unit_id"] = xkeysPanel.info.unitId;
@@ -1083,7 +1083,7 @@ client.on('connect', () => {
 				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 				console.log(`X-keys panel ${temp_id} disconnected`)
 				delete xkeys_devices[temp_id];
-				//update_client_device_list("");
+				update_client_device_list("");
 				var detach_msg = {"msg_type":"detach_event", "server_id":ServerID, "device":xkeysPanel.info.name,};
 				detach_msg["product_id"] = xkeysPanel.info.productId;
 				detach_msg["unit_id"] = xkeysPanel.info.unitId;
@@ -1119,7 +1119,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						//update_client_device_list("");
+						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1165,7 +1165,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						//update_client_device_list("");
+						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1211,7 +1211,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						//update_client_device_list("");
+						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1257,7 +1257,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						//update_client_device_list("");
+						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1304,7 +1304,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						//update_client_device_list("");
+						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1351,7 +1351,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						//update_client_device_list("");
+						update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1455,11 +1455,11 @@ update_client_device_list = (topic) => {
 	if (topic.length > 0) {
 		//console.log("Publish result_deviceList to:" + topic.replace("node","server"));
    		client.publish(topic.replace("node","server"), JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
-		send_udp_message(JSON.stringify({"topic":topic.replace("node","server"),"server_id":ServerID, "request":"result_deviceList", "data":device_list}));
+		//send_udp_message(JSON.stringify({"topic":topic.replace("node","server"),"server_id":ServerID, "request":"result_deviceList", "data":device_list}));
 	} else {
 		console.log("Publish result_deviceList");
    		client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}), {qos:qos,retain:false});
-		send_udp_message(JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}));
+		//send_udp_message(JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}));
 	}
 }
 
