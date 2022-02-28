@@ -1071,7 +1071,7 @@ client.on('connect', () => {
 		watcher.on('connected', (xkeysPanel) => {
 	   		console.log(`X-keys panel ${xkeysPanel.uniqueId} connected`);
 			add_xkeys_device(xkeysPanel);
-			update_client_device_list("");
+			//update_client_device_list("");
 				var attach_msg = {"msg_type":"attach_event", "server_id":ServerID, "device":xkeysPanel.info.name,};
 				attach_msg["product_id"] = xkeysPanel.info.productId;
 				attach_msg["unit_id"] = xkeysPanel.info.unitId;
@@ -1083,7 +1083,7 @@ client.on('connect', () => {
 				var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 				console.log(`X-keys panel ${temp_id} disconnected`)
 				delete xkeys_devices[temp_id];
-				update_client_device_list("");
+				//update_client_device_list("");
 				var detach_msg = {"msg_type":"detach_event", "server_id":ServerID, "device":xkeysPanel.info.name,};
 				detach_msg["product_id"] = xkeysPanel.info.productId;
 				detach_msg["unit_id"] = xkeysPanel.info.unitId;
@@ -1118,7 +1118,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						update_client_device_list("");
+						//update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1162,7 +1162,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						update_client_device_list("");
+						//update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1206,7 +1206,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						update_client_device_list("");
+						//update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1250,7 +1250,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						update_client_device_list("");
+						//update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1295,7 +1295,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						update_client_device_list("");
+						//update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1340,7 +1340,7 @@ client.on('connect', () => {
 					add_unknown_xkeys_device(xkeysPanel)
 					.then(data => {
 						console.log("XXXXX " + data);
-						update_client_device_list("");
+						//update_client_device_list("");
 						console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
 
 						var product_id = xkeys_devices[temp_id].device.info.productId;
