@@ -1102,6 +1102,7 @@ client.on('connect', () => {
 					var product_id = xkeys_devices[temp_id].device.info.productId;
 					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("DOWN event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 					metadata["type"] = "down";
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
 					var msg_topic = '/xkeys/server/button_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + btnIndex;
@@ -1124,6 +1125,7 @@ client.on('connect', () => {
 						var product_id = xkeys_devices[temp_id].device.info.productId;
 						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("DOWN event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+						if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 						metadata["type"] = "down";
 						metadata["shortnam"] = xkeys_products[product_id.toString()];
 						var msg_topic = '/xkeys/server/button_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + btnIndex;
@@ -1146,6 +1148,7 @@ client.on('connect', () => {
 					var product_id = xkeys_devices[temp_id].device.info.productId;
 					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("UP event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 					metadata["type"] = "up";
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
 					var msg_topic = '/xkeys/server/button_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + btnIndex;
@@ -1168,6 +1171,7 @@ client.on('connect', () => {
 						var product_id = xkeys_devices[temp_id].device.info.productId;
 						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("UP event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+						if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 						metadata["type"] = "up";
 						metadata["shortnam"] = xkeys_products[product_id.toString()];
 						var msg_topic = '/xkeys/server/button_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + btnIndex;
@@ -1190,6 +1194,7 @@ client.on('connect', () => {
 					var product_id = xkeys_devices[temp_id].device.info.productId;
 					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
+					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 					metadata["type"] = "jog";
 					metadata["deltaPos"] = deltaPos;
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
@@ -1212,6 +1217,7 @@ client.on('connect', () => {
 						var product_id = xkeys_devices[temp_id].device.info.productId;
 						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("JOG event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+						if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 						metadata["type"] = "jog";
 						metadata["deltaPos"] = deltaPos;
 						metadata["shortnam"] = xkeys_products[product_id.toString()];
@@ -1234,6 +1240,7 @@ client.on('connect', () => {
 					var product_id = xkeys_devices[temp_id].device.info.productId;
 					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 					metadata["type"] = "shuttle";
 					metadata["shuttlePos"] = shuttlePos;
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
@@ -1256,6 +1263,7 @@ client.on('connect', () => {
 						var product_id = xkeys_devices[temp_id].device.info.productId;
 						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+						if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 						metadata["type"] = "shuttle";
 						metadata["shuttlePos"] = shuttlePos;
 						metadata["shortnam"] = xkeys_products[product_id.toString()];
@@ -1278,6 +1286,7 @@ client.on('connect', () => {
 					var product_id = xkeys_devices[temp_id].device.info.productId;
 					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 					metadata["type"] = "joystick";
 					metadata["position"] = position;
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
@@ -1301,6 +1310,7 @@ client.on('connect', () => {
 						var product_id = xkeys_devices[temp_id].device.info.productId;
 						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("JOYSTICK event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+						if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 						metadata["type"] = "joystick";
 						metadata["position"] = position;
 						metadata["shortnam"] = xkeys_products[product_id.toString()];
@@ -1324,6 +1334,7 @@ client.on('connect', () => {
 					var product_id = xkeys_devices[temp_id].device.info.productId;
 					var unit_id = xkeys_devices[temp_id].device.info.unitId;
 					//console.log("TBAR event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 					metadata["type"] = "tbar";
 					metadata["position"] = position;
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
@@ -1346,6 +1357,7 @@ client.on('connect', () => {
 						var product_id = xkeys_devices[temp_id].device.info.productId;
 						var unit_id = xkeys_devices[temp_id].device.info.unitId;
 						//console.log("TBAR event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+						if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 						metadata["type"] = "tbar";
 						metadata["position"] = position;
 						metadata["shortnam"] = xkeys_products[product_id.toString()];

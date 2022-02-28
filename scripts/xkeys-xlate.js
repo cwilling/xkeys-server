@@ -78,20 +78,26 @@ module.exports =
 			case "button_event":
 				metadata["row"] = msg.row;
 				metadata["col"] = msg.col;
-				metadata["timestamp"] = msg.timestamp;
+				if (msg.hasOwnProperty("timestamp")) {
+					metadata["timestamp"] = msg.timestamp;
+				} else { metadata["timestamp"] = -1; }
 				metadata["type"] = msg.value==0?"up":"down";
 				metadata["shortnam"] = msg.device;
 				msg_pload = {"server_id":msg.server_id,"request":"device_event", "data":metadata};
 			break;
 			case "jog_event":
-				metadata["timestamp"] = msg.timestamp;
+				if (msg.hasOwnProperty("timestamp")) {
+					metadata["timestamp"] = msg.timestamp;
+				} else { metadata["timestamp"] = -1; }
 				metadata["type"] = "jog";
 				metadata["deltaPos"] = msg.value;
 				metadata["shortnam"] = msg.device;
 				msg_pload = {"server_id":msg.server_id,"request":"device_event", "data":metadata};
 			break;
 			case "shuttle_event":
-				metadata["timestamp"] = msg.timestamp;
+				if (msg.hasOwnProperty("timestamp")) {
+					metadata["timestamp"] = msg.timestamp;
+				} else { metadata["timestamp"] = -1; }
 				metadata["type"] = "shuttle";
 				metadata["shuttlePos"] = msg.value;
 				metadata["shortnam"] = msg.device;
@@ -99,14 +105,18 @@ module.exports =
 			break;
 			case "joystick_event":
 				const position = {"x":msg.x, "y":msg.y, "z":msg.z, "deltaZ":msg.deltaZ};
-				metadata["timestamp"] = msg.timestamp;
+				if (msg.hasOwnProperty("timestamp")) {
+					metadata["timestamp"] = msg.timestamp;
+				} else { metadata["timestamp"] = -1; }
 				metadata["type"] = "shuttle";
 				metadata["position"] = position;
 				metadata["shortnam"] = msg.device;
 				msg_pload = {"server_id":msg.server_id,"request":"device_event", "data":metadata};
 			break;
 			case "tbar_event":
-				metadata["timestamp"] = msg.timestamp;
+				if (msg.hasOwnProperty("timestamp")) {
+					metadata["timestamp"] = msg.timestamp;
+				} else { metadata["timestamp"] = -1; }
 				metadata["type"] = "tbar";
 				metadata["position"] = msg.value;
 				metadata["shortnam"] = msg.device;
