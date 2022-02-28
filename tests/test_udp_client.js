@@ -12,7 +12,7 @@
 
 //const { PRODUCTS } = require('../node_modules/@xkeys-lib/core/dist/products');
 const PRODUCTS = require('./btest/products');
-console.log(`package products = ${PRODUCTS}`);
+console.log(`package products = ${JSON.stringify(PRODUCTS)}`);
 
 let target_serverId;
 const myArgs = process.argv.slice(2);
@@ -32,7 +32,7 @@ client.bind( () => {
 
 
 client.on('message', (message, remote) => {
-	console.log('Msg Rcvd: ' + JSON.stringify(JSON.parse(message), null, 2) + "  from: " + JSON.stringify(remote));
+	//console.log('Msg Rcvd: ' + JSON.stringify(JSON.parse(message), null, 2) + "  from: " + JSON.stringify(remote));
 	//console.log(`Msg Rcvd: ${JSON.stringify(JSON.parse(message))} from: ${JSON.stringify(remote)})`);
 	var msg = "";
 	try{
@@ -80,6 +80,10 @@ client.on('message', (message, remote) => {
 			console.log(`Received command_result: ${JSON.stringify(msg)}`);
 		} else if (msg[msg_type] == "list_clients_result") {
 			console.log(`Received list_clients_result: ${JSON.stringify(msg)}`);
+		} else if (msg[msg_type] == "disconnect_warning") {
+			console.log(`Received disconnect_warning: ${JSON.stringify(msg)}`);
+			console.log(`${Date.call()}`);
+			setTimeout(send_udp_message, 10, (new Buffer.from('{"msg_type":"connect"}', 'UTF-8')));
 		} else if (msg[msg_type] == "disconnect_result") {
 			console.log(`Received disconnect_result: ${JSON.stringify(msg)}`);
 		} else if (msg[msg_type] == "error") {
