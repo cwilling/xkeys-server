@@ -8,7 +8,6 @@ const xdgBasedir = require('xdg-basedir');
 const xlate = require('./xkeys-xlate')
 
 const default_config = {
-	"ServerVersion"	: require('../package.json').version,
 	"hostname"		: require('os').hostname(),
 	"host_address"	: "0.0.0.0",
 	"host_port"		: 48895,
@@ -16,6 +15,8 @@ const default_config = {
 	"timeout_client_warning_ttl" : 120000,
 	"client_ttl_warnings"	: 2
 }
+const ServerVersion = require('../package.json').version;
+console.log(`Server version = ${ServerVersion}`);
 
 /*	Load config file or create one from defaults
 */
@@ -26,7 +27,7 @@ try {
 		fs.mkdirSync(config_dir, true);
 		console.log(`Creating ${config_dir} `);
 	}
-	console.log(`${config_dir} exists`);
+	//console.log(`${config_dir} exists`);
 	const config_file = path.join(config_dir, "xkeys-server.conf");
 	if (! fs.existsSync(config_file)) {
 		const data = JSON.stringify(default_config, null, 2);
@@ -38,10 +39,6 @@ try {
 		//	Here we should check that the values are reasonable.
 		//	e.g. external apps shouldn't be imposing version number so might be empty
 		var is_dirty = false;
-		if (config.ServerVersion.length == 0) {
-			config.ServerVersion = require('../package.json').version;
-			is_dirty = true
-		}
 		if (config.hostname.length == 0) {
 			config.hostname = require('os').hostname();
 			is_dirty = true
@@ -90,7 +87,7 @@ process.env.UV_THREADPOOL_SIZE = 48;
 const { networkInterfaces } = require('os');
 const ServerID = "XKS_" + config.hostname;
 //const ServerID = "XKS_Chris' test UDP server"; 
-console.log("ServerID = " + ServerID);
+console.log(`Server id = ${ServerID}`);
 
 const dgram = require('dgram');
 const udp_server = dgram.createSocket('udp4');
@@ -279,7 +276,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					discover_result = {"msg_type":"discover_result", "server_id":ServerID};
 					discover_result["xk_server_address"] = address_match;
 					discover_result["attached_devices"] = Object.keys(xkeys_devices);
-					discover_result["version"] = config.ServerVersion;
+					discover_result["version"] = ServerVersion;
 
 					//console.log("sending discover_result message");
 					udp_server.send(JSON.stringify(discover_result), rinfo.port, rinfo.address);
@@ -339,7 +336,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					// 	Remainder of connect_result
 					connect_result["client_name"] = msg.client_name;
 					connect_result["attached_devices"] = Object.keys(xkeys_devices);
-					connect_result["version"] = config.ServerVersion;
+					connect_result["version"] = ServerVersion;
 
 					//udp_server.send(JSON.stringify(connect_result), rinfo.port, rinfo.address);
 					send_udp_message(JSON.stringify(connect_result));
@@ -1063,7 +1060,7 @@ client.on('connect', () => {
     client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"hello","data":"Hello from Xkeys device server"}),{qos:qos,retain:false});
     client.subscribe({'/xkeys/node/#':{qos:qos}}, function (err) {
     	if (!err) {
-      	    console.log(`xkeys-server ${config.ServerVersion} subscribed OK`);
+      	    console.log(`xkeys-server ${ServerVersion} subscribed OK`);
     	} else {
 			// Any point in going on?
 			console.log('Subscription failed: ' + err);
