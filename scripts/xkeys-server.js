@@ -732,7 +732,7 @@ request_message_process = (type, message, ...moreArgs) => {
 				*		{request:"method", pid_list:[e0,e1,...,eN], unit_id:UID, duplicate_id:ORDER, name:METHODNAME, params:[p0,p1,...,pN]}
 				*	where p0 = [k1,k2,...,kN] (dependent on method name)
 				*/
-				console.log("method request: " + message);
+				//console.log("method request: " + message);
 				var devices = [];
 				Object.keys(xkeys_devices).forEach(function (item) {
 					console.log("xkeys_devices item:" + item);
@@ -900,7 +900,10 @@ request_message_process = (type, message, ...moreArgs) => {
 						*/
 						// Determine what text to write to each line
 						for (var i=0;i<msg.params[0].length;i++) {
-							xkeys_devices[device].device.writeLcdDisplay(i+1, msg.params[0][i], msg.params[1]);
+							if (msg.params[0][i].length > 0) {
+								//console.log(`Writing ${msg.params[0][i]} to line ${i+1}`);
+								xkeys_devices[device].device.writeLcdDisplay(i+1, msg.params[0][i], msg.params[1]);
+							}
 						}
 
 						// Add command_result entries specific to this command_type
