@@ -221,7 +221,10 @@ begin_normal_operations = () => {
 	//setTimeout(send_udp_message, 5000, (new Buffer.from('{"msg_type":"command","command_type":"set_flash_rate","product_id":-1,"unit_id":-1,"duplicate_id":-1,"value":24}', 'UTF-8')));
 
 	// LCD text
-	//setTimeout(send_udp_message, 2000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1,"line":2,"text":"UDP: coming soon"}', 'UTF-8')));
+	setTimeout(send_udp_message, 2000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1,"line":2,"text":"UDP: coming soon"}', 'UTF-8')));
+	setTimeout(send_udp_message, 3000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1,"line":1,"text":"Not Node-RED"}', 'UTF-8')));
+	setTimeout(send_udp_message, 4000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1,"line":2,"text":"New line 2"}', 'UTF-8')));
+	setTimeout(send_udp_message, 5000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1,"line":1,"text":"New line one (1)"}', 'UTF-8')));
 
 	/*
 	// Intensity
@@ -299,10 +302,12 @@ var tbar = {"msg_type":"tbar_event","server_id":"XKS_fred","device":"XKE-64 Jog 
 
 
 
+/*
 var request_message = {"msg_type":"reflect", "message":button_on};
 setTimeout(send_udp_message, 2000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
 var request_message = {"msg_type":"reflect", "message":button_off};
 setTimeout(send_udp_message, 5000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
+*/
 /*
 var request_message = {"msg_type":"reflect", "message":jog};
 setTimeout(send_udp_message, 2000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
@@ -315,3 +320,16 @@ setTimeout(send_udp_message, 5000, new Buffer.from(JSON.stringify(request_messag
 var request_message = {"msg_type":"reflect", "message":tbar};
 setTimeout(send_udp_message, 2000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
 */
+setTimeout(send_udp_message, 2000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":2, "text":"UDP: coming soon"}', 'UTF-8')));
+setTimeout(send_udp_message, 3000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":1, "text":"Not Node-RED"}', 'UTF-8')));
+setTimeout(send_udp_message, 4000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":2, "text":"New line 2"}', 'UTF-8')));
+setTimeout(send_udp_message, 5000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":1, "text":"New line one (1)"}', 'UTF-8')));
+setTimeout(send_udp_message, 6000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":2, "text":" "}', 'UTF-8')));
+setTimeout(send_udp_message, 6000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":1, "text":"Erased line 2"}', 'UTF-8')));
+setTimeout(send_udp_message, 7000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":1, "text":"Number on 2"}', 'UTF-8')));
+setTimeout(send_udp_message, 7000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":2, "text":87654}', 'UTF-8')));
+
+setTimeout(send_udp_message, 8000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":1, "text":"Lights out soon"}', 'UTF-8')));
+setTimeout(send_udp_message, 9000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":1, "text":"Lights out now", "backlight":0}', 'UTF-8')));
+setTimeout(send_udp_message, 10000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":1, "text":"Lights back on", "backlight":1}', 'UTF-8')));
+setTimeout(send_udp_message, 10000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":2, "text":"backlights on?", "backlight":1}', 'UTF-8')));
