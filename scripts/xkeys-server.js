@@ -500,7 +500,7 @@ request_message_process = (type, message, ...moreArgs) => {
 				/*	Now set up components specific to particular command_type
 				*/
 				if (msg.command_type == "set_indicator_led") {
-					console.log("Command: set_indicator_led");
+					//console.log("Command: set_indicator_led");
 					msg.name = "setIndicatorLED";
 					var params = [];
 					// control_id may come in as a single int or an array of ints.
@@ -524,7 +524,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					msg["params"] = params;
 
 				} else if (msg.command_type == "set_backlight") {
-					console.log("Command: set_backlight");
+					//console.log("Command: set_backlight");
 					msg.name = "setBacklight";
 					var params = [];
 					// control_id may come in as a single int or an array of ints.
@@ -554,7 +554,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					msg["params"] = params;
 
 				} else if (msg.command_type == "write_lcd_display") {
-					console.log("Command: write_lcd_display");
+					//console.log(`Command: write_lcd_display`);
 					msg.name = "writeLcdDisplay";
 					var params = [];
 					/*	Incoming msg.text may be
@@ -576,8 +576,14 @@ request_message_process = (type, message, ...moreArgs) => {
 						} else {
 							// Illegal line number
 						}
-					} else if (typeof(msg.line) == "boolean") {
-					} else if (typeof(msg.line) == "object") {
+					} else if (typeof(msg.text) == "number") {
+						if (msg.line == 1) {
+							text_lines[0] = msg.text.toString();
+						} else if (msg.line == 2) {
+							text_lines[1] = msg.text.toString();
+						} else {
+							// Illegal line number
+						}
 					} else {
 						// Unknown type
 					}
@@ -593,8 +599,8 @@ request_message_process = (type, message, ...moreArgs) => {
 					msg["params"] = params;
 
 				} else if (msg.command_type == "set_flash_rate") {
-					// "params": [[],msg.payload.flashRate]
-					console.log("Command: set_flash_rate");
+					/*	"params": [[],msg.payload.flashRate] */
+					//console.log("Command: set_flash_rate");
 					msg.name = "setFlashRate";
 					var params = [];
 
@@ -606,7 +612,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					msg["params"] = params;
 
 				} else if (msg.command_type == "set_all_backlights") {
-					console.log("Command: set_all_backlights");
+					//console.log("Command: set_all_backlights");
 					msg.name = "setAllBacklights";
 					var params = [];
 
@@ -636,7 +642,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					*	In particular, we need a table mapping known colours
 					*	to red/blue values which this command uses.
 					*/
-					console.log("Command: set_backlight_intensity");
+					//console.log("Command: set_backlight_intensity");
 					msg.name = "setBacklightIntensity";
 					var params = [];
 					var blue_red_pair = [];
@@ -666,7 +672,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					msg["params"] = params;
 
 				} else if (msg.command_type == "write_data") {
-					console.log("Command: write_data");
+					//console.log("Command: write_data");
 					msg.name = "writeData";
 					var params = [];
 					if ((msg.hasOwnProperty("byte_array")) && (typeof(msg.byte_array) == "object")) {
@@ -679,7 +685,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					/*	Since we touch the EEPROM with this command,
 					*	don't accept wildcards for product_id, unit_id, duplicate_id.
 					*/
-					console.log("Command: set_unit_id");
+					//console.log("Command: set_unit_id");
 					msg.name = "setUnitID";
 					var params = [];
 
@@ -705,7 +711,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					/*	Since we touch the EEPROM with this command,
 					*	don't accept wildcards for product_id, unit_id, duplicate_id.
 					*/
-					console.log("Command: save_backlight");
+					//console.log("Command: save_backlight");
 					msg.name = "saveBackLights";
 					var params = [];
 
@@ -735,7 +741,7 @@ request_message_process = (type, message, ...moreArgs) => {
 				//console.log("method request: " + message);
 				var devices = [];
 				Object.keys(xkeys_devices).forEach(function (item) {
-					console.log("xkeys_devices item:" + item);
+					//console.log("xkeys_devices item:" + item);
 					/*
 					*	pid_list == [] means target any attached device.
 					*/
@@ -901,7 +907,6 @@ request_message_process = (type, message, ...moreArgs) => {
 						// Determine what text to write to each line
 						for (var i=0;i<msg.params[0].length;i++) {
 							if (msg.params[0][i].length > 0) {
-								//console.log(`Writing ${msg.params[0][i]} to line ${i+1}`);
 								xkeys_devices[device].device.writeLcdDisplay(i+1, msg.params[0][i], msg.params[1]);
 							}
 						}
@@ -909,6 +914,9 @@ request_message_process = (type, message, ...moreArgs) => {
 						// Add command_result entries specific to this command_type
 						command_result["line"] = msg.line;
 						command_result["text"] = msg.text;
+						if (msg.hasOwnProperty("backlight")) {
+							command_result["backlight"] = msg.backlight;
+						}
 
 					} else if (msg.name == "setFlashRate") {
 						/*
