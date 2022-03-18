@@ -68,6 +68,7 @@ client.on('message', (message, remote) => {
 			}
 		} else if (msg[msg_type] == "product_list_result") {
 			var product_keys = Object.keys(msg.data);
+			console.log(`Product List length = ${JSON.stringify(msg).length}`);
 			if (product_keys.length > 0 ){
 				/* Choose a device randomly to display */
 				var choice = Math.floor(Math.random() * product_keys.length);
@@ -320,6 +321,7 @@ setTimeout(send_udp_message, 5000, new Buffer.from(JSON.stringify(request_messag
 var request_message = {"msg_type":"reflect", "message":tbar};
 setTimeout(send_udp_message, 2000, new Buffer.from(JSON.stringify(request_message), 'UTF-8'));
 */
+/*
 setTimeout(send_udp_message, 2000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":2, "text":"UDP: coming soon"}', 'UTF-8')));
 setTimeout(send_udp_message, 3000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":1, "text":"Not Node-RED"}', 'UTF-8')));
 setTimeout(send_udp_message, 4000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":2, "text":"New line 2"}', 'UTF-8')));
@@ -333,3 +335,5 @@ setTimeout(send_udp_message, 8000, (new Buffer.from('{"msg_type":"command","comm
 setTimeout(send_udp_message, 9000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":1, "text":"Lights out now", "backlight":0}', 'UTF-8')));
 setTimeout(send_udp_message, 10000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":1, "text":"Lights back on", "backlight":1}', 'UTF-8')));
 setTimeout(send_udp_message, 10000, (new Buffer.from('{"msg_type":"command","command_type":"write_lcd_display","product_id":1316,"unit_id":-1,"duplicate_id":-1, "line":2, "text":"backlights on?", "backlight":1}', 'UTF-8')));
+*/
+setTimeout(send_udp_message, 5000, (new Buffer.from('{"msg_type":"product_list"}', 'UTF-8')));
