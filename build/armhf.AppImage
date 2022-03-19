@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Create an armhf AppImage for xkeys-server
+#
+# The AppRun script in the template is a slightly changed
+# version of the downloadable:
+#	https://raw.githubusercontent.com/AppImage/AppImageKit/master/resources/AppRun
+# This script requires that appimagetool-armhf.AppImage
+# exists somewhere on the user's PATH. Try:
+#	https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-armhf.AppImage
+#
+[ $(which appimagetool-armhf.AppImage) ] || {
+	echo "Don't have appimagetool-armhf.AppImage available"
+	echo "Exiting now"
+	exit 1
+}
+# BTW, appimagetool-armhf.AppImage will need libfuse.so.2
+# I apt installed libfuse-dev (just in case)
+
+# Work in the correct directory
+cd $(dirname $0)
+CWD=$(pwd)
+echo "HERE is ${CWD}"
+
+set -e
+
+rm -rf AppDir
+cp -dR AppDir.template AppDir
+mkdir -p AppDir/usr/share/xkeys-server
+cd AppDir/usr/share/xkeys-server/
+cp -p  ../../../../../package.json .
+cp -dR  ../../../../../scripts .
+npm install
+cd -
+ARCH=armhf appimagetool-armhf.AppImage AppDir
+
+echo "xkeys-server-armhf.AppImage should now be available at:"
+echo "	$CWD/xkeys-server-armhf.AppImage"
+
