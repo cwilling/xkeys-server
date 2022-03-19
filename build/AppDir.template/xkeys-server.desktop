@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=xkeys-server
+Exec=xkeys-server.js
+Icon=devicefinder
+Type=Application
+Categories=Utility;
+

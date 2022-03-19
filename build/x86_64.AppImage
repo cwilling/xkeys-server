@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Create an x86_64 AppImage for xkeys-server
+# This script should be run from the "build" directory,
+# immediately below the directory containing package.json
+#
+# The AppRun script in the template is a slightly changed
+# version of the downloadable:
+#	https://raw.githubusercontent.com/AppImage/AppImageKit/master/resources/AppRun
+# This script requires that appimagetool-x86_64.AppImage
+# exists somewhere on the user's PATH. Try:
+#	https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
+#
+[ $(which appimagetool-x86_64.AppImage) ] || {
+	echo "Don't have appimagetool-x86_64.AppImage available"
+	echo "Exiting now"
+	exit 1
+}
+
+# Work in the correct directory
+cd $(dirname $0)
+CWD=$(pwd)
+echo "HERE is ${CWD}"
+
+set -e
+
+rm -rf AppDir
+cp -dR AppDir.template AppDir
+mkdir -p AppDir/usr/share/xkeys-server
+cd AppDir/usr/share/xkeys-server/
+cp -p  ../../../../../package.json .
+cp -dR  ../../../../../scripts .
+npm install
+cd -
+ARCH=x86_64 appimagetool-x86_64.AppImage AppDir
+
+echo "xkeys-server-x86_64.AppImage should now be available at:"
+echo "	$CWD/xkeys-server-x86_64.AppImage"
+

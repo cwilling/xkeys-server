@@ -2,7 +2,7 @@
   "name": "xkeys-server",
   "version": "0.9.1",
   "description": "UDP/MQTT service for SuperFlyTv's xkeys library",
-  "main": "src/scripts/xkeys-server.js",
+  "main": "scripts/xkeys-server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -25,5 +25,19 @@
   "bugs": {
     "url": "https://gitlab.com/chris.willing/xkeys-server/issues"
   },
-  "homepage": "https://gitlab.com/chris.willing/xkeys-server#readme"
+  "homepage": "https://gitlab.com/chris.willing/xkeys-server#readme",
+  "build": {
+    "appId": "com.willing.chris",
+    "icon": "assets",
+    "mac": {
+      "category": "your.app.category.type"
+    },
+    "win": {
+      "target": "msi"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Accessories"
+    }
+  }
 }
