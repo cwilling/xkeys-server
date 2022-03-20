@@ -1,0 +1,48 @@
+#!/bin/sh
+
+
+# Create an .rpm package for xkeys-server using premade AppImage.
+# Requires args $1 = VERSION
+#               $2 = ARCH
+
+[ $# -ne 2 ] && {
+	echo "Need VERSION and ARCH args to proceed."
+	echo "Exiting now ..."
+	exit 1
+}
+VERSION=$1
+ARCH=$2
+if [ "${ARCH}" = "x86_64" ]; then
+  PKGARCH=amd64
+else
+  PKGARCH=${ARCH}
+fi
+
+# Work in the correct directory
+cd $(dirname $0)
+CWD=$(pwd)
+
+# Do we have the AppImage (should be in parent directory).
+[ -x ../xkeys-server-${ARCH}.AppImage ] || {
+	echo "Can't find xkeys-server-${ARCH}.AppImage to package"
+	echo " - perhaps it's just not executable?"
+	echo "Exiting now ..."
+	exit 2
+}
+
+rm -rf xkeys-server-${VERSION}*
+mkdir xkeys-server-${VERSION}
+cp -p ../xkeys-server-${ARCH}.AppImage xkeys-server-${VERSION}/
+cp -p ../xkeys-server.service xkeys-server-${VERSION}/
+cp -p ../50-xkeys.rules xkeys-server-${VERSION}/
+tar zcvf xkeys-server-${VERSION}.tar.gz xkeys-server-${VERSION}
+
+
+rm -rf ~/rpmbuild
+mkdir -p  ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+
+mv xkeys-server-${VERSION}.tar.gz ~/rpmbuild/SOURCES
+cp -p xkeys-server.spec ~/rpmbuild/SPECS
+
+rpmbuild -ba ~/rpmbuild/SPECS/xkeys-server.spec
+
