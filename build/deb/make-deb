@@ -1,0 +1,52 @@
+#!/bin/bash
+
+
+# Create a .deb package for xkeys-server using premade AppImage.
+# Requires args $1 = VERSION
+#               $2 = ARCH
+
+[ $# -ne 2 ] && {
+	echo "Need VERSION and ARCH args to proceed."
+	echo "Exiting now ..."
+	exit 1
+}
+VERSION=$1
+ARCH=$2
+if [ "${ARCH}" = "x86_64" ]; then
+  PKGARCH=amd64
+else
+  PKGARCH=${ARCH}
+fi
+
+# Work in the correct directory
+cd $(dirname $0)
+CWD=$(pwd)
+
+# Do we have the AppImage (should be in parent directory).
+[ -x ../xkeys-server-${ARCH}.AppImage ] || {
+	echo "Can't find xkeys-server-${ARCH}.AppImage to package"
+	echo " - perhaps it's just not executable?"
+	echo "Exiting now ..."
+	exit 2
+}
+
+# Create the package shell
+rm -rf xkeys-server-${VERSION}_${PKGARCH}
+mkdir -p xkeys-server-${VERSION}_${PKGARCH}/etc/systemd/system
+mkdir -p xkeys-server-${VERSION}_${PKGARCH}/lib/udev/rules.d
+mkdir -p xkeys-server-${VERSION}_${PKGARCH}/opt/xkeys-server
+mkdir -p xkeys-server-${VERSION}_${PKGARCH}/DEBIAN
+
+sed -e "s/%ARCH%/${ARCH}/" ../xkeys-server.service > xkeys-server-${VERSION}_${PKGARCH}/etc/systemd/system/xkeys-server.service
+cp -p ../50-xkeys.rules xkeys-server-${VERSION}_${PKGARCH}/lib/udev/rules.d/
+cp -p ../xkeys-server-${ARCH}.AppImage xkeys-server-${VERSION}_${PKGARCH}/opt/xkeys-server/
+
+sed -e "s/%VERSION%/0.9.1/g" control.template >xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/control
+sed -e "s/%ARCH%/${ARCH}/" postinst > xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/postinst
+chmod a+x xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/postinst
+
+# Create the .deb package
+dpkg-deb --build --root-owner-group xkeys-server-${VERSION}_${PKGARCH}
+
+echo "The package is at ${CWD}/xkeys-server-${VERSION}_${PKGARCH}.deb"
+
