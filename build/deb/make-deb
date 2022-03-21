@@ -22,6 +22,9 @@ fi
 cd $(dirname $0)
 CWD=$(pwd)
 
+# Create the AppImage
+../${ARCH}.AppImage
+
 # Do we have the AppImage (should be in parent directory).
 [ -x ../xkeys-server-${ARCH}.AppImage ] || {
 	echo "Can't find xkeys-server-${ARCH}.AppImage to package"
