@@ -31,7 +31,7 @@ cp -p xkeys-server-%{_arch}.AppImage $RPM_BUILD_ROOT/opt/xkeys-server/
 /opt/xkeys-server/xkeys-server-%{_arch}.AppImage
 
 %post
-if [ $1 == 1]; then
+if [ $1 == 1 ]; then
 # Set device permissions
 #
 udevadm control --reload-rules
@@ -39,7 +39,7 @@ udevadm trigger
 
 # Start running as a service
 #
-chmod a+x /opt/xkeys-server/xkeys-server-%ARCH%.AppImage
+chmod a+x /opt/xkeys-server/xkeys-server-%{_arch}.AppImage
 systemctl daemon-reload
 systemctl enable xkeys-server
 systemctl start xkeys-server
