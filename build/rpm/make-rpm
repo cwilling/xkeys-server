@@ -22,6 +22,9 @@ fi
 cd $(dirname $0)
 CWD=$(pwd)
 
+# Create the AppImage
+../${ARCH}.AppImage
+
 # Do we have the AppImage (should be in parent directory).
 [ -x ../xkeys-server-${ARCH}.AppImage ] || {
 	echo "Can't find xkeys-server-${ARCH}.AppImage to package"
@@ -33,7 +36,7 @@ CWD=$(pwd)
 rm -rf xkeys-server-${VERSION}*
 mkdir xkeys-server-${VERSION}
 cp -p ../xkeys-server-${ARCH}.AppImage xkeys-server-${VERSION}/
-cp -p ../xkeys-server.service xkeys-server-${VERSION}/
+sed -e "s/%ARCH%/${ARCH}/" ../xkeys-server.service > xkeys-server-${VERSION}/xkeys-server.service
 cp -p ../50-xkeys.rules xkeys-server-${VERSION}/
 tar zcvf xkeys-server-${VERSION}.tar.gz xkeys-server-${VERSION}
 
