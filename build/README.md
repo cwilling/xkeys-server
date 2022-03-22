@@ -25,8 +25,19 @@ Each deb, rpm, etc. directory contains a respective _make-deb_, _make-rpm_,
 _make-whatever_ script to generate the installable package for that platform.
 These scripts use platform tools which are expected to already be installed.
 
-To install build tools for _make-rpm_, run the command
+To install build tools for _make-rpm_, run the commands
 ```
-	sudo dnf install -y rpmdevtools rpmlint
+	sudo dnf groupinstall 'Development Tools'
+	sudo dnf install -y nodejs libudev rpmdevtools rpmlint
 ```
 
+
+## Usage
+
+Some systems may run a firewall rejecting most traffic.
+Centos systems running a default _firewalld_ configuration
+can be cajoled into accepting xkeys-server traffic with the commands:
+```
+	sudo firewall-cmd --zone=public --add-port=48895/udp
+	sudo firewall-cmd --runtime-to-permanent
+```
