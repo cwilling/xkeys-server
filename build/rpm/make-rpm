@@ -36,7 +36,7 @@ CWD=$(pwd)
 rm -rf xkeys-server-${VERSION}*
 mkdir xkeys-server-${VERSION}
 cp -p ../xkeys-server-${ARCH}.AppImage xkeys-server-${VERSION}/
-sed -e "s/%ARCH%/${ARCH}/" ../xkeys-server.service > xkeys-server-${VERSION}/xkeys-server.service
+sed -e "s/%ARCH%/${ARCH}/" -e "s/%NOGROUP%/nobody/" ../xkeys-server.service > xkeys-server-${VERSION}/xkeys-server.service
 cp -p ../50-xkeys.rules xkeys-server-${VERSION}/
 tar zcvf xkeys-server-${VERSION}.tar.gz xkeys-server-${VERSION}
 
@@ -48,4 +48,6 @@ mv xkeys-server-${VERSION}.tar.gz ~/rpmbuild/SOURCES
 cp -p xkeys-server.spec ~/rpmbuild/SPECS
 
 rpmbuild -ba ~/rpmbuild/SPECS/xkeys-server.spec
+
+[ "$?" ] &&  echo "Package sould be available at ~/rpmbuild/RPMS/x86_64/xkeys-server-0.9.1-1.x86_64.rpm"
 
