@@ -40,7 +40,7 @@ mkdir -p xkeys-server-${VERSION}_${PKGARCH}/lib/udev/rules.d
 mkdir -p xkeys-server-${VERSION}_${PKGARCH}/opt/xkeys-server
 mkdir -p xkeys-server-${VERSION}_${PKGARCH}/DEBIAN
 
-sed -e "s/%ARCH%/${ARCH}/" ../xkeys-server.service > xkeys-server-${VERSION}_${PKGARCH}/etc/systemd/system/xkeys-server.service
+sed -e "s/%ARCH%/${ARCH}/" -e "s/%NOGROUP%/nogroup/" ../xkeys-server.service > xkeys-server-${VERSION}_${PKGARCH}/etc/systemd/system/xkeys-server.service
 cp -p ../50-xkeys.rules xkeys-server-${VERSION}_${PKGARCH}/lib/udev/rules.d/
 cp -p ../xkeys-server-${ARCH}.AppImage xkeys-server-${VERSION}_${PKGARCH}/opt/xkeys-server/
 
