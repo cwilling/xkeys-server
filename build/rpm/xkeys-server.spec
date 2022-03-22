@@ -9,6 +9,10 @@ Source0:        %{name}-%{version}.tar.gz
 
 Requires:       nodejs,fuse-libs,mosquitto
 
+# Don't allow compression of the AppImage file
+%define __compress /bin/true
+%define __strip /bin/true
+
 %description
 xkeys-server for Xkeys devices
 
@@ -37,13 +41,32 @@ if [ $1 == 1 ]; then
 udevadm control --reload-rules
 udevadm trigger
 
-# Start running as a service
+# Start running mosquitto as a service
+#
+systemctl start mosquitto
+systemctl enable mosquitto
+systemctl daemon-reload
+
+# Start running xkeys-server as a service
 #
 chmod a+x /opt/xkeys-server/xkeys-server-%{_arch}.AppImage
-systemctl daemon-reload
-systemctl enable xkeys-server
 systemctl start xkeys-server
+systemctl enable xkeys-server
+systemctl daemon-reload
 
+fi
+
+%preun
+if [ $1 == 0 ]; then
+systemctl stop xkeys-server
+systemctl disable xkeys-server
+systemctl daemon-reload
+fi
+
+%postun
+if [ $1 == 0 ]; then
+udevadm control --reload-rules
+udevadm trigger
 fi
 
 %changelog
