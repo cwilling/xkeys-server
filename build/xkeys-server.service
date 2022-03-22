@@ -7,7 +7,7 @@ ExecStart=/opt/xkeys-server/xkeys-server-%ARCH%.AppImage
 
 Restart=always
 User=nobody
-Group=nogroup
+Group=%NOGROUP%
 
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
