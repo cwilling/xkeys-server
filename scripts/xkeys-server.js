@@ -128,6 +128,7 @@ const XKeys = require('xkeys');
 var { PRODUCTS } = require('@xkeys-lib/core/dist/products');
 
 /* An XKeysWatcher */
+const USE_POLLING = true;
 let watcher;
 
 /* Local record of discovered devices keyed by UniqueId */
@@ -1091,7 +1092,8 @@ client.on('connect', () => {
 
     function startWatcher () {
 		watcher = new XKeysWatcher({
-			usePolling: false,
+			automaticUnitIdMode: false,
+			usePolling: USE_POLLING,
 			pollingInterval: 500, // optional, default is 1000 ms
 		});
 		watcher.on('connected', (xkeysPanel) => {
