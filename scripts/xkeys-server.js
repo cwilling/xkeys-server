@@ -95,6 +95,24 @@ const udp_host = config.host_address;
 const udp_port = config.host_port;
 const udp_clients = [];
 
+process.on('SIGINT', () => {
+	console.log(`Shutting down`);
+	udp_server.close();
+	client.end();
+	watcher.stop();
+
+	process.exit();
+});
+process.on('SIGTERM', () => {
+	// Help systemctl stop
+	console.log(`Shutting down`);
+	udp_server.close();
+	client.end();
+	watcher.stop();
+
+	process.exit();
+});
+
 /*	Suggested timeouts are 10mins (600000) for ttl and 2mins (120000)for warnings.
 *	Shorter times temporarily for testing only
 */
