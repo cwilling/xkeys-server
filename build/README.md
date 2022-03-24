@@ -31,10 +31,13 @@ To install these packages, run the commands
 	sudo dnf install -y rpmdevtools rpmlint
 ```
 
-For Centos, the EPEL repository will also need to be enabled for the download of,
-in particular, nodejs:
+Enable third party repositories for the distribution being used e.g. Centos, will require the EPEL repository to be enabled for the download of, in particular, nodejs:
 ```
 	sudo dnf install epel-release
+```
+
+Now install additional software required to build the package:
+```
 	sudo dnf install nodejs libuv libudev-devel
 ```
 In all cases, we need to download the appropriate _appimagetool_, make it executable and move it to somewhere in out PATH. For the x86_64 version:
@@ -58,19 +61,14 @@ All going well, the location of the resulting .rpm package will be reported. Mos
 	sudo dnf install ~/rpmbuild/RPMS/x86_64/xkeys-server-0.9.1-1.x86_64.rpm
 ```
 Check that _xkeys-server_ is running with `systemctl status xkeys-server`.
-If the _xkeys-server_ appears to be running but is not discoverable by clients on other machines in the local network, it may be due to a firewall. Centos machines are provisioned with an active firewall whose default rule rejects all incoming traffic (including _xkets-server_ discovery messages). The quick fix (consider carefully whether appropriate in your circumstances) is to open the _xkeys-server_ port to UDP traffic:
-```
-	sudo firewall-cmd --zone=public --add-port=48895/udp
-	sudo firewall-cmd --runtime-to-permanent
-```
-
+If the _xkeys-server_ appears to be running but is not discoverable by clients on other machines in the local network, it may be due to a firewall. See the **Usage** section below for a possible fix.
 
 
 
 ## Usage
 
 Some systems may run a firewall rejecting most traffic.
-Centos systems running a default _firewalld_ configuration
+Centos and other systems running a default _firewalld_ configuration
 can be cajoled into accepting xkeys-server traffic with the commands:
 ```
 	sudo firewall-cmd --zone=public --add-port=48895/udp
