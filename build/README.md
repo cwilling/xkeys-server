@@ -6,18 +6,11 @@ Creating an AppImage enables all the xkeys-server scripts
 (including node_modules) to be collected into a single executable
 capable of running from any location in the file system.
 
-The AppImages are created using the AppImage scripts provided:
-`armhf.AppImage`, `x86_64.AppImage`, etc.
+The AppImages are created using the stand alone AppImage scripts provided:
+`armhf.AppImage`, `x86_64.AppImage`, etc. however it not generally
+necessary to run them by themselves. Rather, they are invoked by scripts
+in the next level of directories - _deb_, _rpm_, etc.
 
-Since the resulting AppImage may differ depending on the platform it was
-created on, it's probably best to run the script from the deb or the rpm
-directory immediately prior to generating the installable .deb or .rpm
-package. e.g. running the `x86_64.AppImage` script from the deb directory:
-```
-../x86_64.AppImage
-```
-will produce an _xkeys-server-x86\_64.AppImage_ executable in this directory,
-where the make-* scripts of Step 2 will expect to find it.
 
 ### Step 2 - create an installable .deb, .rpm, etc. package.
 
@@ -25,7 +18,8 @@ Each deb, rpm, etc. directory contains a respective _make-deb_, _make-rpm_,
 _make-whatever_ script to generate the installable package for that platform.
 These scripts use platform tools which are expected to already be installed.
 
-To install these packages, run the commands
+#### RPM
+To install the prerequisite packages for RPM base distros, run the commands
 ```
 	sudo dnf groupinstall 'Development Tools'
 	sudo dnf install -y rpmdevtools rpmlint
@@ -63,6 +57,36 @@ All going well, the location of the resulting .rpm package will be reported. Mos
 Check that _xkeys-server_ is running with `systemctl status xkeys-server`.
 If the _xkeys-server_ appears to be running but is not discoverable by clients on other machines in the local network, it may be due to a firewall. See the **Usage** section below for a possible fix.
 
+#### DEB
+Install prerequisite development packages with:
+```
+	sudo apt install build-essential git
+```
+No third party repos are required provided _apt_ is  configured for both _main_ and _contrib_ branches. Install other packages required for packaging _xkeys-server_:
+```
+	sudo apt install nodejs npm libuv1-dev libudev-dev
+```
+In all cases, we need to download the appropriate appimagetool, make it executable and move it to somewhere in out PATH. For the x86_64 version:
+```
+	wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
+	chmod a+x appimagetool-x86_64.AppImage
+	sudo mv appimagetool-x86_64.AppImage /usr/bin/
+```
+Clone the xkeys-server repository and cd to the _build/deb_ directory of the _packaging_ branch and run the _make-deb_ script:
+```
+	git clone https://gitlab.com/chris.willing/xkeys-server
+	cd xkeys-server
+	git checkout packaging
+	cd build/deb
+	./make-deb 0.9.1 x86_64
+```
+Note that the final _./make-deb_ script requires the _xkeys-server_ version and architecture supplied as arguments.
+
+All going well, the location of the resulting .deb package will be reported. Most probably it will be where ever the _make-deb_ script was run, from where it may be installed and tested or uploaded to a web server for distribution. Test locally with:
+```
+	sudo apt install ./xkeys-server-0.9.1-1.x86_64.rpm
+```
+Check that _xkeys-server_ is running with `systemctl status xkeys-server`.
 
 
 ## Usage
