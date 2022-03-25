@@ -34,7 +34,7 @@ Now install additional software required to build the package:
 ```
 	sudo dnf install nodejs libuv libudev-devel
 ```
-In all cases, we need to download the appropriate _appimagetool_, make it executable and move it to somewhere in out PATH. For the x86_64 version:
+In all cases, we need to download the appropriate _appimagetool_, make it executable and move it to somewhere in our PATH. For the x86_64 version:
 ```
 	wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
 	chmod a+x appimagetool-x86_64.AppImage
