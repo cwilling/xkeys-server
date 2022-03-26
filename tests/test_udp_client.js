@@ -11,8 +11,8 @@
 */
 
 //const { PRODUCTS } = require('../node_modules/@xkeys-lib/core/dist/products');
-const PRODUCTS = require('./btest/products');
-console.log(`package products = ${JSON.stringify(PRODUCTS)}`);
+//const PRODUCTS = require('./btest/products');
+//console.log(`package products = ${JSON.stringify(PRODUCTS)}`);
 
 let target_serverId;
 const myArgs = process.argv.slice(2);
