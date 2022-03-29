@@ -264,7 +264,7 @@ request_message_process = (type, message, ...moreArgs) => {
 						}
 					}
 				}
-				console.log(`${JSON.stringify(nif_addrs)}`);
+				//console.log(`${JSON.stringify(nif_addrs)}`);
 
 				var address_match = "";
 				for (const name of Object.keys(nif_addrs)) {
