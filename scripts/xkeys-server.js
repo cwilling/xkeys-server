@@ -8,7 +8,7 @@ const xdgBasedir = require('xdg-basedir');
 const xlate = require('./xkeys-xlate')
 
 const default_config = {
-	"hostname"		: require('os').hostname(),
+	"hostname"		: require('os').hostname().split('.')[0],
 	"host_address"	: "0.0.0.0",
 	"host_port"		: 48895,
 	"timeout_client_ttl"	: 600000,
@@ -40,7 +40,7 @@ try {
 		//	e.g. external apps shouldn't be imposing version number so might be empty
 		var is_dirty = false;
 		if (config.hostname.length == 0) {
-			config.hostname = require('os').hostname();
+			config.hostname = require('os').hostname().split('.')[0];
 			is_dirty = true
 		}
 		if (config.host_address.length == 0) {
