@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Customize this for your application
-APPLICATION_FILE_PATH=scripts/xkeys-server.js
 
 # Parameters
 PRODUCT_HOME=/Library/__PRODUCT__/__VERSION__
@@ -14,12 +12,7 @@ echo "Change permissions in ${PRODUCT_HOME}"
 cd ${PRODUCT_HOME}
 chmod -R 755 .
 
-## Run npm to install node_modules
-#echo "Installing node_modules"
-#cd ${PRODUCT_HOME}
-#npm install
-
-# Launch the daemon
+# Launch xkeys-server as daemon
 launchctl load /Library/LaunchDaemons/com.xkeys-server.daemon.plist
 
 echo "Post installation process finished"

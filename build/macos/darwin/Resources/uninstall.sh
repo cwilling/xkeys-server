@@ -43,30 +43,28 @@ PRODUCT=__PRODUCT__
 
 echo "Application uninstalling process started"
 # remove link to shorcut file
-find "/usr/local/bin/" -name "__PRODUCT__-__VERSION__" | xargs rm
+launchctl unload /Library/LaunchDaemons/com.xkeys-server.daemon.plist
 if [ $? -eq 0 ]
 then
-  echo "[1/3] [DONE] Successfully deleted shortcut links"
-else
-  echo "[1/3] [ERROR] Could not delete shortcut links" >&2
+  echo "[1/3] [DONE] Successfully shut down xkeys-server"
 fi
 
 #forget from pkgutil
-pkgutil --forget "org.$PRODUCT.$VERSION" > /dev/null 2>&1
+pkgutil --forget "com.$PRODUCT.$VERSION" > /dev/null 2>&1
 if [ $? -eq 0 ]
 then
-  echo "[2/3] [DONE] Successfully deleted application informations"
+  echo "[2/3] [DONE] Successfully deleted application"
 else
-  echo "[2/3] [ERROR] Could not delete application informations" >&2
+  echo "[2/3] [ERROR] Could not delete application" >&2
 fi
 
 #remove application source distribution
-[ -e "/Library/${PRODUCT}/${VERSION}" ] && rm -rf "/Library/${PRODUCT}/${VERSION}"
+[ -e "/Library/LaunchDeamons/com.xkeys-server.daemon.plist" ] && rm "/Library/LaunchDeamons/com.xkeys-server.daemon.plist"
 if [ $? -eq 0 ]
 then
-  echo "[3/3] [DONE] Successfully deleted application"
+  echo "[3/3] [DONE] Successfully deleted application daemon"
 else
-  echo "[3/3] [ERROR] Could not delete application" >&2
+  echo "[3/3] [ERROR] Could not delete application daemon" >&2
 fi
 
 echo "Application uninstall process finished"
