@@ -121,6 +121,9 @@ copyBuildDirectory() {
     cp -a "$SCRIPTPATH"/application/. "${TARGET_DIRECTORY}"/darwinpkg/Library/${PRODUCT}/${VERSION}
     chmod -R 755 "${TARGET_DIRECTORY}"/darwinpkg/Library/${PRODUCT}/${VERSION}
 
+	# Copy daemon control file
+	cp -p "$SCRIPTPATH"/com.xkeys-server.daemon.plist "${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons/
+
     rm -rf "${TARGET_DIRECTORY}/package"
     mkdir -p "${TARGET_DIRECTORY}/package"
     chmod -R 755 "${TARGET_DIRECTORY}/package"
