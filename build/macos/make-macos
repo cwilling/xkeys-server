@@ -1,0 +1,30 @@
+#!/bin/bash
+
+
+# Create an installable macos package
+# We assume nodejs/npm installation already exists
+
+# Requires args $1 = VERSION
+#
+[ $# -ne 1 ] && {
+  echo "Need VERSION arg to proceed."
+  echo "Exiting now ..."
+  exit 1
+}
+PKG_VERSION=$1
+
+# Work in the correct directory
+cd $(dirname $0)
+CWD=$(pwd)
+
+# Clean out previous runs
+#
+rm -rf target
+
+# Copy what we want packaged into "application" directory
+cp -a ../../scripts application/
+cp ../../package.json application/
+
+# Build the package
+./build-macos-x64.sh xkeys-server $PKG_VERSION
+
