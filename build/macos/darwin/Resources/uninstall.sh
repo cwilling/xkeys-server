@@ -43,7 +43,7 @@ PRODUCT=__PRODUCT__
 
 echo "Application uninstalling process started"
 # remove link to shorcut file
-launchctl unload /Library/LaunchDaemons/com.xkeys-server.daemon.plist
+launchctl unload /Library/LaunchDaemons/org.xkeys-server.daemon.plist
 if [ $? -eq 0 ]
 then
   echo "[1/3] [DONE] Successfully shut down xkeys-server"
@@ -59,7 +59,7 @@ else
 fi
 
 #remove application source distribution
-[ -e "/Library/LaunchDeamons/com.xkeys-server.daemon.plist" ] && rm "/Library/LaunchDeamons/com.xkeys-server.daemon.plist"
+[ -e "/Library/LaunchDaemons/com.xkeys-server.daemon.plist" ] && rm -f "/Library/LaunchDaemons/com.xkeys-server.daemon.plist"
 if [ $? -eq 0 ]
 then
   echo "[3/3] [DONE] Successfully deleted application daemon"
