@@ -20,9 +20,10 @@ CWD=$(pwd)
 # Clean out previous runs
 #
 rm -rf target
+rm -rf application/*
 
 # Copy what we want packaged into "application" directory
-cp -a ../../scripts application/
+cp -aR ../../scripts application/
 cp ../../package.json application/
 
 # Build the package
