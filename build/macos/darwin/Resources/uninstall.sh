@@ -43,28 +43,29 @@ PRODUCT=__PRODUCT__
 
 echo "Application uninstalling process started"
 # remove link to shorcut file
-launchctl unload /Library/LaunchDaemons/org.xkeys-server.daemon.plist
+launchctl unload /Library/LaunchDaemons/com.xkeys-server.daemon.plist
 if [ $? -eq 0 ]
 then
   echo "[1/3] [DONE] Successfully shut down xkeys-server"
 fi
 
 #forget from pkgutil
-pkgutil --forget "com.$PRODUCT.$VERSION" > /dev/null 2>&1
+pkgutil --forget "org.$PRODUCT.$VERSION" > /dev/null 2>&1
 if [ $? -eq 0 ]
 then
-  echo "[2/3] [DONE] Successfully deleted application"
+  echo "[2/3] [DONE] Successfully unregistered application"
 else
-  echo "[2/3] [ERROR] Could not delete application" >&2
+  echo "[2/3] [ERROR] Could not unregister application" >&2
 fi
 
 #remove application source distribution
+[ -e "/Library/xkeys-server" ] && rm -rf "/Library/xkeys-server"
 [ -e "/Library/LaunchDaemons/com.xkeys-server.daemon.plist" ] && rm -f "/Library/LaunchDaemons/com.xkeys-server.daemon.plist"
 if [ $? -eq 0 ]
 then
-  echo "[3/3] [DONE] Successfully deleted application daemon"
+  echo "[3/3] [DONE] Successfully deleted application"
 else
-  echo "[3/3] [ERROR] Could not delete application daemon" >&2
+  echo "[3/3] [ERROR] Could not delete application" >&2
 fi
 
 echo "Application uninstall process finished"
