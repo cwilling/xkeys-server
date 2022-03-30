@@ -184,13 +184,9 @@ function createUninstaller(){
     sed -i '' -e "s/__PRODUCT__/${PRODUCT}/g" "${TARGET_DIRECTORY}/darwinpkg/Library/${PRODUCT}/${VERSION}/uninstall.sh"
 }
 
-#Pre-requisites
-command -v mvn -v >/dev/null 2>&1 || {
-    log_warn "Apache Maven was not found. Please install Maven first."
-    # exit 1
-}
-command -v ballerina >/dev/null 2>&1 || {
-    log_warn "Ballerina was not found. Please install ballerina first."
+# Pre-requisites
+command -v npm -v >/dev/null 2>&1 || {
+    log_warn "npm command was not found. Please install NodeJS first."
     # exit 1
 }
 
