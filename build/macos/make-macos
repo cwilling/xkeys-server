@@ -28,4 +28,4 @@ cp ../../package.json application/
 # Build the package
 ./build-macos-x64.sh xkeys-server $PKG_VERSION
 
-[ "$?" ] &&  echo "Package sould be available at ${CWD}/target/pkg/xkeys-server-macos-installer-x64-${VERSION}.pkg"
+[ "$?" ] &&  echo "Package sould be available at ${CWD}/target/pkg/xkeys-server-macos-installer-x64-${PKG_VERSION}.pkg"
