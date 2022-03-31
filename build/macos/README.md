@@ -2,7 +2,7 @@
 
 This is the directory from which installable packages for macOS are created. To create a package, run the _make-macos_ script here on a macOS machine, passing the script the desired package VERSION number e.g.
 ```
-    make-macos 1.0.0
+    ./make-macos 1.0.0
 ```
 This will create a new target directory with a number of subdirectories. The installable package will be found in _target/pkg_ e.g.
 ```
