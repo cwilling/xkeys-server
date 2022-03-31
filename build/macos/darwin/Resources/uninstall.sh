@@ -50,7 +50,7 @@ then
 fi
 
 #forget from pkgutil
-pkgutil --forget "org.$PRODUCT.$VERSION" > /dev/null 2>&1
+pkgutil --forget "com.$PRODUCT.$VERSION" > /dev/null 2>&1
 if [ $? -eq 0 ]
 then
   echo "[2/3] [DONE] Successfully unregistered application"
