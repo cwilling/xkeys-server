@@ -1,6 +1,6 @@
 # Packaging for macOS
 
-This is the directory from which installable packages for macOS are created. To create a package, run the _make-macos_ script here on a macOS machine, passing the script the desired package version number e.g.
+This is the directory from which installable packages for macOS are created. To create a package, run the _make-macos_ script here on a macOS machine, passing the script the desired package VERSION number e.g.
 ```
     make-macos 1.0.0
 ```
@@ -18,7 +18,7 @@ The _xkey-server_ files are installed into the _/Library/xkeys-server/VERSION_ d
 
 ## Uninstall
 
-An end user _xkeys-server_ installation may be completely removed by using the terminal command: `/Library/xkeys-server/1.0.0/uninstall.sh` which will stop the running _xkeys-server_ daemon, unregister the package from the _pkgutil_ database and remove _xkeys-server_ related files from the _/Library_ and _/Library/LaunchDaemons_ directories.
+An end user _xkeys-server_ installation may be completely removed by using the terminal command: `/Library/xkeys-server/VERSION/uninstall.sh` which will stop the running _xkeys-server_ daemon, unregister the package from the _pkgutil_ database and remove _xkeys-server_ related files from the _/Library_ and _/Library/LaunchDaemons_ directories.
 
 ## Acknowledgements
 
