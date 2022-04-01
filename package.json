@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "mqtt": "^4.2.8",
+    "pkg": "^5.5.2",
     "usb-detection": "^4.13.0",
     "xdg-basedir": "^4.0.0",
     "xkeys": "^2.3.2"
@@ -27,18 +28,15 @@
     "url": "https://gitlab.com/chris.willing/xkeys-server/issues"
   },
   "homepage": "https://gitlab.com/chris.willing/xkeys-server#readme",
-  "build": {
-    "appId": "com.willing.chris",
-    "icon": "assets",
-    "mac": {
-      "category": "your.app.category.type"
-    },
-    "win": {
-      "target": "msi"
-    },
-    "linux": {
-      "target": "AppImage",
-      "category": "Accessories"
-    }
+  "bin": "scripts/xkeys-server.js",
+  "pkg": {
+    "scripts": "scripts/*",
+    "assets": [ "./node_modules/node-hid/**/**/*", "./node_modules/usb-detection/**/**/*" ],
+    "targets": [
+      "node16-linux-x64",
+      "node16-macos-x64",
+      "node16-win-x64"
+    ],
+    "outputPath": "dist"
   }
 }

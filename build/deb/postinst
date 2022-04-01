@@ -7,7 +7,7 @@ udevadm trigger
 
 # Start running as a service
 #
-chmod a+x /opt/xkeys-server/xkeys-server-%ARCH%.AppImage
+chmod a+x /usr/bin/xkeys-server-linux
 systemctl daemon-reload
 systemctl enable xkeys-server
 systemctl start xkeys-server

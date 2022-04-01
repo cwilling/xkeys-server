@@ -3,7 +3,7 @@ Description=Run xkeys-server as background service
 After=mosquitto.target
 
 [Service]
-ExecStart=/opt/xkeys-server/xkeys-server-%ARCH%.AppImage
+ExecStart=/usr/bin/xkeys-server-linux
 
 Restart=always
 User=nobody
@@ -12,7 +12,7 @@ Group=%NOGROUP%
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
 
-WorkingDirectory=/opt/xkeys-server
+WorkingDirectory=/tmp
 
 [Install]
 WantedBy=multi-user.target

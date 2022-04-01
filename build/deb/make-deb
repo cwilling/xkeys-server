@@ -1,17 +1,18 @@
 #!/bin/bash
 
 
-# Create a .deb package for xkeys-server using premade AppImage.
+# Create a .deb package for xkeys-server
 # Requires args $1 = VERSION
 #               $2 = ARCH
 
-[ $# -ne 2 ] && {
-	echo "Need VERSION and ARCH args to proceed."
+[ $# -ne 1 ] && {
+	echo "Need ARCH arg to proceed."
 	echo "Exiting now ..."
 	exit 1
 }
-VERSION=$1
-ARCH=$2
+#VERSION=$1
+VERSION=$(python3 -c 'import json,sys; f=open("../../package.json"); obj=json.load(f);print(obj["version"])')
+ARCH=$1
 if [ "${ARCH}" = "x86_64" ]; then
   PKGARCH=amd64
 else
@@ -22,13 +23,12 @@ fi
 cd $(dirname $0)
 CWD=$(pwd)
 
-# Create the AppImage
-../${ARCH}.AppImage
+# Bundle the executable
+( cd ../.. ; pkg . )
 
-# Do we have the AppImage (should be in parent directory).
-[ -x ../xkeys-server-${ARCH}.AppImage ] || {
-	echo "Can't find xkeys-server-${ARCH}.AppImage to package"
-	echo " - perhaps it's just not executable?"
+# Do we have the "executable"?
+[ -x ../../dist/xkeys-server-linux ] || {
+	echo "Can't find xkeys-server-linux to package"
 	echo "Exiting now ..."
 	exit 2
 }
@@ -37,14 +37,14 @@ CWD=$(pwd)
 rm -rf xkeys-server-${VERSION}_${PKGARCH}
 mkdir -p xkeys-server-${VERSION}_${PKGARCH}/etc/systemd/system
 mkdir -p xkeys-server-${VERSION}_${PKGARCH}/lib/udev/rules.d
-mkdir -p xkeys-server-${VERSION}_${PKGARCH}/opt/xkeys-server
+mkdir -p xkeys-server-${VERSION}_${PKGARCH}/usr/bin
 mkdir -p xkeys-server-${VERSION}_${PKGARCH}/DEBIAN
 
 sed -e "s/%ARCH%/${ARCH}/" -e "s/%NOGROUP%/nogroup/" ../xkeys-server.service > xkeys-server-${VERSION}_${PKGARCH}/etc/systemd/system/xkeys-server.service
 cp -p ../50-xkeys.rules xkeys-server-${VERSION}_${PKGARCH}/lib/udev/rules.d/
-cp -p ../xkeys-server-${ARCH}.AppImage xkeys-server-${VERSION}_${PKGARCH}/opt/xkeys-server/
+cp -p ../../dist/xkeys-server-linux xkeys-server-${VERSION}_${PKGARCH}/usr/bin/
 
-sed -e "s/%VERSION%/0.9.1/g" control.template >xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/control
+sed -e "s/%VERSION%/${VERSION}/g" control.template >xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/control
 sed -e "s/%ARCH%/${ARCH}/" postinst > xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/postinst
 chmod a+x xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/postinst
 cat <<EOF > xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/prerm
@@ -62,6 +62,10 @@ udevadm trigger
 exit 0
 EOF
 chmod a+x xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/postrm
+
+# Insert size
+pkg_size=$(du -s xkeys-server-${VERSION}_${PKGARCH} | cut -f1)
+sed -i -e "s/%SIZE%/${pkg_size}/g" xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/control
 
 # Create the .deb package
 dpkg-deb --build --root-owner-group xkeys-server-${VERSION}_${PKGARCH}
