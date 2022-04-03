@@ -6,12 +6,13 @@
 
 # Requires args $1 = VERSION
 #
-[ $# -ne 1 ] && {
-  echo "Need VERSION arg to proceed."
-  echo "Exiting now ..."
-  exit 1
-}
+#[ $# -ne 1 ] && {
+#  echo "Need VERSION arg to proceed."
+#  echo "Exiting now ..."
+#  exit 1
+#}
 PKG_VERSION=$1
+VERSION=$(python3 -c 'import json,sys; f=open("../../package.json"); obj=json.load(f);print(obj["version"])')
 
 # Work in the correct directory
 cd $(dirname $0)
