@@ -7,9 +7,12 @@ SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 TARGET_DIRECTORY="$SCRIPTPATH/target"
 PRODUCT=${1}
 VERSION=${2}
+ARCH=${ARCH:-$(uname -m)}
 DATE=`date +%Y-%m-%d`
 TIME=`date +%H:%M:%S`
 LOG_PREFIX="[$DATE $TIME]"
+DEVELOPER_ID=${DEVELOPER_ID:-"Christoph Willing (LPT668763U)"
+# Use as APPLE_DEVELOPER_CERTIFICATE_ID directly?
 
 function printSignature() {
   cat "$SCRIPTPATH/utils/ascii_art.txt"
@@ -121,10 +124,22 @@ copyBuildDirectory() {
     mkdir -p "${TARGET_DIRECTORY}"/darwinpkg/Library/${PRODUCT}/${VERSION}
     cp -a "$SCRIPTPATH"/application/. "${TARGET_DIRECTORY}"/darwinpkg/Library/${PRODUCT}/${VERSION}
     chmod -R 755 "${TARGET_DIRECTORY}"/darwinpkg/Library/${PRODUCT}/${VERSION}
+    # Sign it
+    # unlock_keychain only needed for ssh logins
+    if [ -n "$SSH_CONNECTION" ]; then
+        security unlock-keychain login.keychain
+    fi
+    codesign --force --verify --verbose --sign "Developer ID Application: ${DEVELOPER_ID}" "${TARGET_DIRECTORY}"/darwinpkg/Library/${PRODUCT}/${VERSION}/xkeys-server-macos-arm64
 
-	# Copy daemon control file
-	mkdir -p "${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons
-	sed -e 's/__VERSION__/'${VERSION}'/g' "$SCRIPTPATH"/com.xkeys-server.daemon.plist >"${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons/com.xkeys-server.daemon.plist
+    # Copy daemon control file
+    mkdir -p "${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons
+    sed -e 's/__VERSION__/'${VERSION}'/g' "$SCRIPTPATH"/com.xkeys-server.daemon.plist >"${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons/com.xkeys-server.daemon.plist
+    # Sign it
+    # unlock_keychain only needed for ssh logins
+    if [ -n "$SSH_CONNECTION" ]; then
+        security unlock-keychain login.keychain
+    fi
+    codesign --force --verify --verbose --sign "Developer ID Application: ${DEVELOPER_ID}" "${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons/com.xkeys-server.daemon.plist
 
     rm -rf "${TARGET_DIRECTORY}/package"
     mkdir -p "${TARGET_DIRECTORY}/package"
@@ -157,25 +172,30 @@ function signProduct() {
     mkdir -pv "${TARGET_DIRECTORY}/pkg-signed"
     chmod -R 755 "${TARGET_DIRECTORY}/pkg-signed"
 
-    read -p "Please enter the Apple Developer Installer Certificate ID:" APPLE_DEVELOPER_CERTIFICATE_ID
+    #read -p "Please enter the Apple Developer Installer Certificate ID:" APPLE_DEVELOPER_CERTIFICATE_ID
+	APPLE_DEVELOPER_CERTIFICATE_ID=${DEVELOPER_ID}
+    # unlock_keychain only needed for ssh logins
+    if [ -n "$SSH_CONNECTION" ]; then
+        security unlock-keychain login.keychain
+    fi
     productsign --sign "Developer ID Installer: ${APPLE_DEVELOPER_CERTIFICATE_ID}" \
     "${TARGET_DIRECTORY}/pkg/$1" \
     "${TARGET_DIRECTORY}/pkg-signed/$1"
 
-    pkgutil --check-signature "${TARGET_DIRECTORY}/pkg-signed/$1"
+    pkgutil --verbose --check-signature "${TARGET_DIRECTORY}/pkg-signed/$1"
 }
 
 function createInstaller() {
     log_info "Application installer generation process started.(3 Steps)"
     buildPackage
-    buildProduct ${PRODUCT}-macos-installer-x64-${VERSION}.pkg
+    buildProduct ${PRODUCT}-macos-installer-${ARCH}-${VERSION}.pkg
     while true; do
         read -p "Do you wish to sign the installer (You should have Apple Developer Certificate) [y/N]?" answer
         [[ $answer == "y" || $answer == "Y" ]] && FLAG=true && break
         [[ $answer == "n" || $answer == "N" || $answer == "" ]] && log_info "Skipped signing process." && FLAG=false && break
         echo "Please answer with 'y' or 'n'"
     done
-    [[ $FLAG == "true" ]] && signProduct ${PRODUCT}-macos-installer-x64-${VERSION}.pkg
+    [[ $FLAG == "true" ]] && signProduct ${PRODUCT}-macos-installer-${ARCH}-${VERSION}.pkg
     log_info "Application installer generation steps finished."
 }
 
