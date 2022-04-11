@@ -29,8 +29,7 @@
 
         <key>ProgramArguments</key>
         <array>
-            <string>/usr/local/bin/npm</string>
-            <string>start</string>
+            <string>/Library/xkeys-server/__VERSION__/xkeys-server</string>
         </array>
 
     </dict>

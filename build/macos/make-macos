@@ -2,10 +2,18 @@
 
 
 # Create an installable macos package
-# We assume nodejs/npm installation already exists
+# We assume nodejs/npm/npx installation already exists
 
 PKG_VERSION=$(python3 -c 'import json,sys; f=open("../../package.json"); obj=json.load(f);print(obj["version"])')
 echo "PACKAGE VERSION = $PKG_VERSION"
+
+ARCH=${ARCH:-$(uname -m)}
+if [ "$ARCH" = "x86_64" ]; then
+  PKG_ARCH="x64"
+elif [ "$ARCH" = "arm64" ]; then
+  PKG_ARCH="arm64"
+fi
+echo "PACKAGE ARCH = $PKG_ARCH"
 
 # Work in the correct directory
 cd $(dirname $0)
@@ -19,13 +27,13 @@ rm -rf target
 rm -rf application
 mkdir application
 
-# Use pkg to generate single executable
-( cd ../.. && npx pkg . )
-
-# Copy what we want packaged into "application" directory
-cp -a ../../dist/xkeys-server-macos-arm64 application/
+# Use pkg to generate single executable into the "application" directory
+#
+npx pkg -t node16-macos-$PKG_ARCH --out-path application ../..
+echo "Added: $(file application/*)"
 
 # Build the package - pass the project name & version number
+#
 ./build-macos.sh xkeys-server $PKG_VERSION
 
-[ "$?" ] &&  echo "Package sould be available at ${CWD}/target/pkg-signed/xkeys-server-macos-installer-"$(uname -m)"-${PKG_VERSION}.pkg"
+[ "$?" ] &&  echo "Package should be available at ${CWD}/target/pkg-signed/xkeys-server-macos-installer-"$(uname -m)"-${PKG_VERSION}.pkg"

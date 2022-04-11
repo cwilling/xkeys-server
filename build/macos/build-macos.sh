@@ -11,7 +11,7 @@ ARCH=${ARCH:-$(uname -m)}
 DATE=`date +%Y-%m-%d`
 TIME=`date +%H:%M:%S`
 LOG_PREFIX="[$DATE $TIME]"
-DEVELOPER_ID=${DEVELOPER_ID:-"Christoph Willing (LPT668763U)"
+DEVELOPER_ID=${DEVELOPER_ID:-"Christoph Willing (LPT668763U)"}
 # Use as APPLE_DEVELOPER_CERTIFICATE_ID directly?
 
 function printSignature() {
@@ -127,9 +127,10 @@ copyBuildDirectory() {
     # Sign it
     # unlock_keychain only needed for ssh logins
     if [ -n "$SSH_CONNECTION" ]; then
+        echo "SSH connections needs to unlock keychain"
         security unlock-keychain login.keychain
     fi
-    codesign --force --verify --verbose --sign "Developer ID Application: ${DEVELOPER_ID}" "${TARGET_DIRECTORY}"/darwinpkg/Library/${PRODUCT}/${VERSION}/xkeys-server-macos-arm64
+    codesign --force --verify --verbose --sign "Developer ID Application: ${DEVELOPER_ID}" "${TARGET_DIRECTORY}"/darwinpkg/Library/${PRODUCT}/${VERSION}/xkeys-server
 
     # Copy daemon control file
     mkdir -p "${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons
@@ -137,6 +138,7 @@ copyBuildDirectory() {
     # Sign it
     # unlock_keychain only needed for ssh logins
     if [ -n "$SSH_CONNECTION" ]; then
+        echo "SSH connections needs to unlock keychain"
         security unlock-keychain login.keychain
     fi
     codesign --force --verify --verbose --sign "Developer ID Application: ${DEVELOPER_ID}" "${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons/com.xkeys-server.daemon.plist
@@ -176,6 +178,7 @@ function signProduct() {
 	APPLE_DEVELOPER_CERTIFICATE_ID=${DEVELOPER_ID}
     # unlock_keychain only needed for ssh logins
     if [ -n "$SSH_CONNECTION" ]; then
+        echo "SSH connections needs to unlock keychain"
         security unlock-keychain login.keychain
     fi
     productsign --sign "Developer ID Installer: ${APPLE_DEVELOPER_CERTIFICATE_ID}" \
@@ -188,14 +191,14 @@ function signProduct() {
 function createInstaller() {
     log_info "Application installer generation process started.(3 Steps)"
     buildPackage
-    buildProduct ${PRODUCT}-macos-installer-${ARCH}-${VERSION}.pkg
+    buildProduct ${PRODUCT}-macos-installer-${VERSION}-${ARCH}.pkg
     while true; do
         read -p "Do you wish to sign the installer (You should have Apple Developer Certificate) [y/N]?" answer
         [[ $answer == "y" || $answer == "Y" ]] && FLAG=true && break
         [[ $answer == "n" || $answer == "N" || $answer == "" ]] && log_info "Skipped signing process." && FLAG=false && break
         echo "Please answer with 'y' or 'n'"
     done
-    [[ $FLAG == "true" ]] && signProduct ${PRODUCT}-macos-installer-${ARCH}-${VERSION}.pkg
+    [[ $FLAG == "true" ]] && signProduct ${PRODUCT}-macos-installer-${VERSION}-${ARCH}.pkg
     log_info "Application installer generation steps finished."
 }
 
