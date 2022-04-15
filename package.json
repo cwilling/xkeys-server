@@ -38,9 +38,9 @@
       "node16-linux-x64",
       "node16-macos-x64",
       "node16-win-x64"
-    ]
+    ],
+    "outputPath": "dist",
   },
-  "outputPath": "dist",
   "devDependencies": {
     "pkg": "^5.6.0"
   }
