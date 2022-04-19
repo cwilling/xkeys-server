@@ -36,4 +36,4 @@ echo "Added: $(file application/*)"
 #
 ./build-macos.sh xkeys-server $PKG_VERSION
 
-[ "$?" ] &&  echo "Package should be available at ${CWD}/target/pkg-signed/xkeys-server-macos-installer-"$(uname -m)"-${PKG_VERSION}.pkg"
+[ "$?" ] &&  echo "Package should be available at ${CWD}/target/pkg-signed/xkeys-server-macos-installer-${PKG_VERSION}-${PKG_ARCH}.pkg"
