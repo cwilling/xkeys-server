@@ -106,7 +106,6 @@ copyDarwinDirectory(){
 copyBuildDirectory() {
     sed -i '' -e 's/__VERSION__/'${VERSION}'/g' "${TARGET_DIRECTORY}/darwin/scripts/postinstall"
     sed -i '' -e 's/__PRODUCT__/'${PRODUCT}'/g' "${TARGET_DIRECTORY}/darwin/scripts/postinstall"
-    chmod -R 755 "${TARGET_DIRECTORY}/darwin/scripts/preinstall"
     chmod -R 755 "${TARGET_DIRECTORY}/darwin/scripts/postinstall"
 
     sed -i '' -e 's/__VERSION__/'${VERSION}'/g' "${TARGET_DIRECTORY}/darwin/Distribution"
@@ -130,18 +129,22 @@ copyBuildDirectory() {
         echo "SSH connections needs to unlock keychain"
         security unlock-keychain login.keychain
     fi
-    codesign --force --verify --verbose --sign "Developer ID Application: ${DEVELOPER_ID}" "${TARGET_DIRECTORY}"/darwinpkg/Library/${PRODUCT}/${VERSION}/xkeys-server
+    codesign --force --verify --verbose \
+        --options runtime --entitlements entitlements.plist \
+        --sign "Developer ID Application: ${DEVELOPER_ID}" "${TARGET_DIRECTORY}"/darwinpkg/Library/${PRODUCT}/${VERSION}/xkeys-server
 
     # Copy daemon control file
     mkdir -p "${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons
-    sed -e 's/__VERSION__/'${VERSION}'/g' "$SCRIPTPATH"/com.xkeys-server.daemon.plist >"${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons/com.xkeys-server.daemon.plist
+    sed -e 's/__VERSION__/'${VERSION}'/g' -e 's/__PRODUCT__/'${PRODUCT}'/g' "$SCRIPTPATH"/com.xkeys-server.daemon.plist >"${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons/com.xkeys-server.daemon.plist
     # Sign it
     # unlock_keychain only needed for ssh logins
     if [ -n "$SSH_CONNECTION" ]; then
         echo "SSH connections needs to unlock keychain"
         security unlock-keychain login.keychain
     fi
-    codesign --force --verify --verbose --sign "Developer ID Application: ${DEVELOPER_ID}" "${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons/com.xkeys-server.daemon.plist
+    codesign --force --verify --verbose \
+        --options runtime --entitlements entitlements.plist \
+        --sign "Developer ID Application: ${DEVELOPER_ID}" "${TARGET_DIRECTORY}"/darwinpkg/Library/LaunchDaemons/com.xkeys-server.daemon.plist
 
     rm -rf "${TARGET_DIRECTORY}/package"
     mkdir -p "${TARGET_DIRECTORY}/package"
