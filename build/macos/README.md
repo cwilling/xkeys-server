@@ -1,20 +1,29 @@
 # Packaging for macOS
 
-This is the directory from which installable packages for macOS are created. To create a package, run the _make-macos_ script here on a macOS machine, passing the script the desired package VERSION number e.g.
+This is the directory from which installable packages for macOS are created. It is assumed that the necessary dependencies for _xkeys-server_ have already been installed (with `npm install` in the ../../xkeys-server directory).
+
+To create a package, run the _make-macos_ script here on a macOS machine i.e.
 ```
-    ./make-macos 1.0.0
+    ./make-macos
 ```
-This will create a new target directory with a number of subdirectories. The installable package will be found in _target/pkg_ e.g.
+This will create a new target directory with a number of subdirectories. The installable package will be found in _target/pkg-signed_ e.g.
 ```
-    target/pkg/xkeys-server-macos-installer-x86-1.0.0.pkg
+    target/pkg-signed/xkeys-server-macos-installer-x86-1.0.0.pkg
 ``` 
-The package may be distributed by any desired means for end users to install in the usual manner.
+The package may be distributed by any desired means for end users to install in the usual manner. A signed package is required for recent MacOS systems which employ a _Gatekeeper_ to prevent downloaded packages being installed unless they have been signed in the Apple approved manner.
+
+## Signing requirements
+
+While it is not intended to provide detailed information about Apple's signing requirements, a brief summary of them is as follows:
+
+- a paid Apple Developer ID is required
+-
 
 ## Packaging strategy
 
-The aim is to install the _xkeys-server_ and have it run as a daemon with as little need for user intervention as possible. Since the _xkeys-server_ will eventually have to run in a NodeJS environment, the installer's readme stage advises the user of the need to install NodeJS before proceeding. The end user machine architecture is unknown when the package is being created so no dependencies under _node_modules_ are shipped in the package. Instead, _keys-server_ is instantiated by _npm_ in conjunction with a _start_ command in the _package.json_ file so that running _`npm start`_ will actually execute _`npm install`_ (to install the _node_modules_ heirarchy) before running the _xkeys-server.js_ script itself.
+The aim is to install the _xkeys-server_ and have it run as a daemon with as little need for user intervention as possible.
 
-The _xkey-server_ files are installed into the _/Library/xkeys-server/VERSION_ directory on the target machine. Additionally, a _launchd_ property list file is installed as _/Library/LaunchDaemons/com.xkeys-server.daemon.plist_ in preparation for execution of _xkeys-server_ as a daemon. However the _preinstall_ script will abort the installation if no suitable NodeJS installation is detected. If installation is successful, the _postinstall_ script will start daemon operation with `launchctl load /Library/LaunchDaemons/com.xkeys-server.daemon.plist`. The daemon can be stopped from a terminal with: `launchctl unload /Library/LaunchDaemons/com.xkeys-server.daemon.plist`
+The _xkey-server_ files are installed into the _/Library/xkeys-server/VERSION_ directory on the target machine. Additionally, a _launchd_ property list file is installed as _/Library/LaunchDaemons/com.xkeys-server.daemon.plist_ in preparation for execution of _xkeys-server_ as a daemon. If installation is successful, the _postinstall_ script will start daemon operation with `launchctl load /Library/LaunchDaemons/com.xkeys-server.daemon.plist`. The daemon can be stopped from a terminal with: `launchctl unload /Library/LaunchDaemons/com.xkeys-server.daemon.plist`
 
 ## Uninstall
 
