@@ -1,18 +1,9 @@
 #!/bin/bash
 
 
-# Parameters
-PRODUCT_HOME=/Library/__PRODUCT__/__VERSION__
-PATH="/bin:/usr/local/bin:$PATH"
-
-echo "Post installation process started"
-
-# Change permissions in home directory
-echo "Change permissions in ${PRODUCT_HOME}"
-cd ${PRODUCT_HOME}
-chmod -R 755 .
+echo "XXXXXXXXXXXXXX Post installation process started"
 
 # Launch xkeys-server as daemon
 launchctl load /Library/LaunchDaemons/com.xkeys-server.daemon.plist
 
-echo "Post installation process finished"
+echo "XXXXXXXXXXXXXX Post installation process finished"

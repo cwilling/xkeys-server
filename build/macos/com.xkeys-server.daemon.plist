@@ -4,7 +4,7 @@
     <dict>
 
         <key>Label</key>
-        <string>com.xkeys-server.daemon</string>
+        <string>com.__PRODUCT__.daemon</string>
 
         <key>RunAtLoad</key>
         <true/>
@@ -13,24 +13,17 @@
 	<true/>
 
         <key>StandardErrorPath</key>
-        <string>/var/log/xkeys-server.log</string>
+        <string>/var/log/__PRODUCT__.log</string>
 
         <key>StandardOutPath</key>
-        <string>/var/log/xkeys-server.log</string>
-
-        <key>EnvironmentVariables</key>
-        <dict>
-            <key>PATH</key>
-            <string><![CDATA[/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin]]></string>
-        </dict>
+        <string>/var/log/__PRODUCT__.log</string>
 
         <key>WorkingDirectory</key>
-        <string>/Library/xkeys-server/__VERSION__</string>
+        <string>/Library/__PRODUCT__</string>
 
         <key>ProgramArguments</key>
         <array>
-            <string>/usr/local/bin/npm</string>
-            <string>start</string>
+            <string>/Library/__PRODUCT__/__VERSION__/__PRODUCT__</string>
         </array>
 
     </dict>

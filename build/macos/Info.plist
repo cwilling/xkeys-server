@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+
+		<key>CFBundleIdentifier</key>
+        <string>com.xkeys-server.daemon</string>
+
+        <key>CFBundleName</key>
+        <string>Xkeys Server</string>
+
+        <key>CFBundleDisplayName</key>
+        <string>Xkeys Server</string>
+
+        <key>LSMinimumSystemVersionByArchitecture</key>
+        <dict>
+			<key>x86_64</key>
+        	<string>10.0.0</string>
+
+			<key>arm64</key>
+        	<string>12.0.0</string>
+		</dict>
+
+
+		<key>CFBundlePackageType</key>
+        <string>BNDL</string>
+
+		<key>LSApplicationCategoryType</key>
+		<string>public.app-category.utilities</string>
+
+    </dict>
+</plist>
+
