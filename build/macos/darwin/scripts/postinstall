@@ -1,0 +1,9 @@
+#!/bin/bash
+
+
+echo "XXXXXXXXXXXXXX Post installation process started"
+
+# Launch xkeys-server as daemon
+launchctl load /Library/LaunchDaemons/com.xkeys-server.daemon.plist
+
+echo "XXXXXXXXXXXXXX Post installation process finished"

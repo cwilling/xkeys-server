@@ -4,7 +4,8 @@
   "description": "UDP/MQTT service for SuperFlyTv's xkeys library",
   "main": "scripts/xkeys-server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm install && scripts/xkeys-server.js"
   },
   "repository": {
     "type": "git",
@@ -26,18 +27,21 @@
     "url": "https://gitlab.com/chris.willing/xkeys-server/issues"
   },
   "homepage": "https://gitlab.com/chris.willing/xkeys-server#readme",
-  "build": {
-    "appId": "com.willing.chris",
-    "icon": "assets",
-    "mac": {
-      "category": "your.app.category.type"
-    },
-    "win": {
-      "target": "msi"
-    },
-    "linux": {
-      "target": "AppImage",
-      "category": "Accessories"
-    }
+  "bin": "scripts/xkeys-server.js",
+  "pkg": {
+    "scripts": "scripts/*",
+    "assets": [
+      "./node_modules/node-hid/**/**/*",
+      "./node_modules/usb-detection/**/**/*"
+    ],
+    "targets": [
+      "node16-linux-x64",
+      "node16-macos-x64",
+      "node16-win-x64"
+    ],
+    "outputPath": "dist"
+  },
+  "devDependencies": {
+    "pkg": "^5.6.0"
   }
 }
