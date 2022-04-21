@@ -17,6 +17,6 @@ Now enter the resulting _xkeys-server_ directory and install all the NodeJS modu
 Now enter the build/windows directory and generate the xkeys-server executable:
 ```
     cd build/windows
-    npm pkg -t node16-win-x64 --out-path application ..
+    npm pkg -t node16-win-x64 --out-path application ../..
 ```
 The executable _xkeys-server.exe_ will be found in the application directory from where it can be added to a Windows installer for distribution.
