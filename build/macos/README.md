@@ -20,7 +20,7 @@ While it is not intended to provide detailed information about Apple's signing r
 - install a "Developer ID Application" certificate
 - install a "Developer ID Installer" certificate
 - check Keychain app that these certificates display no error
-- certificate errors may be due missing or out of date intermediate certificates
+- certificate errors may be due to missing or out of date intermediate certificates
 - obtain an application specific password
 - install XCode - it's command line tools are required for Apple notarization
 
