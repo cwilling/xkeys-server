@@ -10,11 +10,11 @@ This will create a new target directory with a number of subdirectories. The ins
 ```
     target/pkg-signed/xkeys-server-macos-installer-x86-1.0.0.pkg
 ``` 
-The package may be distributed by any desired means for end users to install in the usual manner. A signed package is required for recent MacOS systems which employ a _Gatekeeper_ to prevent downloaded packages being installed unless they have been signed in the Apple approved manner.
+The package may be distributed by any desired means for end users to install in the usual manner. However, a signed and _Apple notarized_ package is required for recent macOS systems which employ _Gatekeeper_ technology to prevent downloaded packages being installed unless they have been signed and notarized in the Apple approved manner.
 
 ## Signing requirements
 
-While it is not intended to provide detailed information about Apple's signing requirements, a brief summary of them is as follows:
+While it is not intended to provide detailed information about Apple's signing procedures, a brief summary of relevant requirements is as follows:
 
 - obtain a paid Apple Developer ID
 - install a "Developer ID Application" certificate
@@ -28,7 +28,7 @@ While it is not intended to provide detailed information about Apple's signing r
 
 The aim is to install the _xkeys-server_ and have it run as a daemon with as little need for user intervention as possible.
 
-The _xkey-server_ files are installed into the _/Library/xkeys-server/VERSION_ directory on the target machine. Additionally, a _launchd_ property list file is installed as _/Library/LaunchDaemons/com.xkeys-server.daemon.plist_ in preparation for execution of _xkeys-server_ as a daemon. If installation is successful, the _postinstall_ script will start daemon operation with `launchctl load /Library/LaunchDaemons/com.xkeys-server.daemon.plist`. The daemon can be stopped from a terminal with: `launchctl unload /Library/LaunchDaemons/com.xkeys-server.daemon.plist`
+The _xkey-server_ files are installed into the _/Library/xkeys-server/VERSION_ directory on the target machine. Additionally, a _launchd_ property list file is installed as _/Library/LaunchDaemons/com.xkeys-server.daemon.plist_ in preparation for execution of _xkeys-server_ as a daemon. If installation is successful, the _postinstall_ script will start daemon operation by executing `launchctl load /Library/LaunchDaemons/com.xkeys-server.daemon.plist`. The daemon can be stopped from a terminal with: `launchctl unload /Library/LaunchDaemons/com.xkeys-server.daemon.plist`
 
 The installer package created by running _make-macos_ will be found in _target/pkg-signed/xkeys-server-macos-installer-VERSION.pkg_. While this installer can be used on the local machine, it will fail if downloaded via a browser on other machines. To make such installation possible, the initial installer package must be subjected to Apple notarization. To avoid entering sensitive passwords at the command line during the notarization process, it is highly recommended to obtain an application specific password from appleid.apple.com; that process should provide a password that looks something like _abcfd-ghijk-lmnop-qrstu_. Add the application specific password that was generated to the local Keychain with:
 ```
@@ -36,7 +36,7 @@ The installer package created by running _make-macos_ will be found in _target/p
 ```
 where XALTOOL is an arbitrary label (use whatever you like) to use later when the app specific password needs to be accessed, APPLE_ID will be your Apple id - something like chris.willing@example.com - and APP_SPECIFIC_PASSWORD is the app specific password previously generated at appleid.apple.com.
 
-Apple notarization requires submission of the signed package (created above with _make-macos_) for Apple to run automated tests to determine suitablility for installation. Run the command:
+Apple notarization requires submission of the signed package (created above with _make-macos_) for Apple to run automated tests which determine it's suitablility for installation. Run the command:
 ```
     xcrun altool --notarize-app --primary-bundle-id com.xkeys-server.daemon -u APPLE_ID -p @keychain:XALTOOL -f target/pkg-signed/xkeys-server-macos-installer-VERSION.pkg
 ```
