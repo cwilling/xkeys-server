@@ -34,14 +34,14 @@ The installer package created by running _make-macos_ will be found in _target/p
 ```
     xcrun altool --store-password-in-keychain-item XALTOOL -u YOUR_APPLE_ID -p APP_SPECIFIC_PASSWORD
 ```
-where XALTOOL is an arbitrary label (use whatever you like) to use later when the app specific password needs to be accessed, APPLE_ID will be your apple is - something like chris.willing@example.com - and APP_SPECIFIC_PASSWORD is the app specific password previously generated at appleid.apple.com.
+where XALTOOL is an arbitrary label (use whatever you like) to use later when the app specific password needs to be accessed, APPLE_ID will be your Apple id - something like chris.willing@example.com - and APP_SPECIFIC_PASSWORD is the app specific password previously generated at appleid.apple.com.
 
 Apple notarization requires submission of the signed package (created above with _make-macos_) for Apple to run automated tests to determine suitablility for installation. Run the command:
 ```
     xcrun altool --notarize-app --primary-bundle-id com.xkeys-server.daemon -u APPLE_ID -p @keychain:XALTOOL -f target/pkg-signed/xkeys-server-macos-installer-VERSION.pkg
 ```
 (note use of _@keychain:XALTOOL_ for the password field to avoid entering password for your Apple ID).
-The command may take 10-20 seconds to complete but will eventually return a _RequestUUID_ - something like `Request UUID = 11b84517c-e9ad-454b-8c07-e47a9ac19bb8`. When Apple completes the notarization process, success or failure will be advised by email. Alternatively, notarization progress can be queried with:
+The command may take 10-20 seconds to complete but will eventually return a _RequestUUID_ - something like `RequestUUID = 11b84517c-e9ad-454b-8c07-e47a9ac19bb8`. The RequestUUID is merely a submission acknowledgment, _not_ an indication of notarization completion. When Apple completes the notarization process, success or failure will be advised by email. Alternatively, notarization progress can be queried with:
 ```
     xcrun altool --notarization-info 11b84517c-e9ad-454b-8c07-e47a9ac19bb8
 ```
