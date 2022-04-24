@@ -1,6 +1,6 @@
 # Packaging _xkeys-server_ for Windows
 
-### Build _xkeys-server_
+#### Step 1 - build the _xkeys-server_ executable
 
 These instructions to build the _xkeys-server_ for Windows use comand line instructions executed in Windows Powershell. The build machine in which they are executed is expected to have _git_  and _NodeJS_ installed (however these are not needed on end user machines). These applications may be installed from the command line with:
 ```
@@ -19,11 +19,11 @@ Now enter the resulting _xkeys-server_ directory and install all the NodeJS modu
 Now enter the build/windows directory and generate the xkeys-server executable:
 ```
     cd build/windows
-    npm pkg -t node16-win-x64 --out-path application ../..
+    npx pkg -t node16-win-x64 --out-path application ../..
 ```
 The executable _xkeys-server.exe_ will be found in the application directory from where it can be added to a Windows installer for distribution.
 
-### Create the installer
+#### Step 2 - create the installer
 
 Many sites may already have established workflows for generating application installers. The method outlined here uses the open source [Nullsoft Scriptable Install System (NSIS)](https://nsis.sourceforge.io) which may be installed with:
 ```
