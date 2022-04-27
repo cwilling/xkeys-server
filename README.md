@@ -1,12 +1,14 @@
 # xkeys-server
 
-The _xkeys-server_ is a ***cross platform***, stand alone ***NodeJS*** application, wrapping [SuperFlyTV's library (SFTV)](https://github.com/SuperFlyTV/xkeys) to interact with [***X-keys devices***](https://xkeys.com/). User applications wishing to access X-keys devices could easily do so directly by using the NodeJS library. The advantage of accessing X-keys devices via the _xkeys-server_ is the reduction (elimination?) of contention between multiple client applications which may simultaneously wish to control these devices.
+The _xkeys-server_ is a ***cross platform***, stand alone ***NodeJS*** application, wrapping [SuperFlyTV's library (SFTV)](https://github.com/SuperFlyTV/xkeys) to interact with [***X-keys devices***](https://xkeys.com/). User applications wishing to access X-keys devices could easily do so directly by using the SFTV NodeJS library. The advantage of accessing X-keys devices via the _xkeys-server_ is the reduction (elimination?) of contention between multiple client applications which may simultaneously wish to control these devices.
 
-Communication between applications and the _xkeys-server_ may be via UDP or MQTT protocol. Client applicatons using UDP are restricted to the local network and may use a simple discovery mechanism to automagically connect to a local _xkeys-server_. UDP clients use the soon to be released **Dynamic Control Data (DCD)** protocol, allowing them to access other manufacturer's devices which also implement the DCD protocol.
+Communication between applications and the _xkeys-server_ may be via UDP or MQTT protocol. Client applicatons using UDP are restricted to the local network and may use a simple discovery mechanism to automagically connect to a local _xkeys-server_. UDP clients use the publicly available (soon to be released) **Dynamic Control Data (DCD)** protocol, allowing them to access any other manufacturers' devices which are acccessible (either directly or through some library) via the DCD protocol.
 
 MQTT clients will typically use an MQTT broker e.g. [mosquitto](https://mosquitto.org) running on the host machine, although any MQTT broker across the world could be used. A typical MQTT use-case is when multiple _Node-RED_ nodes interact with attached X-keys devices. Examples may be found in the [node-red-contrib-xkeys](https://gitlab.com/chris.willing/node-red-contrib-xkeys) project. 
 
-Being a NodeJS application, _xkeys-server_ is able to be run on ***Linux*** (including Raspberry Pi), ***MacOS*** (x86_64 or arm64) or ***Windows*** machines. Client applications may run on any system capable of UDP networking.
+Since communication is via established networking protocols, clients may be written in any desired progamming language - not restricted to NodeJS/Javascript/Typescript when using the SFTV library directly.
+
+Being a NodeJS application, _xkeys-server_ is able to be run on ***Linux*** (including Raspberry Pi), ***MacOS*** (x86_64 or arm64) or ***Windows*** machines. Client applications may run on any system capable of UDP and/or MQTT.
 
 ## Installation
 
