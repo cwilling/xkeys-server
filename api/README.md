@@ -1,12 +1,10 @@
 # xkeys-server API & Examples
 
-The *xkeys_server* is a nodejs application. Clients interact with it
-via the MQTT protocol, passing JSON encoded request and response messages. This
-means clients may be written in any chosen language that supports MQTT and JSON.
+The _xkeys_server_ is a NodeJS application. Clients interact with it by passing JSON encoded request and response messages using either UDP or MQTT. This means clients may be written in any chosen language that supports JSON encoding & decoding.
 
-As well as providing some simple client applications in varying languages to
-demonstrate the utility of this arrangement, the server API itself is explained
-here to assist developers make use of the *xkeys-server*.
+However the UDP and MQTT transport message formats are not immediately interchangeable. Communication of messages by UDP requires a message format published in the _Dynamic Control Data_ (_DCD_) protocol. An example of a client application using _DCD_ protocol is [devicefinder-gjs](https://gitlab.com/chris.willing/devicefinder-gjs/) 
+
+Communication by MQTT is quite different to the UDP method and is further detailed below. As well as providing some simple client applications in varying languages to demonstrate the utility of this arrangement, the server API itself is explained here to assist developers make use of the _xkeys-server_.
 
 
 ## API
