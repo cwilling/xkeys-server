@@ -7,7 +7,7 @@ However the UDP and MQTT transport message formats are not immediately interchan
 Communication by MQTT is quite different to the UDP method and is further detailed below. As well as providing some simple client applications in varying languages to demonstrate the utility of this arrangement, the server API itself is explained here to assist developers make use of the _xkeys-server_.
 
 
-## API
+## MQTT API
 
 The first task for a client is to connect to the MQTT broker to which the
 *xkeys-server* is connected and subscribe to the appropriate topic(s). For
