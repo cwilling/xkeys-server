@@ -1,12 +1,27 @@
 # xkeys-server
 
-The xkeys-server is a stand alone NodeJS application, wrapping [SuperFlyTV's library](https://github.com/SuperFlyTV/xkeys) to interact with [X-keys](https://xkeys.com/) devices. Other applications wishing to access X-keys devices may do so directly or via the xkeys-server. Access via the xkeys-server aims to reduce contention when multiple applications may simultaneously wish to control these devices. A typical use-case is when multiple Node-RED nodes interact with attached X-keys devices, examples of which may be found in the [node-red-contrib-xkeys](https://gitlab.com/chris.willing/node-red-contrib-xkeys) project. 
+The _xkeys-server_ is a ***cross platform***, stand alone ***NodeJS*** application, wrapping [SuperFlyTV's library (SFTV)](https://github.com/SuperFlyTV/xkeys) to interact with [***X-keys devices***](https://xkeys.com/). User applications wishing to access X-keys devices could easily do so directly by using the NodeJS library. The advantage of accessing X-keys devices via the _xkeys-server_ is the reduction (elimination?) of contention between multiple client applications which may simultaneously wish to control these devices.
 
-Communication between applications and xkeys-server uses the MQTT protocol. An MQTT broker, typically [mosquitto](https://mosquitto.org), will run on the host machine. All applications wanting access via xkeys-server, as well as the xkey-server itself, act as MQTT clients of this local broker.
+Communication between applications and the _xkeys-server_ may be via UDP or MQTT protocol. Client applicatons using UDP are restricted to the local network and may use a simple discovery mechanism to automagically connect to a local _xkeys-server_. UDP clients use the soon to be released **Dynamic Control Data (DCD)** protocol, allowing them to access other manufacturer's devices which also implement the DCD protocol.
+
+MQTT clients will typically use an MQTT broker e.g. [mosquitto](https://mosquitto.org) running on the host machine, although any MQTT broker across the world could be used. A typical MQTT use-case is when multiple _Node-RED_ nodes interact with attached X-keys devices. Examples may be found in the [node-red-contrib-xkeys](https://gitlab.com/chris.willing/node-red-contrib-xkeys) project. 
+
+Being a NodeJS application, _xkeys-server_ is able to be run on ***Linux*** (including Raspberry Pi), ***MacOS*** (x86_64 or arm64) or ***Windows*** machines. Client applications may run on any system capable of UDP networking.
 
 ## Installation
 
-These instructions are for installaton on Raspberry Pi but may be sufficiently generic to apply, with minimal change, to other Linux-based systems.
+_Xkeys-server_ package installers for end users will be available for Linux, MacOS & Windows.
+
+In the meantime, command line capable users (or potential developers) could run the following commands to implement a basic setup on any of the supported platforms (assuming _NodeJS_ and _git_ are already installed):
+```
+    git clone https://gitlab.com/chris.willing/xkeys-server
+    cd xkeys-server
+    npm install
+    ./scripts/xkeys-server.js
+```
+
+Alternatively, here is a more elaborate setup which runs _xkeys_server_ as a daemon application that survives machine reboots.
+Intended for the Raspberry Pi, these instructions are sufficiently generic to apply, with minimal change, to other Linux-based systems.
 
 First ensure that the mosquitto MQTT broker is installed and running:
 ```
