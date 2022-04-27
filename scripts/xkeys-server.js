@@ -491,35 +491,82 @@ request_message_process = (type, message, ...moreArgs) => {
 					var product_id   = device_client_obj.info.productId;
 					var unit_id      = device_client_obj.info.unitId;
 					var duplicate_id = device_client_obj.duplicate_id;
+					//	Device Clients have no shortnam. If no entry in PRODUCTS to find one (most probable case), make one up
+					var shortnam     = xkeys_products[product_id.toString()];
+					if (shortnam) {
+						msg["shortnam"] = shortnam;
+					} else {
+						msg["shortnam"] = device.replace(/\s/g, "").toUpperCase() + "-" + device_triple;
+					}
 					if (msg.event_type == "button_event") {
 						var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":device,
 										"product_id":product_id,"unit_id":unit_id,"duplicate_id":duplicate_id, "control_id":msg.control_id,
 										"row":msg.row,"col":msg.col, "value":msg.value,"timestamp":msg.timestamp};
+
+						//	NodeRED
+						msg["type"] = msg.value==1?"down":"up";
+						console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
+						var msg_topic = '/xkeys/server/button_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":msg};
 					}
 					else if (msg.event_type == "tbar_event") {
 						var msg_udp = {"msg_type":"tbar_event", "server_id":ServerID, "device":device,
 										"product_id":product_id,"unit_id":unit_id,"duplicate_id":duplicate_id, "control_id":msg.control_id,
 										"value":msg.value,"timestamp":msg.timestamp};
+
+						//	NodeRED
+						msg["type"] = "tbar"
+						console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						if (! msg.hasOwnProperty("position")) { msg["position"] = msg.value; }
+						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
+						var msg_topic = '/xkeys/server/tbar_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":msg};
 					}
 					else if (msg.event_type == "jog_event") {
 						var msg_udp = {"msg_type":"jog_event", "server_id":ServerID, "device":device,
 										"product_id":product_id,"unit_id":unit_id,"duplicate_id":duplicate_id, "control_id":msg.control_id,
 										"value":msg.value,"timestamp":msg.timestamp};
+
+						//	NodeRED
+						msg["type"] = "jog"
+						console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						if (! msg.hasOwnProperty("deltaPos")) { msg["deltaPos"] = msg.value; }
+						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
+						var msg_topic = '/xkeys/server/jog_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":msg};
 					}
 					else if (msg.event_type == "shuttle_event") {
 						var msg_udp = {"msg_type":"shuttle_event", "server_id":ServerID, "device":device,
 										"product_id":product_id,"unit_id":unit_id,"duplicate_id":duplicate_id, "control_id":msg.control_id,
 										"value":msg.value,"timestamp":msg.timestamp};
+
+						//	NodeRED
+						msg["type"] = "shuttle"
+						console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						if (! msg.hasOwnProperty("shuttlePos")) { msg["shuttlePos"] = msg.value; }
+						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
+						var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":msg};
 					}
 					else if (msg.event_type == "joystick_event") {
 						var msg_udp = {"msg_type":"joystick_event", "server_id":ServerID, "device":device,
 										"product_id":product_id,"unit_id":unit_id,"duplicate_id":duplicate_id, "control_id":msg.control_id,
 										"x":msg.x,"y":msg.y,"Z":msg.z,"deltaZ":msg.deltaZ, "timestamp":msg.timestamp};
+
+						//	NodeRED
+						msg["type"] = "joystick"
+						console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						if (! msg.hasOwnProperty("position")) { msg["position"] = {"x":msg.x,"y":msg.y,"z":msg.z,"deltaZ":msg.deltaZ}; }
+						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
+						var msg_topic = '/xkeys/server/joystick_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":msg};
 					}
 					else {
 						console.log(`Unknown event type from device_data message: ${JSON.stringify(msg)}`);
 						break;
 					}
+					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
 					send_udp_message(JSON.stringify(msg_udp));
 				}
 				break;
