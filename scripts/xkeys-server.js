@@ -6,6 +6,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const xdgBasedir = require('xdg-basedir');
 const xlate = require('./xkeys-xlate');
+const norm = require('./NormalizeValues.js');
 
 const default_config = {
 	"hostname"		: require('os').hostname().split('.')[0],
@@ -207,6 +208,7 @@ request_message_process = (type, message, ...moreArgs) => {
 		}
 		catch (err) {
 			// Probably a JSON syntax error
+			console.log(`Sending error_msg for message: ${message.toString()}`);
 			udp_server.send(JSON.stringify({"msg_type":"error","server_id":ServerID, "error_msg":"" + err, "error_echo":message.toString()}), rinfo.port, rinfo.address);
 			return;
 		}
@@ -1465,7 +1467,7 @@ function startWatcher () {
 				//console.log("JOG event from " + JSON.stringify(xkeys_devices[xkeysPanel.uniqueId].device.info));
 				if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 				metadata["type"] = "jog";
-				metadata["deltaPos"] = deltaPos;
+				metadata["deltaPos"] = norm.normalize(deltaPos, "jog");
 				metadata["shortnam"] = xkeys_products[product_id.toString()];
 				var msg_topic = '/xkeys/server/jog_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id +  '/' + index;
 				var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
@@ -1474,7 +1476,7 @@ function startWatcher () {
 				// This is the v2.0.0 format
 				var msg_udp = {"msg_type":"jog_event", "server_id":ServerID, "device":xkeysPanel.info.name,
 								"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
-								"control_id":index, "value":deltaPos, "timestamp":metadata.timestamp};
+								"control_id":index, "value":norm.normalize(deltaPos,"jog"), "timestamp":metadata.timestamp};
 				send_udp_message(JSON.stringify(msg_udp));
 			} else {
 				add_unknown_xkeys_device(xkeysPanel)
@@ -1488,7 +1490,7 @@ function startWatcher () {
 					//console.log("JOG event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 					metadata["type"] = "jog";
-					metadata["deltaPos"] = deltaPos;
+					metadata["deltaPos"] = norm.normalize(deltaPos,"jog");
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
 					var msg_topic = '/xkeys/server/jog_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
@@ -1497,7 +1499,7 @@ function startWatcher () {
 					// This is the v2.0.0 format
 					var msg_udp = {"msg_type":"jog_event", "server_id":ServerID, "device":xkeysPanel.info.name,
 									"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
-									"control_id":index, "value":deltaPos, "timestamp":metadata.timestamp};
+									"control_id":index, "value":norm.normalize(deltaPos,"jog"), "timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				})
 			}
@@ -1511,7 +1513,7 @@ function startWatcher () {
 				//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 				if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 				metadata["type"] = "shuttle";
-				metadata["shuttlePos"] = shuttlePos;
+				metadata["shuttlePos"] = norm.normalize(shuttlePos, metadata["type"]);
 				metadata["shortnam"] = xkeys_products[product_id.toString()];
 				var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 				var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
@@ -1520,7 +1522,7 @@ function startWatcher () {
 				// This is the v2.0.0 format
 				var msg_udp = {"msg_type":"shuttle_event", "server_id":ServerID, "device":xkeysPanel.info.name,
 								"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
-								"control_id":index, "value":shuttlePos, "timestamp":metadata.timestamp};
+								"control_id":index, "value":norm.normalize(shuttlePos,metadata["type"]), "timestamp":metadata.timestamp};
 				send_udp_message(JSON.stringify(msg_udp));
 			} else {
 				add_unknown_xkeys_device(xkeysPanel)
@@ -1534,7 +1536,7 @@ function startWatcher () {
 					//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 					metadata["type"] = "shuttle";
-					metadata["shuttlePos"] = shuttlePos;
+					metadata["shuttlePos"] = norm.normalize(shuttlePos, metadata["type"]);
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
 					var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
@@ -1543,13 +1545,17 @@ function startWatcher () {
 					// This is the v2.0.0 format
 					var msg_udp = {"msg_type":"shuttle_event", "server_id":ServerID, "device":xkeysPanel.info.name,
 									"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
-									"control_id":index, "value":shuttlePos, "timestamp":metadata.timestamp};
+									"control_id":index, "value":norm.normalize(shuttlePos, metadata["type"]), "timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				})
 			}
 		})
 		xkeysPanel.on('joystick', (index, position, metadata) => {
 			//console.log(`X-keys panel ${xkeysPanel.info.name} joystick (${index})`)
+			position["x"] = norm.normalize(position["x"], "joyx");
+			position["y"] = norm.normalize(position["y"], "joyy");
+			position["z"] = norm.normalize(position["z"], "joyz");
+			position["deltaZ"] = norm.normalize(position["z"], "joydeltaZ");
 			var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 			if (Object.keys(xkeys_devices).includes(temp_id)) {
 				var product_id = xkeys_devices[temp_id].device.info.productId;
@@ -1605,7 +1611,7 @@ function startWatcher () {
 				//console.log("TBAR event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 				if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 				metadata["type"] = "tbar";
-				metadata["position"] = position;
+				metadata["position"] = norm.normalize(position, "tbar");
 				metadata["shortnam"] = xkeys_products[product_id.toString()];
 				var msg_topic = '/xkeys/server/tbar_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 				var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
@@ -1614,7 +1620,7 @@ function startWatcher () {
 				// This is the 2.0.0 format
 				var msg_udp = {"msg_type":"tbar_event", "server_id":ServerID, "device":xkeysPanel.info.name,
 								"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id, "control_id":index,
-								"value":position,"timestamp":metadata.timestamp};
+								"value":norm.normalize(position, "tbar"),"timestamp":metadata.timestamp};
 				send_udp_message(JSON.stringify(msg_udp));
 			} else {
 				add_unknown_xkeys_device(xkeysPanel)
@@ -1628,7 +1634,7 @@ function startWatcher () {
 					//console.log("TBAR event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 					metadata["type"] = "tbar";
-					metadata["position"] = position;
+					metadata["position"] = norm.normalize(position, "tbar");
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
 					var msg_topic = '/xkeys/server/tbar_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
@@ -1637,7 +1643,7 @@ function startWatcher () {
 					// This is the 2.0.0 format
 					var msg_udp = {"msg_type":"tbar_event", "server_id":ServerID, "device":xkeysPanel.info.name,
 									"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id, "control_id":index,
-									"value":position,"timestamp":metadata.timestamp};
+									"value":norm.normalize(position, "tbar"),"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				})
 			}

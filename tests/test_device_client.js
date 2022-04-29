@@ -14,6 +14,11 @@
 //const PRODUCTS = require('./btest/products');
 //console.log(`package products = ${JSON.stringify(PRODUCTS)}`);
 
+const norm = require('../scripts/NormalizeValues.js');
+// normalize (x, controlType="tbar", pid=0)
+//console.log(`QQQ: ${norm.normalize(64, "tbar", 1065)}`); // should throw error (1065 doesn't have a tbar)
+//process.exit();
+
 let target_serverId;
 const myArgs = process.argv.slice(2);
 if (myArgs.length > 0) {
@@ -112,7 +117,6 @@ client.on('message', (message, remote) => {
 
 send_udp_message = (message) => {
 	/*	Before sending message, check that it's valid JSON */
-	/*
 	var msg = "";
 	try {
 		msg = JSON.parse(message);
@@ -122,13 +126,14 @@ send_udp_message = (message) => {
 		console.log(err);
 		return;
 	}
-	*/
 
 	client.send(message, 0, message.length, server_port, server_addr, (err, bytes) => {
 		if (err) {
 			throw err;
 		}
 		//console.log(`Sending ${msg["msg_type"]} request to ${server_addr}:${server_port}`);
+		console.log(`ZZZZZ ${message.toString()}`);
+		console.log(`ZZZZZZZZZZZZZZZZ`);
 	});
 }
 
@@ -174,7 +179,13 @@ choose_server = (server_id) => {
 	}
 }
 
-
+/* Return value x normalized to range from min to max */
+/*
+normalize = (x, min, max) => {
+    const fixlen = (max - min).toString().length
+	return ((x-min)/(max - min)).toFixed(fixlen);
+}
+*/
 
 /* This is where we start doing things:
 *	- send DISCOVERY
@@ -342,12 +353,22 @@ setTimeout(send_udp_message, 10000, (new Buffer.from('{"msg_type":"command","com
 */
 //setTimeout(send_udp_message, 5000, (new Buffer.from('{"msg_type":"product_list"}', 'UTF-8')));
 
+make_message = (x) => {
+	console.log(`XXX x = ${JSON.stringify(x)}`);
+//	setTimeout(send_udp_message, 3000, (new Buffer.from(JSON.stringify(x), 'UTF-8')));
+	send_udp_message(new Buffer.from(JSON.stringify(x), 'UTF-8'));
+}
+console.log(`type of normalized (51,"tbar") is ${typeof norm.normalize(51,"tbar")}`);
+//x = {"msg_type":"device_data", "event_type":"tbar_event", "control_id":0, "value":norm.normalize(51,"tbar"),"timestamp":730424776};
+//make_message(x);
+//setTimeout(make_message, 3000, ({"msg_type":"device_data", "event_type":"tbar_event", "control_id":0, "value":norm.normalize(51,"tbar"),"timestamp":730424776}));
+//process.exit()
 
-// Device Connect
-//setTimeout(send_udp_message, 1000, (new Buffer.from('{"msg_type":"device_connect", "device":"Remote Button", "product_id":"91278","unit_id":1, "rowCount":4,"colCount":4}', 'UTF-8')));
-setTimeout(send_udp_message, 3000, (new Buffer.from('{"msg_type":"device_data", "event_type":"button_event", "control_id":2, "row":2,"col":1,"value":1,"timestamp":730423776}', 'UTF-8')));
-setTimeout(send_udp_message, 3100, (new Buffer.from('{"msg_type":"device_data", "event_type":"button_event", "control_id":2, "row":2,"col":1,"value":0,"timestamp":730423876}', 'UTF-8')));
-setTimeout(send_udp_message, 4000, (new Buffer.from('{"msg_type":"device_data", "event_type":"tbar_event", "control_id":0, "value":51,"timestamp":730424776}', 'UTF-8')));
-setTimeout(send_udp_message, 5000, (new Buffer.from('{"msg_type":"device_data", "event_type":"jog_event", "control_id":0, "value":-1,"timestamp":730425776}', 'UTF-8')));
-setTimeout(send_udp_message, 6000, (new Buffer.from('{"msg_type":"device_data", "event_type":"shuttle_event", "control_id":0, "value":8,"timestamp":730426776}', 'UTF-8')));
-setTimeout(send_udp_message, 7000, (new Buffer.from('{"msg_type":"device_data", "event_type":"joystick_event", "control_id":0, "x":127,"y":0,"z":219,"deltaZ":0,"timestamp":730427776}', 'UTF-8')));
+// Device Client Events
+//setTimeout(make_message, 1000, ({"msg_type":"device_connect", "device":"Remote Button", "product_id":"91278","unit_id":1, "rowCount":4,"colCount":4}));
+setTimeout(make_message, 3000, ({"msg_type":"device_data", "event_type":"button_event", "control_id":2, "row":2,"col":1,"value":1,"timestamp":730423776}));
+setTimeout(make_message, 3100, ({"msg_type":"device_data", "event_type":"button_event", "control_id":2, "row":2,"col":1,"value":0,"timestamp":730423876}));
+setTimeout(make_message, 4000, ({"msg_type":"device_data", "event_type":"tbar_event", "control_id":0, "value":norm.normalize(51,"tbar"),"timestamp":730424776}));
+setTimeout(make_message, 5000, ({"msg_type":"device_data", "event_type":"jog_event", "control_id":0, "value":norm.normalize(-1,"jog"),"timestamp":730425776}));
+setTimeout(make_message, 6000, ({"msg_type":"device_data", "event_type":"shuttle_event", "control_id":0, "value":norm.normalize(7,"shuttle"),"timestamp":730426776}));
+setTimeout(make_message, 7000, ({"msg_type":"device_data", "event_type":"joystick_event", "control_id":0, "x":norm.normalize(127,"joyx"),"y":norm.normalize(0,"joyy"),"z":norm.normalize(219,"joyx"),"deltaZ":norm.normalize(0,"joydeltaZ"),"timestamp":730427776}));
