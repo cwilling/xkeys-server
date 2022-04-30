@@ -16,6 +16,7 @@ default:
 
 
 stages:
+  - testwin
   - test
 
 # This folder is cached between builds
@@ -53,4 +54,20 @@ test_latest:
   script:
     - npm install
     - ./scripts/test-run.sh
+  interruptible: true
+
+# Use Windows
+test_windows:
+  image: mcr.microsoft.com:windows
+  stage: testwin
+  except:
+    changes:
+      - "*.md"
+      - "./**/*.md"
+      - "./**/**/*.md"
+  before_script:
+    winget OpenJS.NodeJS.LTS winget
+  script:
+    - npm install
+    - ./scripts/test-run.sh/
   interruptible: true
