@@ -58,7 +58,7 @@ test_latest:
 
 # Use Windows
 test_windows:
-  image: mcr.microsoft.com:windows
+  image: microsoft:windows
   stage: testwin
   except:
     changes:
