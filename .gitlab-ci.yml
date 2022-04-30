@@ -20,6 +20,8 @@ cache:
     - node_modules/
 
 test:
+  before_script:
+    apt-get update -qq && apt-get install -y -qq libudev-dev
   script:
     - npm install
     - node ./scripts/xkeys-server.js
