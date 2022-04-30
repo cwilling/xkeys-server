@@ -21,7 +21,7 @@ cache:
 
 test:
   before_script:
-    apt-get update -qq && apt-get install -y -qq libudev-dev libusb-dev
+    apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
     - npm install
     - node ./scripts/xkeys-server.js
