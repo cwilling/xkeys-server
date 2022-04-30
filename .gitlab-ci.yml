@@ -29,5 +29,5 @@ local_integration_test:
     apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
     - npm install
-    - node ./scripts/xkeys-server.js
+    - ./scripts/test-run.sh
   interruptible: true
