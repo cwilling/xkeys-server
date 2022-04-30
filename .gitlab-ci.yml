@@ -27,6 +27,11 @@ stages:
 # Use LTS nodejs
 test_lts:
   stage: test
+  except:
+    changes:
+      - "*.md"
+      - "./**/*.md"
+      - "./**/**/*.md"
   before_script:
     apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
@@ -38,6 +43,11 @@ test_lts:
 test_latest:
   image: node:latest
   stage: test
+  except:
+    changes:
+      - "*.md"
+      - "./**/*.md"
+      - "./**/**/*.md"
   before_script:
     apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
