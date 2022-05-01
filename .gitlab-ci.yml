@@ -57,6 +57,7 @@ test_latest:
   interruptible: true
 
 # Use Windows
+# - NodeJS is preinstalled (check version?)
 test_windows:
   extends:
     .shared_windows_runners
@@ -66,8 +67,6 @@ test_windows:
       - "*.md"
       - "./**/*.md"
       - "./**/**/*.md"
-  before_script:
-    winget OpenJS.NodeJS.LTS winget
   script:
     - npm install
     - ./scripts/test-run.sh/
