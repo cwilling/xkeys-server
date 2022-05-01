@@ -1,13 +1,14 @@
-# This file is a template, and might need editing before it works on your project.
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/ee/development/cicd/templates.html
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Nodejs.gitlab-ci.yml
-
 # Official framework image. Look for the different tagged releases at:
 # /https://hub.docker.com/r/library/node/tags
 default:
   image: node:lts
+
+.shared_windows_runners:
+  tags:
+  - shared-windows
+  - windows
+  - windows-1809
+
 
 # Pick zero or more services to be used on all builds.
 # Only needed when using a docker container to run your tests in.
@@ -16,7 +17,6 @@ default:
 
 
 stages:
-  - testwin
   - test
 
 # This folder is cached between builds
@@ -58,8 +58,9 @@ test_latest:
 
 # Use Windows
 test_windows:
-  image: microsoft:windows
-  stage: testwin
+  extends:
+    .shared_windows_runners
+  stage: test
   except:
     changes:
       - "*.md"
