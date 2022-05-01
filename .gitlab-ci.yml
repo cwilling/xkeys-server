@@ -69,5 +69,5 @@ test_windows:
       - "./**/**/*.md"
   script:
     - npm install
-    - ./scripts/test-run.sh/
+    - .\scripts\test-run.sh
   interruptible: true
