@@ -18,6 +18,7 @@ default:
 
 stages:
   - test
+  - package
 
 # This folder is cached between builds
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
@@ -56,18 +57,51 @@ test_latest:
     - ./scripts/xkeys-server.js test
   interruptible: true
 
-# Use Windows
-# - NodeJS is preinstalled (check version?)
-test_windows:
+# Use LTS nodejs
+test_lts:
   stage: test
-  extends:
-  - .shared_windows_runners
   except:
     changes:
       - "*.md"
       - "./**/*.md"
       - "./**/**/*.md"
+  before_script:
+    apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
     - npm install
-    - node .\scripts\xkeys-server.js test
+    - ./scripts/xkeys-server.js test
   interruptible: true
+
+# Use LATEST nodejs
+build_deb_lts:
+  image: node:lts
+  stage: package
+  except:
+    changes:
+      - "*.md"
+      - "./**/*.md"
+      - "./**/**/*.md"
+  before_script:
+    apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
+  script:
+    - npm install
+    - cd build/deb
+    - npx pkg -t node16-linux-x64 --out-path application ../..
+  interruptible: true
+
+
+# Use Windows
+# - NodeJS is preinstalled (check version?)
+#test_windows:
+#  stage: test
+#  extends:
+#  - .shared_windows_runners
+#  except:
+#    changes:
+#      - "*.md"
+#      - "./**/*.md"
+#      - "./**/**/*.md"
+#  script:
+#    - npm install
+#    - node .\scripts\xkeys-server.js test
+#  interruptible: true
