@@ -9,6 +9,11 @@ default:
   - windows
   - windows-1809
 
+.macos_saas_runners:
+  tags:
+    - shared-macos-amd64
+  image: macos-11-xcode-12
+
 
 # Pick zero or more services to be used on all builds.
 # Only needed when using a docker container to run your tests in.
@@ -27,50 +32,49 @@ stages:
 #    - node_modules/
 
 # Use LTS nodejs
-test_lts:
-  stage: test
-  except:
-    changes:
-      - "*.md"
-      - "./**/*.md"
-      - "./**/**/*.md"
-  before_script:
-    apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
-  script:
-    - npm install
-    - ./scripts/xkeys-server.js test
-  interruptible: true
+#test_lts:
+#  stage: test
+#  except:
+#    changes:
+#      - "*.md"
+#      - "./**/*.md"
+#      - "./**/**/*.md"
+#  before_script:
+#    apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
+#  script:
+#    - npm install
+#    - ./scripts/xkeys-server.js test
+#  interruptible: true
 
 # Use LATEST nodejs
-test_latest:
-  image: node:latest
-  stage: test
-  except:
-    changes:
-      - "*.md"
-      - "./**/*.md"
-      - "./**/**/*.md"
-  before_script:
-    apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
-  script:
-    - npm install
-    - ./scripts/xkeys-server.js test
-  interruptible: true
+#  image: node:latest
+#  stage: test
+#  except:
+#    changes:
+#      - "*.md"
+#      - "./**/*.md"
+#      - "./**/**/*.md"
+#  before_script:
+#    apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
+#  script:
+#    - npm install
+#    - ./scripts/xkeys-server.js test
+#  interruptible: true
 
 # Use LTS nodejs
-test_lts:
-  stage: test
-  except:
-    changes:
-      - "*.md"
-      - "./**/*.md"
-      - "./**/**/*.md"
-  before_script:
-    apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
-  script:
-    - npm install
-    - ./scripts/xkeys-server.js test
-  interruptible: true
+#test_lts:
+#  stage: test
+#  except:
+#    changes:
+#      - "*.md"
+#      - "./**/*.md"
+#      - "./**/**/*.md"
+#  before_script:
+#    apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
+#  script:
+#    - npm install
+#    - ./scripts/xkeys-server.js test
+#  interruptible: true
 
 # Use LATEST nodejs
 build_deb_lts:
@@ -87,15 +91,16 @@ build_deb_lts:
     - npm install
     - cd build/deb
     - npx pkg -t node16-linux-x64 --out-path application ../..
+    - ls -l application/
   interruptible: true
 
 
-# Use Windows
+# Test Windows
 # - NodeJS is preinstalled (check version?)
 #test_windows:
-#  stage: test
 #  extends:
 #  - .shared_windows_runners
+#  stage: test
 #  except:
 #    changes:
 #      - "*.md"
@@ -105,3 +110,19 @@ build_deb_lts:
 #    - npm install
 #    - node .\scripts\xkeys-server.js test
 #  interruptible: true
+
+# Test macOS
+test_macos:
+  stage: test
+  extends:
+    - .macos_saas_runners
+  stage: test
+  except:
+    changes:
+      - "*.md"
+      - "./**/*.md"
+      - "./**/**/*.md"
+  script:
+    - npm install
+    - ./scripts/xkeys-server.js test
+  interruptible: true
