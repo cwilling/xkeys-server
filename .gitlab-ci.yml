@@ -111,18 +111,18 @@ build_deb_lts:
 #    - node .\scripts\xkeys-server.js test
 #  interruptible: true
 
-# Test macOS
-test_macos:
-  stage: test
-  extends:
-    - .macos_saas_runners
-  stage: test
-  except:
-    changes:
-      - "*.md"
-      - "./**/*.md"
-      - "./**/**/*.md"
-  script:
-    - npm install
-    - ./scripts/xkeys-server.js test
-  interruptible: true
+# Test macOS (only available in beta program)
+#test_macos:
+#  stage: test
+#  extends:
+#    - .macos_saas_runners
+#  stage: test
+#  except:
+#    changes:
+#      - "*.md"
+#      - "./**/*.md"
+#      - "./**/**/*.md"
+#  script:
+#    - npm install
+#    - ./scripts/xkeys-server.js test
+#  interruptible: true
