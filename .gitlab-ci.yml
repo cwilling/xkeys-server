@@ -37,7 +37,7 @@ test_lts:
     apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
     - npm install
-    - ./scripts/test-run.sh
+    - ./scripts/xkeys-server.js test
   interruptible: true
 
 # Use LATEST nodejs
@@ -53,7 +53,7 @@ test_latest:
     apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
     - npm install
-    - ./scripts/xkeys_server.js test
+    - ./scripts/xkeys-server.js test
   interruptible: true
 
 # Use Windows
