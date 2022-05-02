@@ -1333,6 +1333,24 @@ are_we_there_yet = () => {
 }
 setTimeout(are_we_there_yet, 1000);
 
+/*	this_is_a_test ()
+*
+*/
+this_is_a_test = () => {
+	console.log(`Testing whether this is a test`);
+	const args = process.argv.slice(2);
+	if (args.length > 0) {
+		if (args[0] == "test") {
+			console.log(`This is a test`);
+			udp_server.close();
+			client.end();
+			watcher.stop();
+			process.exit(0);
+		}
+	}
+}
+setTimeout(this_is_a_test, 5000);
+
 function startWatcher () {
 	watcher = new XKeysWatcher({
 		automaticUnitIdMode: false,
