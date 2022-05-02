@@ -37,7 +37,7 @@ test_lts:
     apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
     - npm install
-    - ./scripts/test-run.sh
+    - ./scripts/xkeys-server.js test
   interruptible: true
 
 # Use LATEST nodejs
@@ -53,21 +53,21 @@ test_latest:
     apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
     - npm install
-    - ./scripts/test-run.sh
+    - ./scripts/xkeys-server.js test
   interruptible: true
 
 # Use Windows
 # - NodeJS is preinstalled (check version?)
-#test_windows:
- # extends:
- #   .shared_windows_runners
- # stage: test
- # except:
- #   changes:
- #     - "*.md"
- #     - "./**/*.md"
- #     - "./**/**/*.md"
- # script:
- #   - npm install
-#  - .\scripts\xkeys-server.js test
-#  interruptible: true
+test_windows:
+  stage: test
+  extends:
+  - .shared_windows_runners
+  except:
+    changes:
+      - "*.md"
+      - "./**/*.md"
+      - "./**/**/*.md"
+  script:
+    - npm install
+    - node .\scripts\xkeys-server.js test
+  interruptible: true
