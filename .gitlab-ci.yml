@@ -58,16 +58,16 @@ test_latest:
 
 # Use Windows
 # - NodeJS is preinstalled (check version?)
-test_windows:
-  extends:
-    .shared_windows_runners
-  stage: test
-  except:
-    changes:
-      - "*.md"
-      - "./**/*.md"
-      - "./**/**/*.md"
-  script:
-    - npm install
-    - .\scripts\test-run.sh
-  interruptible: true
+#test_windows:
+ # extends:
+ #   .shared_windows_runners
+ # stage: test
+ # except:
+ #   changes:
+ #     - "*.md"
+ #     - "./**/*.md"
+ #     - "./**/**/*.md"
+ # script:
+ #   - npm install
+#  - .\scripts\xkeys-server.js test
+#  interruptible: true
