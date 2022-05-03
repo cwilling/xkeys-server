@@ -80,11 +80,6 @@ stages:
 build_deb_lts:
   image: node:lts
   stage: package
-  except:
-    changes:
-      - "*.md"
-      - "./**/*.md"
-      - "./**/**/*.md"
   before_script:
     apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
@@ -93,6 +88,8 @@ build_deb_lts:
     - npx pkg -t node16-linux-x64 --out-path application ../..
     - ls -l application/
     - ./make-deb
+  rules:
+    - when: manual
   interruptible: true
 
 
