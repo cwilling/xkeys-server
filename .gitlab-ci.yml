@@ -83,9 +83,9 @@ stages:
 #  interruptible: true
 
 # Package with LTS nodejs
-build_deb_lts:
-  image: node:lts
+package_deb_lts:
   stage: package
+  image: node:lts
   before_script:
     apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
@@ -117,6 +117,22 @@ build_deb_lts:
 #    - npm install
 #    - node .\scripts\xkeys-server.js test
 #  interruptible: true
+# Test Windows
+# - NodeJS is preinstalled (check version?)
+
+package_windows:
+  extends:
+  - .shared_windows_runners
+  stage: package
+  before_script:
+    - choco install --confirm nsis
+  script:
+    - npm install
+    - cd build/windows
+    - npx pkg -t node16-win-x64 --out-path application ../..
+  rules:
+    - when: manual
+  interruptible: true
 
 # Test macOS (only available in beta program)
 #test_macos:
