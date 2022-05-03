@@ -126,11 +126,12 @@ package_windows:
   stage: package
   before_script:
     - choco install --confirm nsis
+    - set PATH="%PATH%;C:\\Program Files (x86)\\NSIS"
   script:
     - npm install
     - cd build/windows
     - npx pkg -t node16-win-x64 --out-path application ../..
-    - C:\Program Files (x86)\NSIS\makensis xkeys-server-installer.nsi
+    - makensis 
     - ls
   rules:
     - when: manual
