@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: xkeys-server
+Upstream-Contact: Christoph Willing <chris.willing@linux.com>
+Source: https://gitlab.com/chris.willing/xjeys-server
+
+Files: *
+Copyright: 2021-2022 Christoph Willing
+License: MIT
+
