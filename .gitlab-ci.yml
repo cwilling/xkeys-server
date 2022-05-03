@@ -3,6 +3,11 @@
 default:
   image: node:lts
 
+variables:
+  PACKAGE_VERSION: "0.9.2"
+  LINUX_AMD64_BINARY: "xkeys-server-${PACKAGE_VERSION}-amd64.deb"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/xkeys-server/${PACKAGE_VERSION}"
+
 .shared_windows_runners:
   tags:
   - shared-windows
@@ -24,6 +29,7 @@ default:
 stages:
   - test
   - package
+  - upload
 
 # This folder is cached between builds
 # https://docs.gitlab.com/ee/ci/yaml/index.html#cache
@@ -76,7 +82,7 @@ stages:
 #    - ./scripts/xkeys-server.js test
 #  interruptible: true
 
-# Use LATEST nodejs
+# Package with LTS nodejs
 build_deb_lts:
   image: node:lts
   stage: package
@@ -91,6 +97,9 @@ build_deb_lts:
   rules:
     - when: manual
   interruptible: true
+  artifacts:
+    paths:
+      - ./
 
 
 # Test Windows
@@ -124,3 +133,10 @@ build_deb_lts:
 #    - npm install
 #    - ./scripts/xkeys-server.js test
 #  interruptible: true
+
+upload:
+  stage: upload
+  image: curlimages/curl:latest
+  script:
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${LINUX_AMD64_BINARY} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_BINARY}
