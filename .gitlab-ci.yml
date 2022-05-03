@@ -130,12 +130,8 @@ package_windows:
     - npm install
     - cd build/windows
     - npx pkg -t node16-win-x64 --out-path application ../..
-    - |
-      set-content $env:public\inline.cmd -Value @'
-      makensis xkeys-server-installer.nsi
-      '@
-      CMD.EXE /C $env:public\inline.cmd
-      exit $LASTEXITCODE
+    - ls "C:\\Program Files (x86)\\NSIS"
+    - '"C:\\Program Files (x86)\\NSIS\\makensis.exe" xkeys-server-installer.nsi'
     - ls
   rules:
     - when: manual
