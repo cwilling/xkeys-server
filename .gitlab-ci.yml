@@ -131,7 +131,7 @@ package_windows:
     - cd build/windows
     - npx pkg -t node16-win-x64 --out-path application ../..
     - ls "C:\\Program Files (x86)\\NSIS"
-    - 'C:\\Program Files (x86)\\NSIS\\makensis.exe xkeys-server-installer.nsi'
+    - '"C:\\Program Files (x86)\\NSIS\\makensis.exe xkeys-server-installer.nsi"'
     - ls
   rules:
     - when: manual
