@@ -5,7 +5,8 @@ default:
 
 variables:
   PACKAGE_VERSION: "0.9.2"
-  LINUX_AMD64_BINARY: "xkeys-server-${PACKAGE_VERSION}_amd64.deb"
+  LINUX_AMD64_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_amd64.deb"
+  WINDOWS_X64_INSTALLER: "xkeys-server-installer-${PACKAGE_VERSION}.exe"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/xkeys-server/${PACKAGE_VERSION}"
 
 .shared_windows_runners:
@@ -131,8 +132,8 @@ package_windows:
     - cd build/windows
     - npx pkg -t node16-win-x64 --out-path application ../..
     - ls "C:\\Program Files (x86)\\NSIS"
-    - '"C:\\Program Files (x86)\\NSIS\\makensis.exe xkeys-server-installer.nsi"'
-    - ls
+    - -"C:\\Program Files (x86)\\NSIS\\makensis.exe xkeys-server-installer.nsi"
+    - ls ${WINDOWS_X64_INSTALLER}
   rules:
     - when: manual
   interruptible: true
@@ -162,4 +163,4 @@ upload:
   image: curlimages/curl:latest
   script:
     - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_BINARY} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_BINARY}
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_BINARY} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
