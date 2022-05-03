@@ -92,6 +92,7 @@ build_deb_lts:
     - cd build/deb
     - npx pkg -t node16-linux-x64 --out-path application ../..
     - ls -l application/
+    - ./make-deb
   interruptible: true
 
 
