@@ -135,7 +135,7 @@ package_windows:
     - ls "C:\\Program Files (x86)\\NSIS"
     - cd "C:\\Program Files (x86)\\NSIS"
     - ls
-    - makensis.exe xkeys-server-installer.nsi
+    - .\\makensis.exe xkeys-server-installer.nsi
     - ls ${WINDOWS_INSTALLER}
   rules:
     - when: manual
