@@ -131,8 +131,11 @@ package_windows:
     - npm install
     - cd build/windows
     - npx pkg -t node16-win-x64 --out-path application ../..
+    - cp xkeys-server-installer.nsi "C:\\Program Files (x86)\\NSIS"
     - ls "C:\\Program Files (x86)\\NSIS"
-    - "\\'C:\\Program Files (x86)\\NSIS\\makensis.exe\\' xkeys-server-installer.nsi"
+    - cd "C:\\Program Files (x86)\\NSIS"
+    - ls
+    - makensis.exe xkeys-server-installer.nsi
     - ls ${WINDOWS_INSTALLER}
   rules:
     - when: manual
