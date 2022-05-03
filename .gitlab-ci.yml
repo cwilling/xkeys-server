@@ -130,9 +130,15 @@ package_windows:
     - npm install
     - cd build/windows
     - npx pkg -t node16-win-x64 --out-path application ../..
+    - makensis xkeys-server-installer.nsi
+    - ls
   rules:
     - when: manual
   interruptible: true
+  artifacts:
+    paths:
+      - build/windows
+
 
 # Test macOS (only available in beta program)
 #test_macos:
