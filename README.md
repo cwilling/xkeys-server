@@ -40,8 +40,7 @@ sudo adduser --home /var/lib/xkeys xkeys
 ```
 When installing the _xkeys-server_, the SuperFlyTV library will have to be rebuilt for the Raspberry Pi's machine architecture, which requires some development tools & library:
 ```
-sudo apt install -y build-essential
-sudo apt install libudev-dev
+sudo apt install -y build-essential nodejs npm git libudev-dev
 ```
 Now download the _xkeys-server_ into _xkeys_ home directory and install its dependencies:
 ```
