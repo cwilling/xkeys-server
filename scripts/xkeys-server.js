@@ -86,8 +86,8 @@ catch (err) {
 process.env.UV_THREADPOOL_SIZE = 48;
 
 const { networkInterfaces } = require('os');
-const ServerID = "XKS_" + config.hostname;
-//const ServerID = "XKS_Chris' test UDP server"; 
+//const ServerID = "XKS_" + config.hostname;
+const ServerID = "XKS_Chris' test UDP server"; 
 console.log(`Server id = ${ServerID}`);
 
 const dgram = require('dgram');
