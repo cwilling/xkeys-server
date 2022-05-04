@@ -157,11 +157,17 @@ package_windows:
 #    - ./scripts/xkeys-server.js test
 #  interruptible: true
 
-upload:
+upload_linux:
   stage: upload
   image: curlimages/curl:latest
   script:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
+
+
+upload_windows:
+  stage: upload
+  image: curlimages/curl:latest
+  script:
     - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/windows/${WINDOWS_INSTALLER} ${PACKAGE_REGISTRY_URL}/${WINDOWS_INSTALLER}
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build\\windows\\${WINDOWS_INSTALLER} ${PACKAGE_REGISTRY_URL}\\${WINDOWS_INSTALLER}
