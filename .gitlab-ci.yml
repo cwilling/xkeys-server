@@ -100,7 +100,7 @@ package_deb_lts:
   interruptible: true
   artifacts:
     paths:
-      - build/deb
+      - build/deb/${LINUX_AMD64_INSTALLER}
 
 
 # Test Windows
@@ -131,7 +131,6 @@ package_windows:
     - npm install
     - cd build/windows
     - npx pkg -t node16-win-x64 --out-path application ../..
-    - ls "C:\\Program Files (x86)\\NSIS"
     - '& "C:\\Program Files (x86)\\NSIS\\makensis.exe" xkeys-server-installer.nsi'
     - ls ${WINDOWS_INSTALLER}
   rules:
@@ -139,7 +138,7 @@ package_windows:
   interruptible: true
   artifacts:
     paths:
-      - build/windows
+      - build\\windows\\${WINDOWS_INSTALLER}
 
 
 # Test macOS (only available in beta program)
@@ -163,4 +162,5 @@ upload:
   image: curlimages/curl:latest
   script:
     - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_BINARY} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/windows/${WINDOWS_INSTALLER} ${PACKAGE_REGISTRY_URL}/${WINDOWS_INSTALLER}
