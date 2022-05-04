@@ -163,4 +163,5 @@ upload:
   script:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
+    - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/windows/${WINDOWS_INSTALLER} ${PACKAGE_REGISTRY_URL}/${WINDOWS_INSTALLER}
