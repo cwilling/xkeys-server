@@ -169,5 +169,7 @@ upload_windows:
   stage: upload
   image: curlimages/curl:latest
   script:
+    - ls build/windows/${WINDOWS_INSTALLER}
+    - echo "Hello World!"
     - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build\\windows\\${WINDOWS_INSTALLER} ${PACKAGE_REGISTRY_URL}\\${WINDOWS_INSTALLER}
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/windows/${WINDOWS_INSTALLER} ${PACKAGE_REGISTRY_URL}/${WINDOWS_INSTALLER}
