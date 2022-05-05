@@ -144,6 +144,8 @@ package_windows:
 upload_linux:
   stage: upload
   image: curlimages/curl:latest
+  rules:
+    - if: $CI_DEPLOY_FREEZE == null
   script:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
@@ -152,6 +154,8 @@ upload_linux:
 upload_windows:
   stage: upload
   image: curlimages/curl:latest
+  rules:
+    - if: $CI_DEPLOY_FREEZE == null
   script:
     - ls build/windows/${WINDOWS_INSTALLER}
     - echo "Hello World!"
