@@ -16,4 +16,9 @@ No third party repos are required provided _apt_ is  configured for both _main_ 
 	sudo apt install nodejs npm libuv1-dev libudev-dev libfuse-dev
 ```
 
-After running _make-raspi_, the location of the resulting .deb package will be reported (probably here). 
+After running _make-raspi_, the location of the resulting .deb package will be reported (probably here). It can be installed with (insert correct version):
+```
+	sudo apt install ./xkeys-server-0.9.3_armhf.deb
+```
+
+As part of the installation, an _xkeys_ user is created and used as the owner of the running _xkeys-server_. If some other behaviour is preferred, change the relevant section of the _postinst_ file and run _make-raspi_ to create a new package.
