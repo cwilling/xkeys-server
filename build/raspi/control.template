@@ -2,7 +2,7 @@ Package: xkeys-server
 Version: %VERSION%
 Priority: optional
 Architecture: %ARCH%
-Depends: libfuse2, mosquitto, nodejs
+Depends: libc6, libfuse2, mosquitto, nodejs
 Maintainer: Christoph Willing <chris.willing@linux.com>
 Description: A service providing access to XKeys devices.
  The xkeys-server is a stand alone NodeJS application, wrapping SuperFlyTV's library to interact with X-keys devices.
