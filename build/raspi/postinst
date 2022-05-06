@@ -5,6 +5,17 @@
 udevadm control --reload-rules
 udevadm trigger
 
+# Create an "xkeys" user to run the server
+adduser --gecos "" --disabled-password --home /var/lib/xkeys xkeys 1>/dev/null 2>/dev/null || true
+
+## Clear previous installation remnants (for builds using vercel/pkg)
+#hash=$(ls -1 /tmp/pkg/ 2>/dev/null)
+#[ -n "$hash" ] && {
+#  echo "Cleaning previous $(ls -ld /tmp/pkg/$hash)"
+#  rm -rf /tmp/pkg/$hash
+#  chmod a+wt /tmp/pkg
+#}
+
 # Start running as a service
 #
 chmod a+x /usr/bin/xkeys-server
