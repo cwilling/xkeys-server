@@ -1,7 +1,7 @@
 Package: xkeys-server
 Version: %VERSION%
 Priority: optional
-Architecture: all
+Architecture: %ARCH%
 Depends: libfuse2, mosquitto, nodejs
 Maintainer: Christoph Willing <chris.willing@linux.com>
 Description: A service providing access to XKeys devices.

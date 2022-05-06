@@ -1,12 +1,11 @@
 #!/bin/bash
 
 
-# Create a .deb package of xkeys-server for RASPI using premade AppImage.
-# Requires args $1 = VERSION
-#               $2 = ARCH
+# Create a .deb package of xkeys-server for RASPI using an AppImage.
 
 VERSION=$(python3 -c 'import json,sys; f=open("../../package.json"); obj=json.load(f);print(obj["version"])')
 ARCH=armhf
+PKG_ARCH=armhf
 
 # Work in the correct directory
 cd $(dirname $0)
@@ -22,40 +21,55 @@ CWD=$(pwd)
 	echo "Exiting now ..."
 	exit 2
 }
-exit
+mkdir application
+cp -p xkeys-server-${ARCH}.AppImage application/xkeys-server
 
 # Create the package shell
-rm -rf xkeys-server-${VERSION}_${PKGARCH}
-mkdir -p xkeys-server-${VERSION}_${PKGARCH}/etc/systemd/system
-mkdir -p xkeys-server-${VERSION}_${PKGARCH}/lib/udev/rules.d
-mkdir -p xkeys-server-${VERSION}_${PKGARCH}/opt/xkeys-server
-mkdir -p xkeys-server-${VERSION}_${PKGARCH}/DEBIAN
+rm -rf xkeys-server-${VERSION}_${PKG_ARCH}
+mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system
+mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d
+chmod -R 0755 xkeys-server-${VERSION}_${PKG_ARCH}/lib
+mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/usr/bin
+mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server
+mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN
 
-sed -e "s/%ARCH%/${ARCH}/" -e "s/%NOGROUP%/nogroup/" ../xkeys-server.service > xkeys-server-${VERSION}_${PKGARCH}/etc/systemd/system/xkeys-server.service
-cp -p ../50-xkeys.rules xkeys-server-${VERSION}_${PKGARCH}/lib/udev/rules.d/
-cp -p ../xkeys-server-${ARCH}.AppImage xkeys-server-${VERSION}_${PKGARCH}/opt/xkeys-server/
+cp -p ../xkeys-server.service xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system/
+cp -p ../50-xkeys.rules xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/
+cp -p application//xkeys-server xkeys-server-${VERSION}_${PKG_ARCH}/usr/bin/
+chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system/*
+chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/*
+chmod -R 0755 xkeys-server-${VERSION}_${PKG_ARCH}/usr
+cp -p ../deb/copyright xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/
+gzip -9 -n -c ../deb/changelog > xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/changelog.gz
+chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/*
 
-sed -e "s/%VERSION%/0.9.1/g" control.template >xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/control
-sed -e "s/%ARCH%/${ARCH}/" postinst > xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/postinst
-chmod a+x xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/postinst
-cat <<EOF > xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/prerm
+sed -e "s/%VERSION%/${VERSION}/g" -e "s/%ARCH%/${PKG_ARCH}/" control.template >xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/control
+cp -p postinst xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/
+chmod 0755 xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/postinst
+cat <<EOF > xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/prerm
 #!/bin/sh
 systemctl stop xkeys-server
 systemctl disable xkeys-server
 systemctl daemon-reload
+userdel --remove xkeys
 exit 0
 EOF
-chmod a+x xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/prerm
-cat <<EOF > xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/postrm
+chmod 0755 xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/prerm
+cat <<EOF > xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/postrm
 #!/bin/sh
 udevadm control --reload-rules
 udevadm trigger
 exit 0
 EOF
-chmod a+x xkeys-server-${VERSION}_${PKGARCH}/DEBIAN/postrm
+chmod 0755 xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/postrm
+
+# Insert size
+pkg_size=$(du -sk xkeys-server-${VERSION}_${PKG_ARCH} | cut -f1)
+sed -i -e "s/%SIZE%/${pkg_size}/g" xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/control
+
 
 # Create the .deb package
-dpkg-deb --build --root-owner-group xkeys-server-${VERSION}_${PKGARCH}
+dpkg-deb --build --root-owner-group xkeys-server-${VERSION}_${PKG_ARCH}
 
-echo "The package is at ${CWD}/xkeys-server-${VERSION}_${PKGARCH}.deb"
+echo "The package is at ${CWD}/xkeys-server-${VERSION}_${PKG_ARCH}.deb"
 
