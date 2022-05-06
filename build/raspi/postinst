@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Set device permissions
+#
+udevadm control --reload-rules
+udevadm trigger
+
+# Start running as a service
+#
+chmod a+x /opt/xkeys-server/xkeys-server-%ARCH%.AppImage
+systemctl daemon-reload
+systemctl enable xkeys-server
+systemctl start xkeys-server
+
+exit 0
+
