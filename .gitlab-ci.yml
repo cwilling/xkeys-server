@@ -133,7 +133,7 @@ package_raspi:
     - when: manual
     - if: $CI_DEPLOY_FREEZE == null
   script:
-    - mkdir build/raspi
+    - mkdir -p build/raspi
     - cd build/raspi
     - wget https://chriswilling.com/Xkeys/${RASPI_INSTALLER}
     - ls ${RASPI_INSTALLER}
