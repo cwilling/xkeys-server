@@ -6,6 +6,7 @@ default:
 variables:
   PACKAGE_VERSION: "0.9.3"
   LINUX_AMD64_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_amd64.deb"
+  MACOS_INSTALLER: "xkeys-server-macos-installer-${PACKAGE_VERSION}-x86_64.pkg"
   RASPI_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_armhf.deb"
   WINDOWS_INSTALLER: "xkeys-server-installer-${PACKAGE_VERSION}.exe"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/xkeys-server/${PACKAGE_VERSION}"
@@ -126,7 +127,7 @@ stages:
     paths:
       - build\\windows\\${WINDOWS_INSTALLER}
 
-package_raspi:
+package_remotes:
   image: curlimages/curl:latest
   stage: package
   rules:
@@ -134,12 +135,17 @@ package_raspi:
     - if: $CI_DEPLOY_FREEZE == null
   script:
     - mkdir -p build/raspi
+    - mkdir -p build/macos
     - cd build/raspi
     - wget https://chriswilling.com/Xkeys/${RASPI_INSTALLER}
     - ls ${RASPI_INSTALLER}
+    - cd ../macos
+    - wget https://chriswilling.com/Xkeys/${MACOS_INSTALLER}
+    - ls ${MACOS_INSTALLER}
   artifacts:
     paths:
       - build/raspi/${RASPI_INSTALLER}
+      - build/macos/${MACOS_INSTALLER}
 
 
 # Test macOS (only available in beta program)
@@ -174,6 +180,12 @@ upload_raspi:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_INSTALLER}
 
+upload_macos:
+  stage: upload
+  image: curlimages/curl:latest
+  script:
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${MACOS_INSTALLER} ${PACKAGE_REGISTRY_URL}/${MACOS_INSTALLER}
 
 .upload_windows:
   stage: upload
