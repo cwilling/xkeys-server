@@ -126,7 +126,7 @@ stages:
     paths:
       - build\\windows\\${WINDOWS_INSTALLER}
 
-upload_raspi:
+package_raspi:
   image: curlimages/curl:latest
   stage: package
   rules:
