@@ -170,8 +170,6 @@ package_raspi:
 upload_raspi:
   stage: upload
   image: curlimages/curl:latest
-  rules:
-    - if: $CI_DEPLOY_FREEZE == null
   script:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_INSTALLER}
