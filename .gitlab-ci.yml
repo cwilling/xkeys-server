@@ -133,13 +133,13 @@ upload_raspi:
     - when: manual
     - if: $CI_DEPLOY_FREEZE == null
   script:
-    - mkdir builds
-    - cd builds
+    - mkdir build/raspi
+    - cd build/raspi
     - wget https://chriswilling.com/Xkeys/${RASPI_INSTALLER}
     - ls ${RASPI_INSTALLER}
   artifacts:
     paths:
-      - builds
+      - build/raspi/${RASPI_INSTALLER}
 
 
 # Test macOS (only available in beta program)
@@ -166,6 +166,15 @@ upload_raspi:
   script:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
+
+upload_raspi:
+  stage: upload
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_DEPLOY_FREEZE == null
+  script:
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_INSTALLER}
 
 
 .upload_windows:
