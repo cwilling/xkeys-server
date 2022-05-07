@@ -41,7 +41,7 @@ stages:
 #    - node_modules/
 
 # Test LTS nodejs
-.test_lts:
+test_lts:
   stage: test
   except:
     changes:
@@ -127,7 +127,7 @@ stages:
     paths:
       - build\\windows\\${WINDOWS_INSTALLER}
 
-upload_remotes:
+.upload_remotes:
   image: curlimages/curl:latest
   stage: upload
   rules:
@@ -177,19 +177,6 @@ upload_remotes:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-.upload_raspi:
-  stage: upload
-  image: curlimages/curl:latest
-  script:
-    - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_INSTALLER}
-
-.upload_macos:
-  stage: upload
-  image: curlimages/curl:latest
-  script:
-    - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/macos/${MACOS_INSTALLER} ${PACKAGE_REGISTRY_URL}/${MACOS_INSTALLER}
 
 .upload_windows:
   stage: upload
