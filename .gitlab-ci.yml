@@ -127,9 +127,9 @@ stages:
     paths:
       - build\\windows\\${WINDOWS_INSTALLER}
 
-package_remotes:
+upload_remotes:
   image: curlimages/curl:latest
-  stage: package
+  stage: upload
   rules:
     - when: manual
     - if: $CI_DEPLOY_FREEZE == null
@@ -139,9 +139,13 @@ package_remotes:
     - cd build/raspi
     - wget https://chriswilling.com/Xkeys/${RASPI_INSTALLER}
     - ls ${RASPI_INSTALLER}
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${RASPI_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_INSTALLER}
     - cd ../macos
     - wget https://chriswilling.com/Xkeys/${MACOS_INSTALLER}
     - ls ${MACOS_INSTALLER}
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${MACOS_INSTALLER} ${PACKAGE_REGISTRY_URL}/${MACOS_INSTALLER}
   artifacts:
     paths:
       - build/raspi/${RASPI_INSTALLER}
@@ -173,19 +177,19 @@ package_remotes:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-upload_raspi:
+.upload_raspi:
   stage: upload
   image: curlimages/curl:latest
   script:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_INSTALLER}
 
-upload_macos:
+.upload_macos:
   stage: upload
   image: curlimages/curl:latest
   script:
     - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${MACOS_INSTALLER} ${PACKAGE_REGISTRY_URL}/${MACOS_INSTALLER}
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/macos/${MACOS_INSTALLER} ${PACKAGE_REGISTRY_URL}/${MACOS_INSTALLER}
 
 .upload_windows:
   stage: upload
