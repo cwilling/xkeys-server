@@ -6,6 +6,7 @@ default:
 variables:
   PACKAGE_VERSION: "0.9.3"
   LINUX_AMD64_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_amd64.deb"
+  RASPI_INSTALLER: "xkeys-server-$PACKAGE_VERSION_armhf.deb"
   WINDOWS_INSTALLER: "xkeys-server-installer-${PACKAGE_VERSION}.exe"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/xkeys-server/${PACKAGE_VERSION}"
 
@@ -54,6 +55,7 @@ test_lts:
   interruptible: true
 
 # Test LATEST nodejs
+.test_latest:
   image: node:latest
   stage: test
   except:
@@ -70,7 +72,7 @@ test_lts:
 
 
 # Package with LTS nodejs
-package_deb_lts:
+.package_deb_lts:
   stage: package
   image: node:lts
   before_script:
@@ -91,7 +93,7 @@ package_deb_lts:
 
 # Test Windows
 # - NodeJS is preinstalled
-test_windows:
+.test_windows:
   extends:
   - .shared_windows_runners
   stage: test
@@ -105,7 +107,7 @@ test_windows:
     - node .\scripts\xkeys-server.js test
   interruptible: true
 
-package_windows:
+.package_windows:
   extends:
   - .shared_windows_runners
   stage: package
@@ -124,6 +126,21 @@ package_windows:
     paths:
       - build\\windows\\${WINDOWS_INSTALLER}
 
+upload_raspi:
+  image: curlimages/curl:latest
+  stage: package
+  rules:
+    - when: manual
+    - if: $CI_DEPLOY_FREEZE == null
+  script:
+    - mkdir builds
+    - cd builds
+    - wget https://chriswilling.com/Xkeys/${RASPI_INSTALLER}
+    - ls ${RASPI_INSTALLER}
+  artifacts:
+    paths:
+      - builds
+
 
 # Test macOS (only available in beta program)
 #test_macos:
@@ -141,7 +158,7 @@ package_windows:
 #    - ./scripts/xkeys-server.js test
 #  interruptible: true
 
-upload_linux:
+.upload_linux:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -151,7 +168,7 @@ upload_linux:
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
 
-upload_windows:
+.upload_windows:
   stage: upload
   image: curlimages/curl:latest
   rules:
