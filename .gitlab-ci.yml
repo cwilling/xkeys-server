@@ -6,7 +6,7 @@ default:
 variables:
   PACKAGE_VERSION: "0.9.3"
   LINUX_AMD64_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_amd64.deb"
-  RASPI_INSTALLER: "xkeys-server-$PACKAGE_VERSION_armhf.deb"
+  RASPI_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_armhf.deb"
   WINDOWS_INSTALLER: "xkeys-server-installer-${PACKAGE_VERSION}.exe"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/xkeys-server/${PACKAGE_VERSION}"
 
@@ -40,7 +40,7 @@ stages:
 #    - node_modules/
 
 # Test LTS nodejs
-test_lts:
+.test_lts:
   stage: test
   except:
     changes:
