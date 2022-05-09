@@ -13,7 +13,7 @@ First, install prerequisite development packages with:
 ```
 No third party repos are required provided _apt_ is  configured for both _main_ and _contrib_ branches. Install other packages required for packaging _xkeys-server_ with:
 ```
-	sudo apt install nodejs npm libuv1-dev libudev-dev libfuse-dev
+	sudo apt install nodejs npm libuv1-dev libudev-dev libfuse-dev libusb-1.0-0-dev
 ```
 
 After running _make-raspi_, the location of the resulting .deb package will be reported (probably here). It can be installed with (insert correct version):
