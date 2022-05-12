@@ -1,28 +1,19 @@
 #!/bin/bash
 
 
-# Create a .deb package of xkeys-server for RASPI using an AppImage.
+# Create a .deb package of xkeys-server for RASPI
 
 VERSION=$(python3 -c 'import json,sys; f=open("../../package.json"); obj=json.load(f);print(obj["version"])')
-ARCH=armhf
-PKG_ARCH=armhf
+PKG_ARCH=arm64
 
 # Work in the correct directory
 cd $(dirname $0)
 CWD=$(pwd)
 
-# Create the AppImage
-./${ARCH}.AppImage
-
-# Do we have the AppImage (should be in this directory).
-[ -x xkeys-server-${ARCH}.AppImage ] || {
-	echo "Can't find xkeys-server-${ARCH}.AppImage to package"
-	echo " - perhaps it's just not executable?"
-	echo "Exiting now ..."
-	exit 2
-}
-mkdir application
-cp -p xkeys-server-${ARCH}.AppImage application/xkeys-server
+# Use pkg to generate single executable into the "application" directory
+#
+npx pkg -t node12-linux-$PKG_ARCH --out-path application ../..
+echo "Added: $(file application/*)"
 
 # Create the package shell
 rm -rf xkeys-server-${VERSION}_${PKG_ARCH}
