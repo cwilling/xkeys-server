@@ -30,6 +30,7 @@ variables:
 
 
 stages:
+  - build
   - test
   - package
   - upload
@@ -40,8 +41,16 @@ stages:
 #  paths:
 #    - node_modules/
 
+# Docker container image for RasPi packaging
+docker_build:
+  stage: build
+  script:
+    - docker build -t chris.willing/xkeys-server:bullseye-arm64 .
+    - docker push chris.willing/xkeys-server:bullseye-arm64
+
+
 # Test LTS nodejs
-test_lts:
+.test_lts:
   stage: test
   except:
     changes:
