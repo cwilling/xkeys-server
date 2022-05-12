@@ -120,7 +120,7 @@ package_raspi:
   interruptible: true
   artifacts:
     paths:
-      - build/deb/${RASPI_INSTALLER}
+      - build/raspi/${RASPI_INSTALLER}
 
 
 
@@ -208,6 +208,15 @@ package_raspi:
   script:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
+
+upload_raspi:
+  stage: upload
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_DEPLOY_FREEZE == null
+  script:
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/rasp/${RASPI_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_INSTALLER}
 
 
 .upload_windows:
