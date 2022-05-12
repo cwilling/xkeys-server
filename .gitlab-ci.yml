@@ -50,7 +50,7 @@ docker_build:
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-    - docker build -t registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64 .
+    - docker build -t registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64 build/raspi/
     - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
 
 
