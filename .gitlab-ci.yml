@@ -44,7 +44,11 @@ stages:
 # Docker container image for RasPi packaging
 docker_build:
   stage: build
+  image: docker:20.10.11
+  services:
+    - docker:dind
   script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker build -t chris.willing/xkeys-server:bullseye-arm64 .
     - docker push chris.willing/xkeys-server:bullseye-arm64
 
