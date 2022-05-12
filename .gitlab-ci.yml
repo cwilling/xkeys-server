@@ -49,8 +49,8 @@ docker_build:
     - docker:dind
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
-    - docker build -t chris.willing/xkeys-server:bullseye-arm64 .
-    - docker push chris.willing/xkeys-server:bullseye-arm64
+    - docker build -t gitlab.com/chris.willing/xkeys-server:bullseye-arm64 .
+    - docker push gitlab.com/chris.willing/xkeys-server:bullseye-arm64
 
 
 # Test LTS nodejs
