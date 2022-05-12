@@ -113,7 +113,7 @@ package_raspi:
   script:
     - npm install
     - cd build/deb
-    - ./make-deb
+    - ./make-raspi
     - ls -l ${RASPI_INSTALLER}
   rules:
     - when: manual
