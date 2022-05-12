@@ -43,7 +43,7 @@ stages:
 #    - node_modules/
 
 # Docker container image for RasPi packaging
-docker_build:
+.docker_build:
   stage: build
   image: docker:20.10.11
   services:
@@ -112,7 +112,7 @@ package_raspi:
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
   script:
     - npm install
-    - cd build/deb
+    - cd build/raspi
     - ./make-raspi
     - ls -l ${RASPI_INSTALLER}
   rules:
