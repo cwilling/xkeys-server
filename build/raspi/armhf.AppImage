@@ -33,6 +33,8 @@ else
   wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-armhf.AppImage
   chmod a+x appimagetool-armhf.AppImage
 fi
+file appimagetool-armhf.AppImage
+uname -m
 ARCH=armhf ./appimagetool-armhf.AppImage AppDir
 
 echo "xkeys-server-armhf.AppImage should now be available at:"
