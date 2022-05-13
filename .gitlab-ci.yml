@@ -145,8 +145,9 @@ package_raspi_32:
     - ls -l
     - cd -
     - npm install --save-dev pkg@4.5.1
-    - ./build/raspi/make-raspi
-    - ls -l build/raspi/${RASPI_32_INSTALLER}
+    - cd build/raspi
+    - ./make-raspi
+    - ls -l ${RASPI_32_INSTALLER}
   rules:
     - when: manual
   interruptible: true
