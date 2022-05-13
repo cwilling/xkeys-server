@@ -1,14 +1,14 @@
 #!/bin/bash
 
 
-# Create a .deb package of xkeys-server for RASPI using an AppImage.
+# Create a .deb package of xkeys-server for RASPI
 
 VERSION=$(python3 -c 'import json,sys; f=open("../../package.json"); obj=json.load(f);print(obj["version"])')
 ARCH=${ARCH:-$(uname -m)}
 case $ARCH in
   aarch64) BUILD_ARCH="arm64"
             PKG_ARCH="arm64" ;;
-  armv[67]*) BUILD_ARCH="armhf"
+  armv[67]*) BUILD_ARCH="armv7"
                PKG_ARCH="armhf" ;;
   *) echo "ARCH: $ARCH is not supported for RASPI"
      exit 1 ;;
@@ -21,35 +21,8 @@ CWD=$(pwd)
 
 #	Step 1 - create an executable in the "application" directory
 #
-if [ "$PKG_ARCH" = "armhf" ]; then
-	#	Creating the executable for armhf RASPI is different to
-	#	other platforms because the current vercel/pkg does not
-	#	support armv7l (the most used in recent Raspberry Pis).
-	#
-	#	For very old Pis with armv6, it is possible to build
-	#	an executable with vercel/pkg but requires using a previous
-	#	version (4.5.0) and is left as an exercise for the reader.
-	#
-	# Create the AppImage
-	./${BUILD_ARCH}.AppImage
-
-	# Do we have the AppImage (should be in this directory).
-	[ -x xkeys-server-${BUILD_ARCH}.AppImage ] || {
-		echo "Can't find xkeys-server-${BUILD_ARCH}.AppImage to package"
-		echo " - perhaps it's just not executable?"
-		echo "Exiting now ..."
-		exit 2
-	}
-	mkdir application
-	cp -p xkeys-server-${BUILD_ARCH}.AppImage application/xkeys-server
-
-else
-	# Use pkg to generate the executable
-	#
-	npx pkg -t node12-linux-$PKG_ARCH --out-path application ../..
-	echo "Added: $(file application/*)"
-
-fi
+npx pkg -t node12-linux-$PKG_ARCH --out-path application ../..
+echo "Added: $(file application/*)"
 
 #	Step 2 - package the executable into an installer
 #
