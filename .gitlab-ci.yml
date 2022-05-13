@@ -31,6 +31,7 @@ variables:
 
 
 stages:
+  - docker_build
   - build
   - test
   - package
@@ -43,16 +44,27 @@ stages:
 #    - node_modules/
 
 # Docker container image for RasPi packaging
-.docker_build:
-  stage: build
+.docker_build_arm64v8:
+  stage: docker_build
   image: docker:20.10.11
   services:
     - docker:dind
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-    - docker build -t registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64 build/raspi/
+    - cat build/raspi/Dockerfile.arm64v8 | docker build -t registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64 -
     - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
+
+docker_build_arm32v7:
+  stage: docker_build
+  image: docker:20.10.11
+  services:
+    - docker:dind
+  script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    - cat build/raspi/Dockerfile.arm32v7 | docker build -t registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32 -
+    - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
 
 
 # Test LTS nodejs
@@ -107,7 +119,7 @@ stages:
       - build/deb/${LINUX_AMD64_INSTALLER}
 
 # Package with LTS nodejs
-package_raspi:
+.package_raspi:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
   script:
@@ -209,7 +221,7 @@ package_raspi:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-upload_raspi:
+.upload_raspi:
   stage: upload
   image: curlimages/curl:latest
   rules:
