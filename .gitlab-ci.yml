@@ -138,16 +138,15 @@ stages:
 package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
-  services:
-    - docker:dind
   script:
-    - apt install -y docker.io qemu
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
-    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-    - npm install
-    - cd build/raspi
-    - ./make-raspi
-    - ls -l ${RASPI_32_INSTALLER}
+    - mkdir -p ~/.pkg-cache/v2.6
+    - cd ~/.pkg-cache/v2.6
+    - wget https://github.com/yao-pkg/pkg-binaries/releases/download/node12/fetched-v12.18.1-linux-armv7
+    - ls -l
+    - cd -
+    - npm install --save-dev pkg@4.5.1
+    - ./build/raspi/make-raspi
+    - ls -l build/raspi/${RASPI_32_INSTALLER}
   rules:
     - when: manual
   interruptible: true
