@@ -6,6 +6,7 @@ default:
 variables:
   PACKAGE_VERSION: "0.9.3"
   LINUX_AMD64_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_amd64.deb"
+  LINUX_RPM_INSTALLER: "xkeys-server-${PACKAGE_VERSION}-1.x86_64.rpm"
   MACOS_INSTALLER: "xkeys-server-macos-installer-${PACKAGE_VERSION}-x86_64.pkg"
   RASPI_32_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_armhf.deb"
   RASPI_64_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_arm64.deb"
@@ -54,6 +55,16 @@ stages:
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     - cat build/raspi/Dockerfile.arm64v8 | docker build -t registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64 -
     - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
+
+docker_build_rpm:
+  stage: docker_build
+  image: docker:20.10.11
+  services:
+    - docker:dind
+  script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - cat build/rpm/Dockerfile | docker build -t registry.gitlab.com/chris.willing/xkeys-server:rocky8.5 -
+    - docker push registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
 
 .docker_build_arm32v7:
   stage: docker_build
@@ -135,7 +146,7 @@ stages:
       - build/raspi/${RASPI_64_INSTALLER}
 
 # Package 32bit RasPi
-package_raspi_32:
+.package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
   script:
