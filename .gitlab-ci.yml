@@ -56,7 +56,7 @@ stages:
     - cat build/raspi/Dockerfile.arm64v8 | docker build -t registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64 -
     - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
 
-docker_build_rpm:
+.docker_build_rpm:
   stage: docker_build
   image: docker:20.10.11
   services:
@@ -128,6 +128,23 @@ docker_build_rpm:
   artifacts:
     paths:
       - build/deb/${LINUX_AMD64_INSTALLER}
+
+# Package rpm
+package_rpm:
+  stage: package
+  image: registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
+  script:
+    - npm install
+    - cd build/rpm
+    - ./make-rpm
+    - ls -l ${LINUX_RPM_INSTALLER}
+  rules:
+    - when: manual
+  interruptible: true
+  artifacts:
+    paths:
+      - build/rpm/${LINUX_RPM_INSTALLER}
+
 
 # Package RasPi
 .package_raspi:
@@ -244,7 +261,7 @@ docker_build_rpm:
 #    - ./scripts/xkeys-server.js test
 #  interruptible: true
 
-.upload_linux:
+.upload_deb:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -252,6 +269,15 @@ docker_build_rpm:
   script:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
+
+upload_rpm:
+  stage: upload
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_DEPLOY_FREEZE == null
+  script:
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/rpm/${LINUX_RPM_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_RPM_INSTALLER}
 
 .upload_raspi:
   stage: upload
@@ -262,7 +288,7 @@ docker_build_rpm:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_64_INSTALLER}
 
-upload_raspi_32:
+.upload_raspi_32:
   stage: upload
   image: curlimages/curl:latest
   rules:
