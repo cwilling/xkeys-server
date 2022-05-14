@@ -1,53 +1,39 @@
 #!/bin/sh
 
 
-# Create an .rpm package for xkeys-server using premade AppImage.
-# Requires args $1 = VERSION
-#               $2 = ARCH
+VERSION=$(python3 -c 'import json,sys; f=open("../../package.json"); obj=json.load(f);print(obj["version"])')
+ARCH=${ARCH:-$(uname -m)}
 
-[ $# -ne 2 ] && {
-	echo "Need VERSION and ARCH args to proceed."
-	echo "Exiting now ..."
-	exit 1
-}
-VERSION=$1
-ARCH=$2
 if [ "${ARCH}" = "x86_64" ]; then
-  PKGARCH=amd64
+  BUILD_ARCH=x64
 else
-  PKGARCH=${ARCH}
+  echo "$ARCH is not supported"
+  exit 1
 fi
 
 # Work in the correct directory
 cd $(dirname $0)
 CWD=$(pwd)
 
-# Create the AppImage
-../${ARCH}.AppImage
-
-# Do we have the AppImage (should be in parent directory).
-[ -x ../xkeys-server-${ARCH}.AppImage ] || {
-	echo "Can't find xkeys-server-${ARCH}.AppImage to package"
-	echo " - perhaps it's just not executable?"
-	echo "Exiting now ..."
-	exit 2
-}
+#       Step 1 - create an executable in the "application" directory
+#
+npx pkg -t node12-linux-$BUILD_ARCH --out-path application ../..
+echo "Added: $(file application/*)"
 
 rm -rf xkeys-server-${VERSION}*
 mkdir xkeys-server-${VERSION}
-cp -p ../xkeys-server-${ARCH}.AppImage xkeys-server-${VERSION}/
+cp -p application/xkeys-server xkeys-server-${VERSION}/
 sed -e "s/%ARCH%/${ARCH}/" -e "s/%NOGROUP%/nobody/" ../xkeys-server.service > xkeys-server-${VERSION}/xkeys-server.service
 cp -p ../50-xkeys.rules xkeys-server-${VERSION}/
 tar zcvf xkeys-server-${VERSION}.tar.gz xkeys-server-${VERSION}
-
 
 rm -rf ~/rpmbuild
 mkdir -p  ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
 mv xkeys-server-${VERSION}.tar.gz ~/rpmbuild/SOURCES
-cp -p xkeys-server.spec ~/rpmbuild/SPECS
+sed -e "s/%%VERSION%%/$VERSION/" xkeys-server.spec.in > ~/rpmbuild/SPECS/xkeys-server.spec
 
 rpmbuild -ba ~/rpmbuild/SPECS/xkeys-server.spec
 
-[ "$?" ] &&  echo "Package sould be available at ~/rpmbuild/RPMS/x86_64/xkeys-server-0.9.1-1.x86_64.rpm"
+[ "$?" ] &&  echo "Package should be available at ~/rpmbuild/RPMS/x86_64/xkeys-server-$VERSION-1.x86_64.rpm"
 

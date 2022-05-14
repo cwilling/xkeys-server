@@ -1,5 +1,5 @@
 Name:           xkeys-server
-Version:        0.9.1
+Version:        %%VERSION%%
 Release:        1
 Summary:        Server for Xkeys devices
 
@@ -9,7 +9,7 @@ Source0:        %{name}-%{version}.tar.gz
 
 Requires:       nodejs,fuse-libs,mosquitto
 
-# Don't allow compression of the AppImage file
+# Don't allow compression of the xkeys-server file
 %define __compress /bin/true
 %define __strip /bin/true
 
@@ -21,18 +21,18 @@ xkeys-server for Xkeys devices
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/systemd/system
+mkdir -p $RPM_BUILD_ROOT/lib/systemd/system
 mkdir -p $RPM_BUILD_ROOT/lib/udev/rules.d
-mkdir -p $RPM_BUILD_ROOT/opt/xkeys-server
-cp -p xkeys-server.service $RPM_BUILD_ROOT/etc/systemd/system/
+mkdir -p $RPM_BUILD_ROOT/usr/bin
+cp -p xkeys-server.service $RPM_BUILD_ROOT/lib/systemd/system/
 cp -p 50-xkeys.rules $RPM_BUILD_ROOT/lib/udev/rules.d/
-cp -p xkeys-server-%{_arch}.AppImage $RPM_BUILD_ROOT/opt/xkeys-server/
+cp -p xkeys-server $RPM_BUILD_ROOT/usr/bin/
 
 
 %files
-/%{_sysconfdir}/systemd/system/xkeys-server.service
+/lib/systemd/system/xkeys-server.service
 /lib/udev/rules.d/50-xkeys.rules
-/opt/xkeys-server/xkeys-server-%{_arch}.AppImage
+/usr/bin/xkeys-server
 
 %post
 if [ $1 == 1 ]; then
@@ -47,9 +47,20 @@ systemctl start mosquitto
 systemctl enable mosquitto
 systemctl daemon-reload
 
+# Create an "xkeys" user to run the server
+adduser --user-group --create-home --home-dir /var/lib/xkeys xkeys 1>/dev/null 2>/dev/null || true
+
+# Clear previous installation remnants
+hash=$(ls -1 /tmp/pkg/ 2>/dev/null)
+[ -n "$hash" ] && {
+  echo "Cleaning previous $(ls -ld /tmp/pkg/$hash)"
+  rm -rf /tmp/pkg/$hash
+  chmod a+wt /tmp/pkg
+}
+
 # Start running xkeys-server as a service
 #
-chmod a+x /opt/xkeys-server/xkeys-server-%{_arch}.AppImage
+chmod 0755 /usr/bin/xkeys-server
 systemctl start xkeys-server
 systemctl enable xkeys-server
 systemctl daemon-reload
@@ -67,6 +78,7 @@ fi
 if [ $1 == 0 ]; then
 udevadm control --reload-rules
 udevadm trigger
+userdel --remove xkeys
 fi
 
 %changelog
