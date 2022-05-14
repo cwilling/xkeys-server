@@ -44,7 +44,18 @@ stages:
 #  paths:
 #    - node_modules/
 
-# Docker container image for RasPi packaging
+# Docker container for packaging RPMs
+.docker_build_rpm:
+  stage: docker_build
+  image: docker:20.10.11
+  services:
+    - docker:dind
+  script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - cat build/rpm/Dockerfile | docker build -t registry.gitlab.com/chris.willing/xkeys-server:rocky8.5 -
+    - docker push registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
+
+# Docker container image for RasPi 64bit packaging
 .docker_build_arm64v8:
   stage: docker_build
   image: docker:20.10.11
@@ -56,16 +67,7 @@ stages:
     - cat build/raspi/Dockerfile.arm64v8 | docker build -t registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64 -
     - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
 
-.docker_build_rpm:
-  stage: docker_build
-  image: docker:20.10.11
-  services:
-    - docker:dind
-  script:
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
-    - cat build/rpm/Dockerfile | docker build -t registry.gitlab.com/chris.willing/xkeys-server:rocky8.5 -
-    - docker push registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
-
+# Docker container for RASPI 32bit packaging
 .docker_build_arm32v7:
   stage: docker_build
   image: docker:20.10.11
@@ -78,8 +80,8 @@ stages:
     - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
 
 
-# Test LTS nodejs
-.test_lts:
+# Generic test LTS nodejs
+test_lts:
   stage: test
   except:
     changes:
@@ -90,23 +92,11 @@ stages:
     apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
   script:
     - npm install
-    - ./scripts/xkeys-server.js test
-  interruptible: true
-
-# Test LATEST nodejs
-.test_latest:
-  image: node:latest
-  stage: test
-  except:
-    changes:
-      - "*.md"
-      - "./**/*.md"
-      - "./**/**/*.md"
-  before_script:
-    apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0
-  script:
-    - npm install
-    - ./scripts/xkeys-server.js test
+    - cd build/deb
+    - npx pkg -t node16-linux-x64 --out-path application ../..
+    - ls -l application/
+    - ./make-deb
+    - ./application/xkeys-server test
   interruptible: true
 
 
@@ -130,7 +120,7 @@ stages:
       - build/deb/${LINUX_AMD64_INSTALLER}
 
 # Package rpm
-package_rpm:
+.package_rpm:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
   script:
@@ -271,7 +261,7 @@ package_rpm:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-upload_rpm:
+.upload_rpm:
   stage: upload
   image: curlimages/curl:latest
   rules:
