@@ -137,6 +137,7 @@ package_rpm:
     - npm install
     - cd build/rpm
     - ./make-rpm
+    - cp -p ~/rpmbuild/RPMS/x86_64/xkeys-server-0.9.3-1.x86_64.rpm .
     - ls -l ${LINUX_RPM_INSTALLER}
   rules:
     - when: manual
