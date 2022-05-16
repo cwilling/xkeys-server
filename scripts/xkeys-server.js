@@ -1573,7 +1573,7 @@ function startWatcher () {
 			position["x"] = norm.normalize(position["x"], "joyx");
 			position["y"] = norm.normalize(position["y"], "joyy");
 			position["z"] = norm.normalize(position["z"], "joyz");
-			position["deltaZ"] = norm.normalize(position["z"], "joydeltaZ");
+			position["deltaZ"] = norm.normalize(position["deltaZ"], "deltaZ");
 			var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 			if (Object.keys(xkeys_devices).includes(temp_id)) {
 				var product_id = xkeys_devices[temp_id].device.info.productId;
