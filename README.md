@@ -12,7 +12,7 @@ Being a NodeJS application, _xkeys-server_ is able to be run on ***Linux*** (inc
 
 ## Installation
 
-_Xkeys-server_ package installers for end users will be available for Linux, MacOS & Windows. Prerelease installers are available for testing at the [Releases page](https://gitlab.com/chris.willing/xkeys-server/-/releases/0.9.3).
+_Xkeys-server_ package installers for end users will be available for Linux, MacOS & Windows. Prerelease installers are available for testing at the [Releases page](https://gitlab.com/chris.willing/xkeys-server/-/releases/0.9.4).
 
 In the meantime, command line capable users (or potential developers) could run the following commands to implement a basic setup on any of the supported platforms (assuming _NodeJS_ and _git_ are already installed):
 ```
