@@ -24,6 +24,7 @@ files_to_change="
 ../package.json
 ../build/windows/xkeys-server-installer.nsi
 ../build/deb/README.md
+../build/macos/README.md
 ../build/raspi/README.md
 ../.gitlab-ci.yml
 ../README.md
