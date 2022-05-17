@@ -8,7 +8,7 @@ To create a package, run the _make-macos_ script here on a macOS machine i.e.
 ```
 This will create a new target directory with a number of subdirectories. The installable package will be found in _target/pkg-signed_ e.g.
 ```
-    target/pkg-signed/xkeys-server-macos-installer-x86-1.0.0.pkg
+    target/pkg-signed/xkeys-server-macos-installer-0.9.4-x86_64.pkg
 ``` 
 The package may be distributed by any desired means for end users to install in the usual manner. However, a signed and _Apple notarized_ package is required for recent macOS systems which employ _Gatekeeper_ technology to prevent downloaded packages being installed unless they have been signed and notarized in the Apple approved manner.
 
@@ -55,7 +55,7 @@ which should return with `"The staple and validate action worked!"`. The package
 
 ## Uninstall
 
-An end user _xkeys-server_ installation may be completely removed by using the terminal command: `/Library/xkeys-server/VERSION/uninstall.sh` which will stop the running _xkeys-server_ daemon, unregister the package from the _pkgutil_ database and remove _xkeys-server_ related files from the _/Library_ and _/Library/LaunchDaemons_ directories.
+An end user _xkeys-server_ installation may be completely removed by using the terminal command: `sudo bash /Library/xkeys-server/0.9.4/uninstall.sh` which will stop the running _xkeys-server_ daemon, unregister the package from the _pkgutil_ database and remove _xkeys-server_ related files from the _/Library_ and _/Library/LaunchDaemons_ directories.
 
 ## Acknowledgements
 
