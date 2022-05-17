@@ -37,11 +37,6 @@ stages:
   - package
   - upload
 
-# This folder is cached between builds
-# https://docs.gitlab.com/ee/ci/yaml/index.html#cache
-#cache:
-#  paths:
-#    - node_modules/
 
 # Docker container for packaging RPMs
 .docker_build_rpm:
