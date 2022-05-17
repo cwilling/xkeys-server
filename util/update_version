@@ -1,0 +1,45 @@
+#!/bin/bash
+
+unset CURRENT_VERSION
+unset NEW_VERSION
+
+cd $(dirname $0); CWD=$(pwd)
+
+
+CURRENT_VERSION=$(python3 -c 'import json,sys; f=open("../package.json"); obj=json.load(f);print(obj["version"])')
+[ "$#" = "1" ] || {
+	echo "Please supply new version number"
+	echo "Current version number is: $CURRENT_VERSION"
+	exit 1
+}
+NEW_VERSION=$1
+
+# Is NEW_VERSION valid?
+[[ "$NEW_VERSION". =~ ^([[:digit:]]*\.){3}$ ]] || {
+  echo "$NEW_VERSION doesn't look like a valid version number"
+  exit 2
+}
+
+files_to_change="
+../package.json
+../build/windows/xkeys-server-installer.nsi
+../build/deb/README.md
+../build/raspi/README.md
+../.gitlab-ci.yml
+../README.md
+"
+
+for file in $files_to_change ; do
+	echo "Update file $file"
+	sed -i -e "s/$CURRENT_VERSION/$NEW_VERSION/g" $file
+done
+
+#../build/deb/changelog
+NEW_ENTRY="-- Christoph Willing <chris.willing@linux.com>  $(date -R)"
+sed -i -e "1s/^/${NEW_ENTRY}\n\n/" ../build/deb/changelog
+NEW_ENTRY="xkeys-server ($NEW_VERSION); urgency=medium"
+sed -i -e "1s/^/${NEW_ENTRY}\n/" ../build/deb/changelog
+
+unset CURRENT_VERSION
+unset NEW_VERSION
+
