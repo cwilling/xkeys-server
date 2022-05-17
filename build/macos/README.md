@@ -55,7 +55,7 @@ which should return with `"The staple and validate action worked!"`. The package
 
 ## Uninstall
 
-An end user _xkeys-server_ installation may be completely removed by using the terminal command: `sudo bash /Library/xkeys-server/0.9.4/uninstall.sh` which will stop the running _xkeys-server_ daemon, unregister the package from the _pkgutil_ database and remove _xkeys-server_ related files from the _/Library_ and _/Library/LaunchDaemons_ directories.
+An end user _xkeys-server_ installation may be completely removed by using the terminal command: `sudo bash /Library/xkeys-server/VERSION/uninstall.sh` (replace VERSION with the installed version number). This command will stop the running _xkeys-server_ daemon, unregister the package from the _pkgutil_ database and remove _xkeys-server_ related files from the _/Library_ and _/Library/LaunchDaemons_ directories.
 
 ## Acknowledgements
 
