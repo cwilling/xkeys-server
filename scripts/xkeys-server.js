@@ -375,94 +375,110 @@ request_message_process = (type, message, ...moreArgs) => {
 				break;
 
 			case "device_connect":
-				/*	This is a "Client Device" - a network device rather than a "normal" USB attached device. */
-				console.log("device_client connecting ...");
+				/*	This is a "Client Device" - a network device rather than a "normal" USB attached device.
+				*
+				*	For new device client connections, we create a fauxPanel to be added to xkeys_devices.
+				*	In addition, we add a device_triple when adding to udp_clients[], to distinguish
+				*	from ordinary clients, so that correct entry in xkeys_devices can be removed
+				*	when the device_client dies.
+				*/
+				//console.log("device_client connecting ...");
 				if (msg_transport == "udp") {
 					//	Start building the connect_result
 					var connect_result = {"msg_type":"device_connect_result", "server_id":ServerID};
 					connect_result["client_address"] = rinfo.address;
 					connect_result["client_port"] = rinfo.port;
 
-					/*	Create a faux xkeysPanel based on supplied connection information */
-					if ( msg.hasOwnProperty('device') && msg.hasOwnProperty('product_id') && msg.hasOwnProperty('unit_id') )
-					{
-						var fauxPanel = {
-							get info() {
-								return {
-									name     : this.product.name,
-									productId: this.product.productId,
-									interface: this.product.interface,
-									unitId   : this.unitId,
-									colCount : this.product.colCount,
-									rowCount : this.product.rowCount
-								}
-							}
-						};
-						var deviceInfo = {};
-						var product = {};
-
-						Object.keys(msg).forEach( (key, index) => {
-							if (key == 'msg_type') {
-								console.log(`Processing ${msg[key]} message`);
-							}
-							else if (key == 'device') {
-								product["name"] = msg[key];
-								deviceInfo["product"] = msg[key];
-							}
-							else if (key == 'product_id') {
-								product["productId"] = msg[key];
-								deviceInfo["productId"] = msg[key];
-							}
-							else if (key == 'rowCount') {
-								product["rowCount"] = msg[key];
-							}
-							else if (key == 'colCount') {
-								product["colCount"] = msg[key];
-							}
-							else if (key == 'unit_id') {
-								fauxPanel["unitId"] = msg[key];
-							} else {
-								console.log(`Unknown device_connect msg key: ${key}`);
-							}
-						});
-						// Want these?
-						product["interface"] = 0;	// interface: number | null // null means "anything goes", used when interface isn't available
-						deviceInfo["interface"] = 0
-
-						fauxPanel["product"]    = product;
-						fauxPanel["deviceInfo"] = deviceInfo;
-						fauxPanel["name"]       = `${fauxPanel.deviceInfo.product}`
-						fauxPanel["uniqueId"]   = `${fauxPanel.deviceInfo.productId}_${fauxPanel.unitId}`
-
-						console.log(`X-keys panel ${fauxPanel.uniqueId} connected`);
-						add_xkeys_device(fauxPanel);
-						update_client_device_list("");
-						
-						var attach_msg = {"msg_type":"attach_event", "server_id":ServerID, "device":fauxPanel.info.name,};
-						attach_msg["product_id"] = fauxPanel.info.productId;
-						attach_msg["unit_id"] = fauxPanel.info.unitId;
-						attach_msg["duplicate_id"] = fauxPanel.duplicate_id;
-						attach_msg["attached_devices"] = Object.keys(xkeys_devices);
-						send_udp_message(JSON.stringify(attach_msg));
-					} else {
-						console.log(`New device_connect msg has insufficient properties to create new device object: ${JSON.stringify(msg, null, 2)}`);
-					}
-
-					//	Need to track a Device Client connection just like an ordinary client
+					//	Determine new or returning client
 					const index = udp_clients.findIndex(item => item.remote.address === rinfo.address && item.remote.port === rinfo.port);
 					if (index < 0) {
-						// New clients don't have a client_name so make one up
-						var new_device_client_name = "device_client_" + crypto.randomBytes(8).toString('hex');
+						/*	Connection from a new device client */
+
+						/*	Create a faux xkeysPanel based on supplied connection information */
+						if ( msg.hasOwnProperty('device') && msg.hasOwnProperty('product_id') && msg.hasOwnProperty('unit_id') )
+						{
+							var fauxPanel = {
+								get info() {
+									return {
+										name     : this.product.name,
+										productId: this.product.productId,
+										interface: this.product.interface,
+										unitId   : this.unitId,
+										colCount : this.product.colCount,
+										rowCount : this.product.rowCount
+									}
+								}
+							};
+							var deviceInfo = {};
+							var product = {};
+
+							Object.keys(msg).forEach( (key, index) => {
+								if (key == 'msg_type') {
+									console.log(`Processing ${msg[key]} message`);
+								}
+								else if (key == 'device') {
+									product["name"] = msg[key];
+									deviceInfo["product"] = msg[key];
+								}
+								else if (key == 'product_id') {
+									product["productId"] = msg[key];
+									deviceInfo["productId"] = msg[key];
+								}
+								else if (key == 'rowCount') {
+									product["rowCount"] = msg[key];
+								}
+								else if (key == 'colCount') {
+									product["colCount"] = msg[key];
+								}
+								else if (key == 'unit_id') {
+									fauxPanel["unitId"] = msg[key];
+								} else {
+									console.log(`Unknown device_connect msg key: ${key}`);
+								}
+							});
+							// Want these?
+							product["interface"] = 0;	// interface: number | null // null means "anything goes", used when interface isn't available
+							deviceInfo["interface"] = 0
+
+							fauxPanel["product"]    = product;
+							fauxPanel["deviceInfo"] = deviceInfo;
+							fauxPanel["name"]       = `${fauxPanel.deviceInfo.product}`
+							fauxPanel["uniqueId"]   = `${fauxPanel.deviceInfo.productId}_${fauxPanel.unitId}`
+
+							console.log(`X-keys panel ${fauxPanel.uniqueId} connected`);
+							add_xkeys_device(fauxPanel);
+							update_client_device_list("");
+							
+							var attach_msg = {"msg_type":"attach_event", "server_id":ServerID, "device":fauxPanel.info.name,};
+							attach_msg["product_id"] = fauxPanel.info.productId;
+							attach_msg["unit_id"] = fauxPanel.info.unitId;
+							attach_msg["duplicate_id"] = fauxPanel.duplicate_id;
+							attach_msg["attached_devices"] = Object.keys(xkeys_devices);
+							send_udp_message(JSON.stringify(attach_msg));
+
+						} else {
+							console.log(`New device_connect msg has insufficient properties to create new device object: ${JSON.stringify(msg, null, 2)}`);
+							break;
+						}
+
+						// New device_clients don't arrive with a client_name so make one up
+						msg["client_name"] = "device_client_" + crypto.randomBytes(8).toString('hex');
+
+						// Including device_triple here enables removal of fauxPanel when udp_client is removed
 						var device_triple = fauxPanel.uniqueId.replace(/_/g, "-") + "-" + fauxPanel.duplicate_id;
-						add_udp_client({"timestamp":Date.now(), "client_name":new_device_client_name, "remote":rinfo,"device_triple":device_triple});
-						console.log(`Added new device_client: ${new_device_client_name}, ${device_triple}`);
+						add_udp_client({"timestamp":Date.now(), "client_name":msg.client_name, "remote":rinfo,"device_triple":device_triple});
+						console.log(`Added new device_client: ${msg.client_name}, ${device_triple}`);
+
 					} else {
-						show_udp_clients();
-						console.log(`index already exists: ${index}`);
+						/*	Connection from an existing device client - posibly a keep-alive */
+						//console.log(`index already exists: ${index}`);
+
+						// Use existing client_name & device_triple
+						add_udp_client({"timestamp":Date.now(), "client_name":udp_clients[index].client_name, "remote":rinfo,"device_triple":udp_clients[index].device_triple});
 					}
 
 					// 	Remainder of connect_result
-					connect_result["client_name"] = msg.new_device_client_name;
+					connect_result["client_name"] = msg.client_name;
 					connect_result["attached_devices"] = Object.keys(xkeys_devices);
 					connect_result["version"] = ServerVersion;
 					send_udp_message(JSON.stringify(connect_result));
@@ -478,7 +494,7 @@ request_message_process = (type, message, ...moreArgs) => {
 
 			case "device_data":
 				/*	Emit an event based on event data from a Device Client */
-				console.log(`Received device_data: ${JSON.stringify(msg)}`);
+				//console.log(`Received device_data: ${JSON.stringify(msg)}`);
 
 				// Search udp_clients to identify device_client device_triple to access device_client object
 				const index = udp_clients.findIndex(item => item.remote.address === rinfo.address && item.remote.port === rinfo.port);
@@ -507,7 +523,7 @@ request_message_process = (type, message, ...moreArgs) => {
 
 						//	NodeRED
 						msg["type"] = msg.value==1?"down":"up";
-						console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						//console.log(`${msg.type.toUpperCase()} event from ${device}`);
 						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
 						var msg_topic = '/xkeys/server/button_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
 						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":msg};
@@ -519,7 +535,7 @@ request_message_process = (type, message, ...moreArgs) => {
 
 						//	NodeRED
 						msg["type"] = "tbar"
-						console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						//console.log(`${msg.type.toUpperCase()} event from ${device}`);
 						if (! msg.hasOwnProperty("position")) { msg["position"] = msg.value; }
 						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
 						var msg_topic = '/xkeys/server/tbar_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
@@ -532,7 +548,7 @@ request_message_process = (type, message, ...moreArgs) => {
 
 						//	NodeRED
 						msg["type"] = "jog"
-						console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						//console.log(`${msg.type.toUpperCase()} event from ${device}`);
 						if (! msg.hasOwnProperty("deltaPos")) { msg["deltaPos"] = msg.value; }
 						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
 						var msg_topic = '/xkeys/server/jog_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
@@ -545,7 +561,7 @@ request_message_process = (type, message, ...moreArgs) => {
 
 						//	NodeRED
 						msg["type"] = "shuttle"
-						console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						//console.log(`${msg.type.toUpperCase()} event from ${device}`);
 						if (! msg.hasOwnProperty("shuttlePos")) { msg["shuttlePos"] = msg.value; }
 						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
 						var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
@@ -558,7 +574,7 @@ request_message_process = (type, message, ...moreArgs) => {
 
 						//	NodeRED
 						msg["type"] = "joystick"
-						console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						//console.log(`${msg.type.toUpperCase()} event from ${device}`);
 						if (! msg.hasOwnProperty("position")) { msg["position"] = {"x":msg.x,"y":msg.y,"z":msg.z,"deltaZ":msg.deltaZ}; }
 						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
 						var msg_topic = '/xkeys/server/joystick_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
@@ -577,6 +593,7 @@ request_message_process = (type, message, ...moreArgs) => {
 				/*	This is a Device Client disconnecting. As well as removing this connection from udp_clients,
 					remove the device object we created and saved on xkeys_devices.
 				*/
+				console.log(`device_disconnect`);
 				if (msg_transport == "udp") {
 					// Search udp_clients to identify device_client device_triple to access device_client object
 					const index = udp_clients.findIndex(item => item.remote.address === rinfo.address && item.remote.port === rinfo.port);
@@ -590,7 +607,7 @@ request_message_process = (type, message, ...moreArgs) => {
 
 						var msg_udp = {"msg_type":"device_disconnect_result", "host_name":ServerID,
 										"client_address":rinfo.address, "client_port":rinfo.port, "client_name":client_name};
-						delete xkeys_devices[device_triple];
+						//delete xkeys_devices[device_triple];	// do this as part of remove_udp_client()
 						remove_udp_client(rinfo, "device_disconnect");
 					}
 				} else if (msg_transport == "mqtt") {
@@ -1870,7 +1887,7 @@ send_ttl_warning = (client) => {
 *	it sets up a timeout mechanism for inactive clients.
 */
 add_udp_client = (client) => {
-	console.log(`add_udp_client() add`);
+	//console.log(`add_udp_client() add`);
 
 	const index = udp_clients.findIndex(item => item.remote.address === client.remote.address && item.remote.port === client.remote.port);
 	if (index < 0) {
@@ -1892,7 +1909,7 @@ add_udp_client = (client) => {
 		//	In case of a name change
 		udp_clients[index].client_name = client.client_name;
 	}
-	show_udp_clients()
+	//show_udp_clients()
 }
 
 /*	remove_udp_client(rinfo)
@@ -1912,6 +1929,13 @@ remove_udp_client = (rinfo, msg_type = "disconnect_result") => {
 		console.log(`disconnecting ${udp_clients[index].client_name}`);
 		//	First remove ttl timer
 		clearTimeout(udp_clients[index].ttl_timer);
+
+		// Remove any devices associated with this client
+		//const device_triple = udp_clients[index].device_triple;
+		if (udp_clients[index].device_triple) {
+			delete xkeys_devices[udp_clients[index].device_triple];
+			update_client_device_list("");
+		}
 
 		const disconnect_result = {"msg_type":msg_type,"server_id":ServerID};
 		disconnect_result["client_address"] = udp_clients[index].remote.address;
