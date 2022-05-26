@@ -38,7 +38,7 @@ where XALTOOL is an arbitrary label (use whatever you like) to use later when th
 
 Apple notarization requires submission of the signed package (created above with _make-macos_) for Apple to run automated tests which determine it's suitablility for installation. Run the command:
 ```
-    xcrun altool --notarize-app --primary-bundle-id com.xkeys-server.daemon -u APPLE_ID -p @keychain:XALTOOL -f target/pkg-signed/xkeys-server-macos-installer-VERSION.pkg
+    xcrun altool --notarize-app --primary-bundle-id com.xkeys-server.daemon -u APPLE_ID -p @keychain:XALTOOL -f target/pkg-signed/xkeys-server-macos-installer-VERSION-ARCH.pkg
 ```
 (note use of _@keychain:XALTOOL_ for the password field to avoid entering password for your Apple ID).
 The command may take 10-20 seconds to complete but will eventually return a _RequestUUID_ - something like `RequestUUID = 11b84517c-e9ad-454b-8c07-e47a9ac19bb8`. The RequestUUID is merely a submission acknowledgment, _not_ an indication of notarization completion. When Apple completes the notarization process, success or failure will be advised by email. Alternatively, notarization progress can be queried with:
@@ -48,7 +48,7 @@ The command may take 10-20 seconds to complete but will eventually return a _Req
 (using the previously supplied RequestUUID).
 In the event of failure, a url will be supplied at which the reasons for rejection will be found. In the event of success, the "approval" should be stapled to the package before dissemination with:
 ```
-    xcrun stapler staple target/pkg-signed/Xkeys-Server-macos-installer-VERSION.pkg
+    xcrun stapler staple target/pkg-signed/xkeys-server-macos-installer-VERSION-ARCH.pkg
 ```
 which should return with `"The staple and validate action worked!"`. The package can now be made available for downloading.
 
