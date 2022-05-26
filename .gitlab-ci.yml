@@ -38,7 +38,7 @@ stages:
   - upload
 
 
-# Docker container for packaging RPMs
+# Docker container for packaging RPMs.
 .docker_build_rpm:
   stage: docker_build
   image: docker:20.10.11
