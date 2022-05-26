@@ -310,7 +310,7 @@ request_message_process = (type, message, ...moreArgs) => {
 			case "connect":
 				/*	Normal client connect */
 				if (msg_transport == "udp") {
-					//console.log("request_message_process(): UDP msg.request was connect");
+					//console.log(`request_message_process(): UDP msg.request was 'connect' from ${rinfo.address}`);
 
 					//	Start building the connect_result
 					var connect_result = {"msg_type":"connect_result", "server_id":ServerID};
@@ -1860,7 +1860,7 @@ reset_client_ttl_timer = (rinfo) => {
 */
 send_ttl_warning = (client) => {
 	client.warnings += 1;
-	console.log(`send_ttl_warning() ${client.warnings}`);
+	//console.log(`send_ttl_warning() ${client.warnings}`);
 
 	if (client.warnings < CLIENT_TTL_WARNINGS) {
 		//	Send another warning
