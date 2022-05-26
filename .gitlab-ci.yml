@@ -75,7 +75,7 @@ stages:
 
 
 # Generic test LTS nodejs
-.test_lts:
+test_lts:
   stage: test
   except:
     changes:
@@ -206,7 +206,7 @@ stages:
 
 # We can't build macos packages here yet
 # so fetch and upload a package we prepared manually
-upload_remotes:
+.upload_remotes:
   image: curlimages/curl:latest
   stage: upload
   rules:
