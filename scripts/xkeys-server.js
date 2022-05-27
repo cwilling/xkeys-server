@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const xdgBasedir = require('xdg-basedir');
 const xlate = require('./xkeys-xlate');
 const norm = require('./NormalizeValues.js');
+const elgato = require('./elgato-plugin')
 
 const default_config = {
 	"hostname"		: require('os').hostname().split('.')[0],
@@ -97,19 +98,21 @@ const udp_port = config.host_port;
 const udp_clients = [];
 
 process.on('SIGINT', () => {
-	console.log(`Shutting down`);
+	console.log(`Shutting down (SIGINT)`);
 	udp_server.close();
 	client.end();
 	watcher.stop();
+	elgato.stop();
 
 	process.exit();
 });
 process.on('SIGTERM', () => {
 	// Help systemctl stop
-	console.log(`Shutting down`);
+	console.log(`Shutting down (SIGTERM)`);
 	udp_server.close();
 	client.end();
 	watcher.stop();
+	elgato.stop();
 
 	process.exit();
 });
@@ -667,6 +670,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					device_list.push(xkeys_devices[key].device.info);
 					device_list[device_list.length-1]["temp_id"] = key;
 				}
+				//console.log(`case list_attached: ${JSON.stringify(device_list)}`);
 				if (msg_transport == "udp") {
 					if (is_connected(rinfo)) {
 						udp_server.send(JSON.stringify({"msg_type":"list_attached_result","server_id":ServerID, "devices":device_list}), rinfo.port, rinfo.address);
@@ -1319,7 +1323,6 @@ client.on('error', (error) => {
 
 client.on('connect', () => {
     console.log('connected');
-    //startWatcher();
     client.publish('/xkeys/server', JSON.stringify({"server_id":ServerID, "request":"hello","data":"Hello from Xkeys device server"}),{qos:qos,retain:false});
     client.subscribe({'/xkeys/node/#':{qos:qos}}, function (err) {
     	if (!err) {
@@ -1336,19 +1339,6 @@ client.on('connect', () => {
 
 })
 
-
-/*	are_we_there_yet ()
-*
-*	This is an opportunity to decide whether to startWatcher().
-*	Perhaps we want to check status of UDP and/or MQTT connection.
-*/
-are_we_there_yet = () => {
-	console.log(`Are we there yet?`);
-
-	// For now, assume everything is OK to go.
-	startWatcher();
-}
-setTimeout(are_we_there_yet, 1000);
 
 /*	this_is_a_test ()
 *
@@ -1375,7 +1365,7 @@ function startWatcher () {
 		pollingInterval: 500, // optional, default is 1000 ms
 	});
 	watcher.on('connected', (xkeysPanel) => {
-		console.log(`X-keys panel ${xkeysPanel.uniqueId} connected`);
+		console.log(`X-keys panel ${xkeysPanel.uniqueId} discovered`);
 		add_xkeys_device(xkeysPanel);
 		update_client_device_list("");
 			var attach_msg = {"msg_type":"attach_event", "server_id":ServerID, "device":xkeysPanel.info.name,};
@@ -1771,6 +1761,23 @@ update_client_device_list = (topic) => {
 		//send_udp_message(JSON.stringify({"server_id":ServerID, "request":"result_deviceList", "data":device_list}));
 	}
 }
+
+/*	are_we_there_yet ()
+*
+*	This is an opportunity to decide whether to startWatcher().
+*	Perhaps we want to check status of UDP and/or MQTT connection.
+*/
+are_we_there_yet = () => {
+	console.log(`Are we there yet?`);
+
+	// For now, assume everything is OK to go.
+	startWatcher();
+
+	/*	 Introduce the elgato plugin
+	*/
+	elgato.start(xkeys_devices, add_xkeys_device, update_client_device_list, ServerID);
+}
+setTimeout(are_we_there_yet, 1000);
 
 sendHeartbeat = (client) => {
 	//console.log("heartbeat");
