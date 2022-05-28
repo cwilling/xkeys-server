@@ -1349,6 +1349,7 @@ this_is_a_test = () => {
 	if (args.length > 0) {
 		if (args[0] == "test") {
 			console.log(`This is a test`);
+			elgato.stop();
 			udp_server.close();
 			client.end();
 			watcher.stop();
