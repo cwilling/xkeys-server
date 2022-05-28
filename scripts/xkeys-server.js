@@ -1775,7 +1775,7 @@ are_we_there_yet = () => {
 
 	/*	 Introduce the elgato plugin
 	*/
-	elgato.start(xkeys_devices, add_xkeys_device, update_client_device_list, ServerID);
+	elgato.start(xkeys_devices, ServerID);
 }
 setTimeout(are_we_there_yet, 1000);
 
