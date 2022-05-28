@@ -20,6 +20,7 @@ const vid = 4057;	// Elgato vendor id
 /*	These are set by whoever calls us with start() */
 let elgato_devices;
 let ServerID;
+let mqtt_client;
 
 async function addDevice(info) {
 	const start_time = Date.now();
@@ -47,7 +48,7 @@ async function addDevice(info) {
 				const unit_id = 0;
 				const panel = streamDecks[path];
 				panel["uniqueId"] = product_id + "_" + unit_id;
-				var device_info = {};
+				const device_info = {};
 				device_info["name"] = panel.device.PRODUCT_NAME;
 				device_info["product_id"] = product_id;
 				device_info["interface"] = 0;
@@ -108,21 +109,43 @@ async function addDevice(info) {
 	*/
 	streamDecks[path].on('down', (keyIndex) => {
 		//console.log(`${keyIndex}, ${streamDecks[path].KEY_ROWS}, ${streamDecks[path].KEY_COLUMNS} DOWN`);
+		const metadata = {};
+		metadata["timestamp"] = Date.now() - start_time;
 		const panel = streamDecks[path];
 		const rowcol = calcRowCol(keyIndex, panel.KEY_ROWS, panel.KEY_COLUMNS);
 		var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":panel.info.name,
 						"product_id":panel.info.product_id,"unit_id":panel.info.unit_id,"duplicate_id":panel.duplicate_id,
-						"control_id":0, "row":rowcol[0],"col":rowcol[1], "value":1, "timestamp":Date.now()-start_time};
+						"control_id":0, "row":rowcol[0],"col":rowcol[1], "value":1, "timestamp":metadata.timestamp};
 		send_udp_message(JSON.stringify(msg_udp));
+
+		/*	NodeRED */
+		metadata["type"] = "down";
+		metadata["shortnam"] = panel.info.name.replace(/\s+/, ''); 
+		const msg_topic = '/xkeys/server/button_event/' + panel.info.product_id + '/' + panel.info.unit_id + '/' + panel.duplicate_id + '/' + keyIndex;
+		const msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
+		//mqtt_client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+		mqtt_client.publish(msg_topic, JSON.stringify(msg_pload));
+
 	});
 	streamDecks[path].on('up', (keyIndex) => {
 		//console.log(`${keyIndex}, ${streamDecks[path].KEY_ROWS}, ${streamDecks[path].KEY_COLUMNS} UP`);
+		const metadata = {};
+		metadata["timestamp"] = Date.now() - start_time;
 		const panel = streamDecks[path];
 		const rowcol = calcRowCol(keyIndex, panel.KEY_ROWS, panel.KEY_COLUMNS);
 		var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":panel.info.name,
 						"product_id":panel.info.product_id,"unit_id":panel.info.unit_id,"duplicate_id":panel.duplicate_id,
-						"control_id":0, "row":rowcol[0],"col":rowcol[1], "value":0, "timestamp":Date.now()-start_time};
+						"control_id":0, "row":rowcol[0],"col":rowcol[1], "value":0, "timestamp":metadata.timestamp};
 		send_udp_message(JSON.stringify(msg_udp));
+
+		/*	NodeRED */
+		metadata["type"] = "up";
+		metadata["shortnam"] = panel.info.name.replace(/\s+/, ''); 
+		const msg_topic = '/xkeys/server/button_event/' + panel.info.product_id + '/' + panel.info.unit_id + '/' + panel.duplicate_id + '/' + keyIndex;
+		const msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
+		//mqtt_client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+		mqtt_client.publish(msg_topic, JSON.stringify(msg_pload));
+
 	});
 }
 
@@ -167,8 +190,9 @@ module.exports = {
 		console.log(`Hello: ${message}`);
 	},
 
-	start (xkeys_devices, ServerID) {
+	start (xkeys_devices, ServerID, client) {
 		elgato_devices = xkeys_devices;
+		mqtt_client = client;
 		refresh(ServerID);
 		usbDetect.startMonitoring();
 	},
