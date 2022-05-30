@@ -3,16 +3,15 @@
 *	SPDX-License-Identifier: MIT OR LGPL-2.0-or-later
 *	SPDX-FileCopyrightText: 2022 Christoph Willing <chris.willing@linux.com>
 * 
-*	A plugin to add Elgato devices functionality to xkeys-server.
+*	A plugin to add Elgato Streamdeck devices functionality to xkeys-server.
 */
 
 const usbDetect = require('usb-detection');
 const { listStreamDecks, openStreamDeck } = require('@elgato-stream-deck/node');
-const { DEVICE_MODELS } = require('@elgato-stream-deck/core');
+const { DEVICE_MODELS, VENDOR_ID } = require('@elgato-stream-deck/core');
 const streamDecks = {};
-const vid = 4057;	// Elgato vendor id
 
-/*	These are global functions
+/*	These are global functions from xkeys-server
 	- add_xkeys_device()
 	- update_client_device_list()
 	- send_udp_message()
@@ -42,7 +41,7 @@ async function addDevice(info) {
 	*	Insert these and other expected values as device info.
 	*	Advertise device attachment.
 	*/
-	usbDetect.find(vid, function(err, devices) {
+	usbDetect.find(VENDOR_ID.toString(), function(err, devices) {
 		devices.forEach( (device) => {
 			if (serial_number == device.serialNumber) {
 				const product_id = parseInt(device.vendorId + device.productId.toString().padStart(4,0));
@@ -75,10 +74,10 @@ async function addDevice(info) {
 		});
 	})
 
-	// Clear all keys
+	//	Clear all keys
 	await streamDecks[path].clearPanel()
 
-	// Fill one key in red
+	//	Fill one key in red
 	await streamDecks[path].fillKeyColor(0, 255, 0, 0)
 
 	await streamDecks[path].resetToLogo()
@@ -163,10 +162,10 @@ function refresh() {
 	});
 }
 
-usbDetect.on('add:4057', function () {
+usbDetect.on('add:'+VENDOR_ID.toString(), function () {
 	refresh();
 })
-usbDetect.on('remove:4057', function (device) {
+usbDetect.on('remove:'+VENDOR_ID.toString(), function (device) {
 	console.log(`${JSON.stringify(device)} was removed`)
 	refresh();
 })
@@ -201,11 +200,10 @@ module.exports = {
 		/*	Add Streamdeck products in a format matching Xkeys products */
 		//console.log(`DEVICE_MODELS = ${JSON.stringify(DEVICE_MODELS)}`);
 		DEVICE_MODELS.forEach( (model) => {
-			if (model.type == "streamdeck") {
-				const product_id = parseInt("4057" + model.productId.toString().padStart(4,0));
-				products["SD"+model.id.toUpperCase()] = {"name":"Streamdeck " + model.id.toUpperCase(), "hidDevices":[[product_id,0]]};
-			}
+			const product_id = parseInt(VENDOR_ID.toString() + model.productId.toString().padStart(4,0));
+			products["SD"+model.id.toUpperCase()] = {"name":"Streamdeck " + model.id.toUpperCase(), "hidDevices":[[product_id,0]]};
 		});
+		console.log(`VENDOR_ID is ${typeof VENDOR_ID}`);
 	}
 }
 
