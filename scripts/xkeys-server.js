@@ -130,25 +130,31 @@ const { XKeysWatcher } = require('xkeys');
 const XKeys = require('xkeys');
 //const { PRODUCTS } = require('@xkeys-lib/core/dist/products');
 var { PRODUCTS } = require('@xkeys-lib/core/dist/products');
+/*	Add Elgato products */
+elgato.products(PRODUCTS);
 
-/* An XKeysWatcher */
+/*	An XKeysWatcher */
 const USE_POLLING = true;
 let watcher;
 
-/* Local record of discovered devices keyed by UniqueId */
+/*	Local record of discovered devices keyed by UniqueId */
 let xkeys_devices = {};
 
-/* Reverse lookup of PRODUCTS keys (short name ids), indexed by hidDevice number */
+/*	Reverse lookup of PRODUCTS keys (short name ids), indexed by hidDevice number */
 let xkeys_products = {};
 Object.entries(PRODUCTS).forEach(entry => {
 	const [key, value] = entry;
 	value.hidDevices.forEach(hidDev => {
 		xkeys_products[hidDev[0]] = key;
 	});
-
 });
+/*
+Object.entries(xkeys_products).forEach(entry => {
+	console.log(`${entry}`);
+});
+*/
 
-/* Hex colour to rgb */
+/*	Hex colour to rgb */
 hex2rgb = (hexval) => {
 	var result = [];
 	for (const i of [0,2,4]) { result.push(parseInt(hexval.slice(i, i+2), 16)); }

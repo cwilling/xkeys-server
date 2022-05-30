@@ -8,6 +8,7 @@
 
 const usbDetect = require('usb-detection');
 const { listStreamDecks, openStreamDeck } = require('@elgato-stream-deck/node');
+const { DEVICE_MODELS } = require('@elgato-stream-deck/core');
 const streamDecks = {};
 const vid = 4057;	// Elgato vendor id
 
@@ -94,7 +95,7 @@ async function addDevice(info) {
 
 		update_client_device_list("");
 		var detach_msg = {"msg_type":"detach_event", "server_id":ServerID, "device":streamDecks[path].info.name,};
-		detach_msg["product_id"] = streamDecks[path].info.unit_id;
+		detach_msg["product_id"] = streamDecks[path].info.product_id;
 		detach_msg["unit_id"] = streamDecks[path].info.unit_id;
 		detach_msg["duplicate_id"] = streamDecks[path].duplicate_id;
 		detach_msg["attached_devices"] = Object.keys(elgato_devices);
@@ -104,7 +105,7 @@ async function addDevice(info) {
 	})
 
 	/*	Event listeners (buttons, tbar, joystick, etc.) go here
-	*	Only button events for Elgato Streamdeck.
+	*	Only button events for Elgato Streamdecks.
 	*	value = 1 for down, 0 for up
 	*/
 	streamDecks[path].on('down', (keyIndex) => {
@@ -118,7 +119,7 @@ async function addDevice(info) {
 						"control_id":0, "row":rowcol[0],"col":rowcol[1], "value":1, "timestamp":metadata.timestamp};
 		send_udp_message(JSON.stringify(msg_udp));
 
-		/*	NodeRED */
+		/*	For NodeRED */
 		metadata["type"] = "down";
 		metadata["shortnam"] = panel.info.name.replace(/\s+/, ''); 
 		const msg_topic = '/xkeys/server/button_event/' + panel.info.product_id + '/' + panel.info.unit_id + '/' + panel.duplicate_id + '/' + keyIndex;
@@ -183,13 +184,7 @@ calcRowCol = (keyIndex, rows, cols) => {
 	return [row,col];
 }
 
-
 module.exports = {
-
-	hello (message) {
-		console.log(`Hello: ${message}`);
-	},
-
 	start (xkeys_devices, ServerID, client) {
 		elgato_devices = xkeys_devices;
 		mqtt_client = client;
@@ -201,5 +196,16 @@ module.exports = {
 		Object.values(streamDecks).forEach( (device) => {
 			device.removeAllListeners();
 		})
+	},
+	products (products) {
+		/*	Add Streamdeck products in a format matching Xkeys products */
+		//console.log(`DEVICE_MODELS = ${JSON.stringify(DEVICE_MODELS)}`);
+		DEVICE_MODELS.forEach( (model) => {
+			if (model.type == "streamdeck") {
+				const product_id = parseInt("4057" + model.productId.toString().padStart(4,0));
+				products["SD"+model.id.toUpperCase()] = {"name":"Streamdeck " + model.id.toUpperCase(), "hidDevices":[[product_id,0]]};
+			}
+		});
 	}
 }
+
