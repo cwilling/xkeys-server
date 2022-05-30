@@ -203,7 +203,6 @@ module.exports = {
 			const product_id = parseInt(VENDOR_ID.toString() + model.productId.toString().padStart(4,0));
 			products["SD"+model.id.toUpperCase()] = {"name":"Streamdeck " + model.id.toUpperCase(), "hidDevices":[[product_id,0]]};
 		});
-		console.log(`VENDOR_ID is ${typeof VENDOR_ID}`);
 	}
 }
 
