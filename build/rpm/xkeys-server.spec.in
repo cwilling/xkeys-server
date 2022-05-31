@@ -25,12 +25,14 @@ mkdir -p $RPM_BUILD_ROOT/lib/systemd/system
 mkdir -p $RPM_BUILD_ROOT/lib/udev/rules.d
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 cp -p xkeys-server.service $RPM_BUILD_ROOT/lib/systemd/system/
+cp -p 50-elgato.rules $RPM_BUILD_ROOT/lib/udev/rules.d/
 cp -p 50-xkeys.rules $RPM_BUILD_ROOT/lib/udev/rules.d/
 cp -p xkeys-server $RPM_BUILD_ROOT/usr/bin/
 
 
 %files
 /lib/systemd/system/xkeys-server.service
+/lib/udev/rules.d/50-elgato.rules
 /lib/udev/rules.d/50-xkeys.rules
 /usr/bin/xkeys-server
 

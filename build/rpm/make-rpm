@@ -25,6 +25,7 @@ mkdir xkeys-server-${VERSION}
 cp -p application/xkeys-server xkeys-server-${VERSION}/
 sed -e "s/%ARCH%/${ARCH}/" -e "s/%NOGROUP%/nobody/" ../xkeys-server.service > xkeys-server-${VERSION}/xkeys-server.service
 cp -p ../50-xkeys.rules xkeys-server-${VERSION}/
+cp -p ../50-elgato.rules xkeys-server-${VERSION}/
 tar zcvf xkeys-server-${VERSION}.tar.gz xkeys-server-${VERSION}
 
 rm -rf ~/rpmbuild

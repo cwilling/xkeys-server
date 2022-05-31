@@ -30,6 +30,7 @@ mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server
 mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN
 
 cp -p ../xkeys-server.service xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system/
+cp -p ../50-elgato.rules xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/
 cp -p ../50-xkeys.rules xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/
 cp -p application//xkeys-server xkeys-server-${VERSION}_${PKG_ARCH}/usr/bin/
 chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system/*
