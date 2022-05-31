@@ -26,11 +26,6 @@ async function addDevice(info) {
 	const start_time = Date.now();
 	const path = info.path;
 	streamDecks[path] = openStreamDeck(path);
-	if (arguments.length == 2) {
-		ServerID = arguments[1];
-		console.log(`ServerID set to: ${ServerID}`);
-	}
-
 
 	const firmwareVersion =  await streamDecks[path].getFirmwareVersion()
 	const serial_number = info.serialNumber;
@@ -153,11 +148,7 @@ function refresh() {
 	const streamdecks = listStreamDecks()
 	streamdecks.forEach((device) => {
 		if (!streamDecks[device.path]) {
-			if (arguments.length == 0) {
-				addDevice(device).catch((e) => console.error('Add failed:', e))
-			} else {
-				addDevice(device, arguments[0]).catch((e) => console.error('Add failed:', e))
-			}
+			addDevice(device).catch((e) => console.error('Add failed:', e));
 		}
 	});
 }
@@ -166,7 +157,7 @@ usbDetect.on('add:'+VENDOR_ID.toString(), function () {
 	refresh();
 })
 usbDetect.on('remove:'+VENDOR_ID.toString(), function (device) {
-	console.log(`${JSON.stringify(device)} was removed`)
+	console.log(`${JSON.stringify(device)} was removed`);
 	refresh();
 })
 
@@ -184,17 +175,18 @@ calcRowCol = (keyIndex, rows, cols) => {
 }
 
 module.exports = {
-	start (xkeys_devices, ServerID, client) {
+	start (xkeys_devices, serverID, client) {
 		elgato_devices = xkeys_devices;
+		ServerID = serverID;
 		mqtt_client = client;
-		refresh(ServerID);
+		refresh();
 		usbDetect.startMonitoring();
 	},
 	stop () {
 		usbDetect.stopMonitoring();
 		Object.values(streamDecks).forEach( (device) => {
 			device.removeAllListeners();
-		})
+		});
 	},
 	products (products) {
 		/*	Add Streamdeck products in a format matching Xkeys products */
