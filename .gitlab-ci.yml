@@ -185,7 +185,7 @@ stages:
     - node .\scripts\xkeys-server.js test
   interruptible: true
 
-.package_windows:
+package_windows:
   extends:
   - .shared_windows_runners
   stage: package
@@ -194,7 +194,7 @@ stages:
   script:
     - npm install
     - cd build/windows
-    - npx pkg -t node16-win-x64 --out-path application ../..
+    - npx pkg -t node12-win-x64 --out-path application ../..
     - '& "C:\\Program Files (x86)\\NSIS\\makensis.exe" xkeys-server-installer.nsi'
     - ls ${WINDOWS_INSTALLER}
   rules:
@@ -206,7 +206,7 @@ stages:
 
 # We can't build macos packages here yet
 # so fetch and upload a package we prepared manually
-upload_remotes:
+.upload_remotes:
   image: curlimages/curl:latest
   stage: upload
   rules:
@@ -277,7 +277,7 @@ upload_remotes:
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
 
-.upload_windows:
+upload_windows:
   stage: upload
   image: curlimages/curl:latest
   rules:
