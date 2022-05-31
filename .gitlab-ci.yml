@@ -75,7 +75,7 @@ stages:
 
 
 # Generic test LTS nodejs
-.test_lts:
+test_lts:
   stage: test
   except:
     changes:
@@ -185,7 +185,7 @@ stages:
     - node .\scripts\xkeys-server.js test
   interruptible: true
 
-package_windows:
+.package_windows:
   extends:
   - .shared_windows_runners
   stage: package
@@ -277,7 +277,7 @@ package_windows:
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
 
-upload_windows:
+.upload_windows:
   stage: upload
   image: curlimages/curl:latest
   rules:
