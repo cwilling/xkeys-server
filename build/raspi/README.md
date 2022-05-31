@@ -18,7 +18,7 @@ No third party repos are required provided _apt_ is  configured for both _main_ 
 
 After running _make-raspi_, the location of the resulting .deb package will be reported (probably here). It can be installed with (insert correct version):
 ```
-	sudo apt install ./xkeys-server-0.9.6_armhf.deb
+	sudo apt install ./xkeys-server-0.9.7_armhf.deb
 ```
 
 As part of the installation, an _xkeys_ user is created and used as the owner of the running _xkeys-server_. If some other behaviour is preferred, change the relevant section of the _postinst_ file and run _make-raspi_ to create a new package.
