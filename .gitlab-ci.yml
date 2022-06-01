@@ -94,7 +94,7 @@ stages:
 
 
 # Package with LTS nodejs
-.package_deb_lts:
+package_deb_lts:
   stage: package
   image: node:lts
   before_script:
@@ -113,7 +113,7 @@ stages:
       - build/deb/${LINUX_AMD64_INSTALLER}
 
 # Package rpm
-.package_rpm:
+package_rpm:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
   script:
@@ -131,7 +131,7 @@ stages:
 
 
 # Package RasPi
-.package_raspi:
+package_raspi:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
   script:
@@ -147,7 +147,7 @@ stages:
       - build/raspi/${RASPI_64_INSTALLER}
 
 # Package 32bit RasPi
-.package_raspi_32:
+package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
   script:
@@ -185,7 +185,7 @@ stages:
     - node .\scripts\xkeys-server.js test
   interruptible: true
 
-.package_windows:
+package_windows:
   extends:
   - .shared_windows_runners
   stage: package
@@ -240,7 +240,7 @@ upload_remotes:
 #    - ./scripts/xkeys-server.js test
 #  interruptible: true
 
-.upload_deb:
+upload_deb:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -249,7 +249,7 @@ upload_remotes:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-.upload_rpm:
+upload_rpm:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -258,7 +258,7 @@ upload_remotes:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/rpm/${LINUX_RPM_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_RPM_INSTALLER}
 
-.upload_raspi:
+upload_raspi:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -267,7 +267,7 @@ upload_remotes:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_64_INSTALLER}
 
-.upload_raspi_32:
+upload_raspi_32:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -277,7 +277,7 @@ upload_remotes:
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
 
-.upload_windows:
+upload_windows:
   stage: upload
   image: curlimages/curl:latest
   rules:
