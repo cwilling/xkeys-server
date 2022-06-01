@@ -34,7 +34,7 @@ SUBSYSTEM=="input", GROUP="input", MODE="0666"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="05f3", MODE:="0666", GROUP="plugdev"
 KERNEL=="hidraw*", ATTRS{idVendor}=="05f3", MODE="0666", GROUP="plugdev"
 ```
-A similar file is required for Elgato Streamdeck devices. In this case, save the following to `/etc/udev/rules.d/50-elgato.rules`; then reload the rules with `sudo udevadm control --reload-rules && sudo udevadm trigger`
+A similar facility is required for Elgato Streamdeck devices. In this case, save the following to `/etc/udev/rules.d/50-elgato.rules`; then reload the rules with `sudo udevadm control --reload-rules && sudo udevadm trigger`
 ```
 SUBSYSTEM=="input", GROUP="input", MODE="0666"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="0060", MODE:="666", GROUP="plugdev"
@@ -55,9 +55,13 @@ KERNEL=="hidraw*", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="0086", MODE:="666
 
 ## Upgrading
 
-When upgrading any of the supplied end user _xkeys-server_ installers, previous installations are automatically uninstalled first.
+When upgrading any of the supplied end user _xkeys-server_ installers, previous installations are automatically uninstalled first. An exception to this is the macOS installer. In this case, before upgrading to a newer version, please uninstall the previous version by opening a terminal to run the comand (replace VERSION with the currently installed version):
+```
+    sudo bash /Library/xkeys-server/VERSION/uninstall.sh
+```
 
-If changing from a development to an end user installation, ensure that any arrangements to run as a daemon are first fully undone e.g.
+
+If changing from a development to an end user installation on Linux or Raspberry Pi, ensure that any arrangements to run as a daemon are first fully undone e.g.
 ```
     sudo systemctl stop xkeys-server
     sudo systemctl disable xkeys-server
