@@ -37,7 +37,7 @@ mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN
 cp -p ../xkeys-server.service xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system/
 cp -p ../50-elgato.rules xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/
 cp -p ../50-xkeys.rules xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/
-cp -p application//xkeys-server xkeys-server-${VERSION}_${PKG_ARCH}/usr/bin/
+cp -p application/xkeys-server xkeys-server-${VERSION}_${PKG_ARCH}/usr/bin/
 chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system/*
 chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/*
 chmod -R 0755 xkeys-server-${VERSION}_${PKG_ARCH}/usr
@@ -53,7 +53,6 @@ cat <<EOF > xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/prerm
 systemctl stop xkeys-server
 systemctl disable xkeys-server
 systemctl daemon-reload
-userdel --remove xkeys
 exit 0
 EOF
 chmod 0755 xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/prerm

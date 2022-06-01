@@ -49,9 +49,6 @@ systemctl start mosquitto
 systemctl enable mosquitto
 systemctl daemon-reload
 
-# Create an "xkeys" user to run the server
-adduser --user-group --create-home --home-dir /var/lib/xkeys xkeys 1>/dev/null 2>/dev/null || true
-
 # Clear previous installation remnants
 hash=$(ls -1 /tmp/pkg/ 2>/dev/null)
 [ -n "$hash" ] && {
@@ -63,9 +60,9 @@ hash=$(ls -1 /tmp/pkg/ 2>/dev/null)
 # Start running xkeys-server as a service
 #
 chmod 0755 /usr/bin/xkeys-server
-systemctl start xkeys-server
-systemctl enable xkeys-server
 systemctl daemon-reload
+systemctl enable xkeys-server
+systemctl start xkeys-server
 
 fi
 
@@ -80,7 +77,6 @@ fi
 if [ $1 == 0 ]; then
 udevadm control --reload-rules
 udevadm trigger
-userdel --remove xkeys
 fi
 
 %changelog

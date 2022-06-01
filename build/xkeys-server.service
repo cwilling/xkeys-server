@@ -6,13 +6,13 @@ After=mosquitto.target
 ExecStart=/usr/bin/xkeys-server
 
 Restart=always
-User=xkeys
-Group=xkeys
+User=root
+Group=root
 
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
 
-WorkingDirectory=/var/lib/xkeys
+WorkingDirectory=/tmp
 
 [Install]
 WantedBy=multi-user.target
