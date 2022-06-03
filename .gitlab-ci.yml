@@ -38,10 +38,12 @@ stages:
   - package
   - upload
 
-.do_nothing:
+do_nothing:
   stage: nothing
   script:
     echo
+  interruptible: true
+
 
 # Docker container for packaging RPMs.
 .docker_build_rpm:
@@ -99,7 +101,7 @@ stages:
 
 
 # Package with LTS nodejs
-package_deb_lts:
+.package_deb_lts:
   stage: package
   image: node:lts
   before_script:
@@ -110,15 +112,13 @@ package_deb_lts:
     - npx pkg -t node16-linux-x64 --out-path application ../..
     - ls -l application/
     - ./make-deb
-  rules:
-    - when: manual
   interruptible: true
   artifacts:
     paths:
       - build/deb/${LINUX_AMD64_INSTALLER}
 
 # Package rpm
-package_rpm:
+.package_rpm:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
   script:
@@ -127,8 +127,6 @@ package_rpm:
     - ./make-rpm
     - cp -p ~/rpmbuild/RPMS/x86_64/xkeys-server-${PACKAGE_VERSION}-1.x86_64.rpm .
     - ls -l ${LINUX_RPM_INSTALLER}
-  rules:
-    - when: manual
   interruptible: true
   artifacts:
     paths:
@@ -136,7 +134,7 @@ package_rpm:
 
 
 # Package RasPi
-package_raspi:
+.package_raspi:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
   script:
@@ -144,15 +142,13 @@ package_raspi:
     - cd build/raspi
     - ./make-raspi
     - ls -l ${RASPI_64_INSTALLER}
-  rules:
-    - when: manual
   interruptible: true
   artifacts:
     paths:
       - build/raspi/${RASPI_64_INSTALLER}
 
 # Package 32bit RasPi
-package_raspi_32:
+.package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
   script:
@@ -165,8 +161,6 @@ package_raspi_32:
     - cd build/raspi
     - ./make-raspi
     - ls -l ${RASPI_32_INSTALLER}
-  rules:
-    - when: manual
   interruptible: true
   artifacts:
     paths:
@@ -190,7 +184,7 @@ package_raspi_32:
     - node .\scripts\xkeys-server.js test
   interruptible: true
 
-package_windows:
+.package_windows:
   extends:
   - .shared_windows_runners
   stage: package
@@ -202,8 +196,6 @@ package_windows:
     - npx pkg -t node12-win-x64 --out-path application ../..
     - '& "C:\\Program Files (x86)\\NSIS\\makensis.exe" xkeys-server-installer.nsi'
     - ls ${WINDOWS_INSTALLER}
-  rules:
-    - when: manual
   interruptible: true
   artifacts:
     paths:
@@ -211,11 +203,10 @@ package_windows:
 
 # We can't build macos packages here yet
 # so fetch and upload a package we prepared manually
-upload_remotes:
+.upload_remotes:
   image: curlimages/curl:latest
   stage: upload
   rules:
-    - when: manual
     - if: $CI_DEPLOY_FREEZE == null
   script:
     - mkdir -p build/macos
@@ -245,7 +236,7 @@ upload_remotes:
 #    - ./scripts/xkeys-server.js test
 #  interruptible: true
 
-upload_deb:
+.upload_deb:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -254,7 +245,7 @@ upload_deb:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-upload_rpm:
+.upload_rpm:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -263,7 +254,7 @@ upload_rpm:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/rpm/${LINUX_RPM_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_RPM_INSTALLER}
 
-upload_raspi:
+.upload_raspi:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -272,7 +263,7 @@ upload_raspi:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_64_INSTALLER}
 
-upload_raspi_32:
+.upload_raspi_32:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -282,7 +273,7 @@ upload_raspi_32:
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
 
-upload_windows:
+.upload_windows:
   stage: upload
   image: curlimages/curl:latest
   rules:
