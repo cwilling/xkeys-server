@@ -128,8 +128,7 @@ var mqtt = require('mqtt');
 const qos = 2;
 const { XKeysWatcher } = require('xkeys');
 const XKeys = require('xkeys');
-//const { PRODUCTS } = require('@xkeys-lib/core/dist/products');
-var { PRODUCTS } = require('@xkeys-lib/core/dist/products');
+const { PRODUCTS, XKEYS_VENDOR_ID } = require('@xkeys-lib/core/dist/products');
 /*	Add Elgato products */
 elgato.products(PRODUCTS);
 
@@ -1373,6 +1372,7 @@ function startWatcher () {
 	});
 	watcher.on('connected', (xkeysPanel) => {
 		console.log(`X-keys panel ${xkeysPanel.uniqueId} discovered`);
+		xkeysPanel["vendorId"] = XKEYS_VENDOR_ID;
 		add_xkeys_device(xkeysPanel);
 		update_client_device_list("");
 			var attach_msg = {"msg_type":"attach_event", "server_id":ServerID, "device":xkeysPanel.info.name,};
@@ -1383,7 +1383,7 @@ function startWatcher () {
 			send_udp_message(JSON.stringify(attach_msg));
 
 		xkeysPanel.on('disconnected', () => {
-			var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
+			var temp_id = xkeysPanel.vendorId + '-' + xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 			console.log(`X-keys panel ${temp_id} disconnected`)
 			delete xkeys_devices[temp_id];
 			update_client_device_list("");
@@ -1400,7 +1400,7 @@ function startWatcher () {
 		*/
 		xkeysPanel.on('down', (btnIndex, metadata) => {
 			//console.log(`X-keys panel ${xkeysPanel.info.name} down`)
-			var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
+			var temp_id = xkeysPanel.vendorId + '-' + xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 			if (Object.keys(xkeys_devices).includes(temp_id)) {
 				var product_id = xkeys_devices[temp_id].device.info.productId;
 				var unit_id = xkeys_devices[temp_id].device.info.unitId;
@@ -1415,8 +1415,8 @@ function startWatcher () {
 				// This is the v2.0.0 format
 				// value = 1 for down, 0 for up
 				var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-								"product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id, "control_id":btnIndex,
-								"row":metadata.row,"col":metadata.col, "value":1,"timestamp":metadata.timestamp};
+								"vendor_id":xkeysPanel.vendorId, "product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id,
+								"control_id":btnIndex, "row":metadata.row,"col":metadata.col, "value":1,"timestamp":metadata.timestamp};
 				send_udp_message(JSON.stringify(msg_udp));
 			} else {
 				add_unknown_xkeys_device(xkeysPanel)
@@ -1438,15 +1438,15 @@ function startWatcher () {
 					// This is the v2.0.0 format
 					// value = 1 for down, 0 for up
 					var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-									"product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id, "control_id":btnIndex,
-									"row":metadata.row,"col":metadata.col, "value":1,"timestamp":metadata.timestamp};
+									"vendor_id":xkeysPanel.vendorId, "product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id,
+									"control_id":btnIndex, "row":metadata.row,"col":metadata.col, "value":1,"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				})
 			}
 		})
 		xkeysPanel.on('up', (btnIndex, metadata) => {
 			//console.log(`X-keys panel ${xkeysPanel.info.name} up`)
-			var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
+			var temp_id = xkeysPanel.vendorId + '-' + xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 			if (Object.keys(xkeys_devices).includes(temp_id)) {
 				var product_id = xkeys_devices[temp_id].device.info.productId;
 				var unit_id = xkeys_devices[temp_id].device.info.unitId;
@@ -1461,8 +1461,8 @@ function startWatcher () {
 				// This is the v2.0.0 format
 				// value = 1 for down, 0 for up
 				var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-								"product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id, "control_id":btnIndex,
-								"row":metadata.row,"col":metadata.col, "value":0,"timestamp":metadata.timestamp};
+								"vendor_id":xkeysPanel.vendorId, "product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id,
+								"control_id":btnIndex, "row":metadata.row,"col":metadata.col, "value":0,"timestamp":metadata.timestamp};
 				send_udp_message(JSON.stringify(msg_udp));
 			} else {
 				add_unknown_xkeys_device(xkeysPanel)
@@ -1484,15 +1484,15 @@ function startWatcher () {
 					// This is the v2.0.0 format
 					// value = 1 for down, 0 for up
 					var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-									"product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id, "control_id":btnIndex,
-									"row":metadata.row,"col":metadata.col, "value":0,"timestamp":metadata.timestamp};
+									"vendor_id":xkeysPanel.vendorId, "product_id":product_id,"unit_id":unit_id,"duplicate_id":xkeysPanel.duplicate_id,
+									"control_id":btnIndex, "row":metadata.row,"col":metadata.col, "value":0,"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				})
 			}
 		})
 		xkeysPanel.on('jog', (index, deltaPos, metadata) => {
 			//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index}), delta ${deltaPos}`)
-			var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
+			var temp_id = xkeysPanel.vendorId + '-' + xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 			if (Object.keys(xkeys_devices).includes(temp_id)) {
 				var product_id = xkeys_devices[temp_id].device.info.productId;
 				var unit_id = xkeys_devices[temp_id].device.info.unitId;
@@ -1507,7 +1507,7 @@ function startWatcher () {
 
 				// This is the v2.0.0 format
 				var msg_udp = {"msg_type":"jog_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-								"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+								"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
 								"control_id":index, "value":norm.normalize(deltaPos,"jog"), "timestamp":metadata.timestamp};
 				send_udp_message(JSON.stringify(msg_udp));
 			} else {
@@ -1530,7 +1530,7 @@ function startWatcher () {
 
 					// This is the v2.0.0 format
 					var msg_udp = {"msg_type":"jog_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-									"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+									"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
 									"control_id":index, "value":norm.normalize(deltaPos,"jog"), "timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				})
@@ -1538,7 +1538,7 @@ function startWatcher () {
 		})
 		xkeysPanel.on('shuttle', (index, shuttlePos, metadata) => {
 			//console.log(`X-keys panel ${xkeysPanel.info.name} jog (${index})`)
-			var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
+			var temp_id = xkeysPanel.vendorId + '-' + xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 			if (Object.keys(xkeys_devices).includes(temp_id)) {
 				var product_id = xkeys_devices[temp_id].device.info.productId;
 				var unit_id = xkeys_devices[temp_id].device.info.unitId;
@@ -1553,7 +1553,7 @@ function startWatcher () {
 
 				// This is the v2.0.0 format
 				var msg_udp = {"msg_type":"shuttle_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-								"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+								"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
 								"control_id":index, "value":norm.normalize(shuttlePos,metadata["type"]), "timestamp":metadata.timestamp};
 				send_udp_message(JSON.stringify(msg_udp));
 			} else {
@@ -1576,7 +1576,7 @@ function startWatcher () {
 
 					// This is the v2.0.0 format
 					var msg_udp = {"msg_type":"shuttle_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-									"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+									"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
 									"control_id":index, "value":norm.normalize(shuttlePos, metadata["type"]), "timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				})
@@ -1588,7 +1588,7 @@ function startWatcher () {
 			position["y"] = norm.normalize(position["y"], "joyy");
 			position["z"] = norm.normalize(position["z"], "joyz");
 			position["deltaZ"] = norm.normalize(position["deltaZ"], "deltaZ");
-			var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
+			var temp_id = xkeysPanel.vendorId + '-' + xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 			if (Object.keys(xkeys_devices).includes(temp_id)) {
 				var product_id = xkeys_devices[temp_id].device.info.productId;
 				var unit_id = xkeys_devices[temp_id].device.info.unitId;
@@ -1603,8 +1603,8 @@ function startWatcher () {
 
 				// This is the v2.0.0 format
 				var msg_udp = {"msg_type":"joystick_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-								"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id, "control_id":index,
-								"x":position.x, "y":position.y, "z":position.z, "deltaZ":position.deltaZ,
+								"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+								"control_id":index, "x":position.x, "y":position.y, "z":position.z, "deltaZ":position.deltaZ,
 								"timestamp":metadata.timestamp};
 				send_udp_message(JSON.stringify(msg_udp));
 			} else {
@@ -1627,8 +1627,8 @@ function startWatcher () {
 
 					// This is the v2.0.0 format
 					var msg_udp = {"msg_type":"joystick_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-									"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id, "control_id":index,
-									"x":position.x, "y":position.y, "z":position.z, "deltaZ":position.deltaZ,
+									"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+									"control_id":index, "x":position.x, "y":position.y, "z":position.z, "deltaZ":position.deltaZ,
 									"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				})
@@ -1636,7 +1636,7 @@ function startWatcher () {
 		})
 		xkeysPanel.on('tbar', (index, position, metadata) => {
 			//console.log(`X-keys panel ${xkeysPanel.info.name} tbar (${index})`)
-			var temp_id = xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
+			var temp_id = xkeysPanel.vendorId + '-' + xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 			if (Object.keys(xkeys_devices).includes(temp_id)) {
 				var product_id = xkeys_devices[temp_id].device.info.productId;
 				var unit_id = xkeys_devices[temp_id].device.info.unitId;
@@ -1651,8 +1651,8 @@ function startWatcher () {
 
 				// This is the 2.0.0 format
 				var msg_udp = {"msg_type":"tbar_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-								"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id, "control_id":index,
-								"value":norm.normalize(position, "tbar"),"timestamp":metadata.timestamp};
+								"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+								"control_id":index, "value":norm.normalize(position, "tbar"),"timestamp":metadata.timestamp};
 				send_udp_message(JSON.stringify(msg_udp));
 			} else {
 				add_unknown_xkeys_device(xkeysPanel)
@@ -1674,45 +1674,48 @@ function startWatcher () {
 
 					// This is the 2.0.0 format
 					var msg_udp = {"msg_type":"tbar_event", "server_id":ServerID, "device":xkeysPanel.info.name,
-									"product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id, "control_id":index,
-									"value":norm.normalize(position, "tbar"),"timestamp":metadata.timestamp};
+									"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+									"control_id":index, "value":norm.normalize(position, "tbar"),"timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				})
 			}
 		})
 	})
-}	// function startWatcher()
+}	//	END function startWatcher()
 
 
 /*
-	Add a newly discovered device to xkeys_devices object.
-	Main concern is duplicate uniqueId
-	(probably same devices with UID still == 0)
+*	Add a newly discovered device to xkeys_devices object.
+*	We add a "duplicate_id" property to correctly distinguish between
+*	multiple similar looking devices (same maker & same model & same unit_id).
+*	We compose a device-quad comprising vendor_id, product_id, unit_id & duplicate_id
+*	to be used as the key when adding this new device into the xkeys_devices object.
 */
 add_xkeys_device = (xkeysPanel) => {
 	var duplicate_id = 0;
-	var temp_id_base = xkeysPanel.uniqueId.replace(/_/g, "-");
+	var temp_id_base = xkeysPanel.vendorId.toString() + '-' + xkeysPanel.uniqueId.replace(/_/g, "-");
 	while ((temp_id_base + '-' + duplicate_id) in xkeys_devices) {
 		duplicate_id += 1;
 	}
 	xkeysPanel["duplicate_id"] = duplicate_id;
+
+	//	This is the device-quad identifying the new device being added.
 	var temp_id = temp_id_base + "-" + xkeysPanel.duplicate_id;
 	console.log(`New device entry: ${temp_id}`);
 	xkeys_devices[temp_id] = {"owner": "", "device": xkeysPanel};
 
 	console.log(`After add_xkeys_device(): xkeys_devices = ${JSON.stringify(Object.keys(xkeys_devices))}`);
-	//console.log(`After add_xkeys_device(): xkeys_devices = ${JSON.stringify(xkeys_devices)}`);
-}	// function add_xkeys_device()
+}	// END function add_xkeys_device()
 
 /*
-	Add a device discovered by acccident i.e. not by the watcher itself.
-	This can happen with RPSs version < 4, which have insufficient USB hardware
-	to deal with rebootDevice() calls (used after setUnitId() is called).
-
-	Although we can probably add the "new" device to xkeys_devices here, it still leaves
-	xkeys_devices in an inconsistent state because the "old" device remains on it.
-
-	Here we use XKeys.listAllConnectedPanels() to completely repopulate xkeys_devices.
+*	Add a device discovered by acccident i.e. not by the watcher itself.
+*	This can happen with RPSs version < 4, which have insufficient USB hardware
+*	to deal with rebootDevice() calls (used after setUnitId() is called).
+*
+*	Although we can probably add the "new" device to xkeys_devices here, it still leaves
+*	xkeys_devices in an inconsistent state because the "old" device remains on it.
+*
+*	Here we use XKeys.listAllConnectedPanels() to completely repopulate xkeys_devices.
 */
 function add_unknown_xkeys_device (xkeysPanel) {
 	console.log("add_unknown_xkeys_device");
@@ -1735,21 +1738,22 @@ function add_unknown_xkeys_device (xkeysPanel) {
 				.catch(console.log)
 				})
 	})
-}	// function add_unknown_xkeys_device()
+}	//	END function add_unknown_xkeys_device()
 
 /*	MQTT message
-
-	Each message should be a stringified json object
-	containing a "request" field, optionally followed
-	by any parameters required for the request.
-	{request: requestName, param0: param, param1: param, ...}
+*
+*	Each message should be a stringified json object
+*	containing a "request" field, optionally followed
+*	by any parameters required for the request.
+*	{request: requestName, param0: param, param1: param, ...}
 */
 client.on('message', (topic, message) => {
     //console.log('received message：', topic, message.toString())
 	request_message_process("mqtt", message, topic);
 })
 
-// Send a (possibly unsolicited) device list
+/*	Send a (possibly unsolicited) device list
+*/
 update_client_device_list = (topic) => {
 
 	var device_list = {};
@@ -1792,7 +1796,8 @@ sendHeartbeat = (client) => {
 }
 
 
-/* udp_server functions */
+/*	udp_server functions
+*/
 udp_server.on('error', (err) => {
 	console.log(err.stack);
 	udp_server.close();

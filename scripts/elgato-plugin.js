@@ -39,12 +39,14 @@ async function addDevice(info) {
 	usbDetect.find(VENDOR_ID.toString(), function(err, devices) {
 		devices.forEach( (device) => {
 			if (serial_number == device.serialNumber) {
-				const product_id = parseInt(device.vendorId + device.productId.toString().padStart(4,0));
+				const product_id = device.productId;
 				const unit_id = 0;
 				const panel = streamDecks[path];
+				panel["vendorId"] = device.vendorId;
 				panel["uniqueId"] = product_id + "_" + unit_id;
 				const device_info = {};
 				device_info["name"] = panel.device.PRODUCT_NAME;
+				device_info["vendor_id"] = device.vendorId;
 				device_info["product_id"] = product_id;
 				device_info["interface"] = 0;
 				device_info["unit_id"] = unit_id;
@@ -60,6 +62,7 @@ async function addDevice(info) {
 				add_xkeys_device(panel);
 
 				var attach_msg = {"msg_type":"attach_event", "server_id":ServerID, "device":panel.info.name,};
+				attach_msg["vendor_id"] = panel.info.vendor_id;
 				attach_msg["product_id"] = panel.info.product_id;
 				attach_msg["unit_id"] = panel.info.unit_id;
 				attach_msg["duplicate_id"] = panel.duplicate_id;
@@ -81,21 +84,23 @@ async function addDevice(info) {
 	streamDecks[path].on('error', (e) => {
 		console.log(`Device at ${path} was removed (${e})`)
 		// assuming any error means we lost connection
-		streamDecks[path].removeAllListeners()
+		const panel = streamDecks[path];
+		panel.removeAllListeners()
 
-		var temp_id = streamDecks[path].uniqueId.replace(/_/g, "-") + "-" + streamDecks[path].duplicate_id;
+		var temp_id = panel.vendorId.toString() + '-' + panel.uniqueId.replace(/_/g, "-") + "-" + panel.duplicate_id;
 		console.log(`X-keys panel ${temp_id} disconnected`)
 		delete elgato_devices[temp_id];
 
 		update_client_device_list("");
-		var detach_msg = {"msg_type":"detach_event", "server_id":ServerID, "device":streamDecks[path].info.name,};
-		detach_msg["product_id"] = streamDecks[path].info.product_id;
-		detach_msg["unit_id"] = streamDecks[path].info.unit_id;
-		detach_msg["duplicate_id"] = streamDecks[path].duplicate_id;
+		var detach_msg = {"msg_type":"detach_event", "server_id":ServerID, "device":panel.info.name,};
+		detach_msg["vendor_id"] = panel.info.vendor_id;
+		detach_msg["product_id"] = panel.info.product_id;
+		detach_msg["unit_id"] = panel.info.unit_id;
+		detach_msg["duplicate_id"] = panel.duplicate_id;
 		detach_msg["attached_devices"] = Object.keys(elgato_devices);
 		send_udp_message(JSON.stringify(detach_msg));
 
-		delete streamDecks[path]
+		delete panel;
 	})
 
 	/*	Event listeners (buttons, tbar, joystick, etc.) go here
@@ -109,8 +114,9 @@ async function addDevice(info) {
 		const panel = streamDecks[path];
 		const rowcol = calcRowCol(keyIndex, panel.KEY_ROWS, panel.KEY_COLUMNS);
 		var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":panel.info.name,
-						"product_id":panel.info.product_id,"unit_id":panel.info.unit_id,"duplicate_id":panel.duplicate_id,
-						"control_id":0, "row":rowcol[0],"col":rowcol[1], "value":1, "timestamp":metadata.timestamp};
+						"vendor_id":panel.info.vendor_id, "product_id":panel.info.product_id,
+						"unit_id":panel.info.unit_id,"duplicate_id":panel.duplicate_id,
+						"control_id":keyIndex, "row":rowcol[0],"col":rowcol[1], "value":1, "timestamp":metadata.timestamp};
 		send_udp_message(JSON.stringify(msg_udp));
 
 		/*	For NodeRED */
@@ -129,8 +135,9 @@ async function addDevice(info) {
 		const panel = streamDecks[path];
 		const rowcol = calcRowCol(keyIndex, panel.KEY_ROWS, panel.KEY_COLUMNS);
 		var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":panel.info.name,
-						"product_id":panel.info.product_id,"unit_id":panel.info.unit_id,"duplicate_id":panel.duplicate_id,
-						"control_id":0, "row":rowcol[0],"col":rowcol[1], "value":0, "timestamp":metadata.timestamp};
+						"vendor_id":panel.info.vendor_id, "product_id":panel.info.product_id,
+						"unit_id":panel.info.unit_id,"duplicate_id":panel.duplicate_id,
+						"control_id":keyIndex, "row":rowcol[0],"col":rowcol[1], "value":0, "timestamp":metadata.timestamp};
 		send_udp_message(JSON.stringify(msg_udp));
 
 		/*	NodeRED */
@@ -192,7 +199,7 @@ module.exports = {
 		/*	Add Streamdeck products in a format matching Xkeys products */
 		//console.log(`DEVICE_MODELS = ${JSON.stringify(DEVICE_MODELS)}`);
 		DEVICE_MODELS.forEach( (model) => {
-			const product_id = parseInt(VENDOR_ID.toString() + model.productId.toString().padStart(4,0));
+			const product_id = model.productId;
 			products["SD"+model.id.toUpperCase()] = {"name":"Streamdeck " + model.id.toUpperCase(), "hidDevices":[[product_id,0]]};
 		});
 	}
