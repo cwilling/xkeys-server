@@ -1,6 +1,6 @@
 # xkeys-server
 
-The _xkeys-server_ is a ***cross platform***, stand alone ***NodeJS*** application, using [SuperFlyTV's library (SFTV)](https://github.com/SuperFlyTV/xkeys) to interact with [***X-keys devices***](https://xkeys.com/). Since version 0.9.9, [***Elgato Streamdeck devices***](https://www.elgato.com/en/stream-deck) are also supported, using [Julusian's library for Elgato devices](https://www.npmjs.com/package/@elgato-stream-deck/node). User applications wishing to access X-keys or Streamdeck devices could easily do so directly by using the appropriate SFTV or Julusian NodeJS library. The advantage of accessing these devices via the _xkeys-server_ is the reduction (elimination?) of contention between multiple client applications which may simultaneously wish to control these devices.
+The _xkeys-server_ is a ***cross platform***, stand alone ***NodeJS*** application, using [SuperFlyTV's library (SFTV)](https://github.com/SuperFlyTV/xkeys) to interact with [***X-keys devices***](https://xkeys.com/). Since version 0.9.10, [***Elgato Streamdeck devices***](https://www.elgato.com/en/stream-deck) are also supported, using [Julusian's library for Elgato devices](https://www.npmjs.com/package/@elgato-stream-deck/node). User applications wishing to access X-keys or Streamdeck devices could easily do so directly by using the appropriate SFTV or Julusian NodeJS library. The advantage of accessing these devices via the _xkeys-server_ is the reduction (elimination?) of contention between multiple client applications which may simultaneously wish to control these devices.
 
 Communication between applications and the _xkeys-server_ may be via UDP or MQTT protocol. Client applicatons using UDP are restricted to the local network and may use a simple discovery mechanism to automagically connect to a local _xkeys-server_. UDP clients use the publicly available (soon to be released) **Dynamic Control Data (DCD)** protocol, allowing them to access any other manufacturers' devices which are acccessible (either directly or through some library) via the DCD protocol.
 
@@ -12,7 +12,7 @@ Being a NodeJS application, _xkeys-server_ is able to be run on ***Linux*** (inc
 
 ## Installation
 
-_Xkeys-server_ package installers for end users will be available for Linux, Raspberry Pi, MacOS & Windows. Prerelease installers are available for testing at the [Releases page](https://gitlab.com/chris.willing/xkeys-server/-/releases/0.9.9).
+_Xkeys-server_ package installers for end users will be available for Linux, Raspberry Pi, MacOS & Windows. Prerelease installers are available for testing at the [Releases page](https://gitlab.com/chris.willing/xkeys-server/-/releases/0.9.10).
 
 ## Development
 

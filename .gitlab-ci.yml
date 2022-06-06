@@ -4,7 +4,7 @@ default:
   image: node:lts
 
 variables:
-  PACKAGE_VERSION: "0.9.9"
+  PACKAGE_VERSION: "0.9.10"
   LINUX_AMD64_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_amd64.deb"
   LINUX_RPM_INSTALLER: "xkeys-server-${PACKAGE_VERSION}-1.x86_64.rpm"
   MACOS_INSTALLER: "xkeys-server-macos-installer-${PACKAGE_VERSION}-x86_64.pkg"
