@@ -14,10 +14,13 @@
 //const PRODUCTS = require('./btest/products');
 //console.log(`package products = ${JSON.stringify(PRODUCTS)}`);
 
-const norm = require('../scripts/NormalizeValues.js');
+//const norm = require('../scripts/NormalizeValues.js');
+
 // normalize (x, controlType="tbar", pid=0)
 //console.log(`QQQ: ${norm.normalize(64, "tbar", 1065)}`); // should throw error (1065 doesn't have a tbar)
 //process.exit();
+
+const vendor_id = 1324;
 
 let target_serverId;
 const myArgs = process.argv.slice(2);
@@ -160,7 +163,9 @@ choose_server = (server_id) => {
 				server_addr = target.xk_server_address;
 				client.setBroadcast(false);
 				//send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
-				send_udp_message(new Buffer.from('{"msg_type":"device_connect", "device":"Remote Thing", "product_id":"1404","unit_id":1, "rowCount":6,"colCount":4}', 'UTF-8'));
+				udp_message = {"msg_type":"device_connect", "device":"Remote Thing", "vendor_id":vendor_id, "product_id":"1404","unit_id":1, "rowCount":6,"colCount":4};
+				send_udp_message(udp_message);
+				//send_udp_message(new Buffer.from('{"msg_type":"device_connect", "device":"Remote Thing", "vendor_id":vendor_id, "product_id":"1404","unit_id":1, "rowCount":6,"colCount":4}', 'UTF-8'));
 			} else {
 				/* Something went wrong so start all over */
 				console.log(`Couldn't find server with SID matching ${server_id}`);
@@ -174,7 +179,8 @@ choose_server = (server_id) => {
 			server_addr = choice.xk_server_address;
 			client.setBroadcast(false);
 			//send_udp_message(new Buffer.from('{"msg_type":"connect"}', 'UTF-8'));
-			send_udp_message(new Buffer.from('{"msg_type":"device_connect", "device":"Remote Thing", "product_id":"1404","unit_id":1, "rowCount":6,"colCount":4}', 'UTF-8'));
+			make_message({"msg_type":"device_connect", "device":"Remote Thing", "vendor_id":vendor_id, "product_id":1404,"unit_id":1, "rowCount":6,"colCount":4});
+			//send_udp_message(new Buffer.from('{"msg_type":"device_connect", "device":"Remote Thing", "vendor_id":vendor_id, "product_id":"1404","unit_id":1, "rowCount":6,"colCount":4}', 'UTF-8'));
 		}
 	}
 }
@@ -358,17 +364,20 @@ make_message = (x) => {
 //	setTimeout(send_udp_message, 3000, (new Buffer.from(JSON.stringify(x), 'UTF-8')));
 	send_udp_message(new Buffer.from(JSON.stringify(x), 'UTF-8'));
 }
-console.log(`type of normalized (51,"tbar") is ${typeof norm.normalize(51,"tbar")}`);
+//console.log(`type of normalized (51,"tbar") is ${typeof norm.normalize(51,"tbar")}`);
+
 //x = {"msg_type":"device_data", "event_type":"tbar_event", "control_id":0, "value":norm.normalize(51,"tbar"),"timestamp":730424776};
 //make_message(x);
 //setTimeout(make_message, 3000, ({"msg_type":"device_data", "event_type":"tbar_event", "control_id":0, "value":norm.normalize(51,"tbar"),"timestamp":730424776}));
 //process.exit()
 
 // Device Client Events
-//setTimeout(make_message, 1000, ({"msg_type":"device_connect", "device":"Remote Button", "product_id":"91278","unit_id":1, "rowCount":4,"colCount":4}));
+//setTimeout(make_message, 1000, ({"msg_type":"device_connect", "device":"Remote Button", "vendor_id":vendor_id, "product_id":"91278","unit_id":1, "rowCount":4,"colCount":4}));
 setTimeout(make_message, 3000, ({"msg_type":"device_data", "event_type":"button_event", "control_id":2, "row":2,"col":1,"value":1,"timestamp":730423776}));
 setTimeout(make_message, 3100, ({"msg_type":"device_data", "event_type":"button_event", "control_id":2, "row":2,"col":1,"value":0,"timestamp":730423876}));
+/*
 setTimeout(make_message, 4000, ({"msg_type":"device_data", "event_type":"tbar_event", "control_id":0, "value":norm.normalize(51,"tbar"),"timestamp":730424776}));
 setTimeout(make_message, 5000, ({"msg_type":"device_data", "event_type":"jog_event", "control_id":0, "value":norm.normalize(-1,"jog"),"timestamp":730425776}));
 setTimeout(make_message, 6000, ({"msg_type":"device_data", "event_type":"shuttle_event", "control_id":0, "value":norm.normalize(7,"shuttle"),"timestamp":730426776}));
 setTimeout(make_message, 7000, ({"msg_type":"device_data", "event_type":"joystick_event", "control_id":0, "x":norm.normalize(127,"joyx"),"y":norm.normalize(0,"joyy"),"z":norm.normalize(219,"joyx"),"deltaZ":norm.normalize(0,"joydeltaZ"),"timestamp":730427776}));
+*/
