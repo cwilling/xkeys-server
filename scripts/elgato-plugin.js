@@ -38,14 +38,15 @@ async function addDevice(info) {
 	usbDetect.find(VENDOR_ID.toString(), function(err, devices) {
 		devices.forEach( (device) => {
 			if (serial_number == device.serialNumber) {
+				const vendor_id = device.vendorId;
 				const product_id = device.productId;
 				const unit_id = 0;
 				const panel = streamDecks[path];
-				panel["vendorId"] = device.vendorId;
+				panel["vendorId"] = vendor_id;
 				panel["uniqueId"] = product_id + "_" + unit_id;
 				const device_info = {};
 				device_info["name"] = panel.device.PRODUCT_NAME;
-				device_info["vendorId"] = device.vendorId;
+				device_info["vendorId"] = vendor_id;
 				device_info["productId"] = product_id;
 				device_info["interface"] = 0;
 				device_info["unit_id"] = unit_id;
@@ -61,8 +62,8 @@ async function addDevice(info) {
 				add_xkeys_device(panel);
 
 				var attach_msg = {"msg_type":"attach_event", "server_id":ServerID, "device":panel.info.name,};
-				attach_msg["vendor_id"] = panel.info.vendor_id;
-				attach_msg["product_id"] = panel.info.product_id;
+				attach_msg["vendor_id"] = panel.info.vendorId;
+				attach_msg["product_id"] = panel.info.productId;
 				attach_msg["unit_id"] = panel.info.unit_id;
 				attach_msg["duplicate_id"] = panel.duplicate_id;
 				attach_msg["attached_devices"] = Object.keys(elgato_devices);
@@ -92,8 +93,8 @@ async function addDevice(info) {
 
 		update_client_device_list("");
 		var detach_msg = {"msg_type":"detach_event", "server_id":ServerID, "device":panel.info.name,};
-		detach_msg["vendor_id"] = panel.info.vendor_id;
-		detach_msg["product_id"] = panel.info.product_id;
+		detach_msg["vendor_id"] = panel.info.vendorId;
+		detach_msg["product_id"] = panel.info.productId;
 		detach_msg["unit_id"] = panel.info.unit_id;
 		detach_msg["duplicate_id"] = panel.duplicate_id;
 		detach_msg["attached_devices"] = Object.keys(elgato_devices);
@@ -113,7 +114,7 @@ async function addDevice(info) {
 		const panel = streamDecks[path];
 		const rowcol = calcRowCol(keyIndex, panel.KEY_ROWS, panel.KEY_COLUMNS);
 		var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":panel.info.name,
-						"vendor_id":panel.info.vendor_id, "product_id":panel.info.product_id,
+						"vendor_id":panel.info.vendorId, "product_id":panel.info.productId,
 						"unit_id":panel.info.unit_id,"duplicate_id":panel.duplicate_id,
 						"control_id":keyIndex, "row":rowcol[0],"col":rowcol[1], "value":1, "timestamp":metadata.timestamp};
 		send_udp_message(JSON.stringify(msg_udp));
@@ -126,7 +127,7 @@ async function addDevice(info) {
 		const panel = streamDecks[path];
 		const rowcol = calcRowCol(keyIndex, panel.KEY_ROWS, panel.KEY_COLUMNS);
 		var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":panel.info.name,
-						"vendor_id":panel.info.vendor_id, "product_id":panel.info.product_id,
+						"vendor_id":panel.info.vendorId, "product_id":panel.info.productId,
 						"unit_id":panel.info.unit_id,"duplicate_id":panel.duplicate_id,
 						"control_id":keyIndex, "row":rowcol[0],"col":rowcol[1], "value":0, "timestamp":metadata.timestamp};
 		send_udp_message(JSON.stringify(msg_udp));
