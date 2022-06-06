@@ -101,7 +101,7 @@ stages:
 
 
 # Package with LTS nodejs
-.package_deb_lts:
+package_deb_lts:
   stage: package
   image: node:lts
   before_script:
@@ -118,7 +118,7 @@ stages:
       - build/deb/${LINUX_AMD64_INSTALLER}
 
 # Package rpm
-.package_rpm:
+package_rpm:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
   script:
@@ -134,7 +134,7 @@ stages:
 
 
 # Package RasPi
-.package_raspi:
+package_raspi:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
   script:
@@ -148,7 +148,7 @@ stages:
       - build/raspi/${RASPI_64_INSTALLER}
 
 # Package 32bit RasPi
-.package_raspi_32:
+package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
   script:
@@ -184,7 +184,7 @@ stages:
     - node .\scripts\xkeys-server.js test
   interruptible: true
 
-.package_windows:
+package_windows:
   extends:
   - .shared_windows_runners
   stage: package
