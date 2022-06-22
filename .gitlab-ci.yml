@@ -8,6 +8,7 @@ variables:
   LINUX_AMD64_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_amd64.deb"
   LINUX_RPM_INSTALLER: "xkeys-server-${PACKAGE_VERSION}-1.x86_64.rpm"
   MACOS_INSTALLER: "xkeys-server-macos-installer-${PACKAGE_VERSION}-x86_64.pkg"
+  BEAGLEBONE_BLACK_INSTALLER: "xkeys-server-bbb-${PACKAGE_VERSION}_armhf.deb"
   RASPI_32_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_armhf.deb"
   RASPI_64_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_arm64.deb"
   WINDOWS_INSTALLER: "xkeys-server-installer-${PACKAGE_VERSION}.exe"
@@ -78,6 +79,19 @@ do_nothing:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     - cat build/raspi/Dockerfile.arm32v7 | docker build -t registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32 -
+    - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
+
+# Docker container for Beaglebone Black 32bit packaging
+# (using default Debian buster base)
+.docker_build_arm32v7:
+  stage: docker_build
+  image: docker:20.10.11
+  services:
+    - docker:dind
+  script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    - cat build/raspi/Dockerfile | docker build -t registry.gitlab.com/chris.willing/xkeys-server:buster-arm32 -
     - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
 
 
@@ -165,6 +179,25 @@ do_nothing:
   artifacts:
     paths:
       - build/raspi/${RASPI_32_INSTALLER}
+
+# Package 32bit Beaglebone Black
+.package_beaglebone_black:
+  stage: package
+  image: registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
+  script:
+    - mkdir -p ~/.pkg-cache/v2.6
+    - cd ~/.pkg-cache/v2.6
+    - wget https://github.com/yao-pkg/pkg-binaries/releases/download/v1.0.0/fetched-v10.15.3-linux-armv7
+    - ls -l
+    - cd -
+    - npm install --save-dev pkg@4.5.1
+    - cd build/raspi
+    - ./make-raspi
+    - ls -l ${BEAGLEBONE_BLACK_INSTALLER}
+  interruptible: true
+  artifacts:
+    paths:
+      - build/raspi/${BEAGLEBONE_BLACK_INSTALLER}
 
 
 

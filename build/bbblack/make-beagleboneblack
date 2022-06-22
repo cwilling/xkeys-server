@@ -1,0 +1,74 @@
+#!/bin/bash
+
+
+# Create a .deb package of xkeys-server for Beaglebone Black
+
+VERSION=$(python3 -c 'import json,sys; f=open("../../package.json"); obj=json.load(f);print(obj["version"])')
+ARCH=${ARCH:-$(uname -m)}
+case $ARCH in
+  armv[67]*) BUILD_ARCH="armv7"
+               PKG_ARCH="armhf" ;;
+  *) echo "ARCH: $ARCH is not supported for Beaglebone Black"
+     exit 1 ;;
+esac
+echo "Using BUILD_ARCH=$BUILD_ARCH, PKG_ARCH = $PKG_ARCH"
+
+# Work in the correct directory
+cd $(dirname $0)
+CWD=$(pwd)
+
+#	Step 1 - create an executable in the "application" directory
+#
+npx pkg -t node10-linux-$BUILD_ARCH --out-path application ../..
+echo "Added: $(file application/*)"
+
+#	Step 2 - package the executable into an installer
+#
+rm -rf xkeys-server-${VERSION}_${PKG_ARCH}
+mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system
+mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d
+chmod -R 0755 xkeys-server-${VERSION}_${PKG_ARCH}/lib
+mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/usr/bin
+mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server
+mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN
+
+cp -p ../xkeys-server.service xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system/
+cp -p ../50-elgato.rules xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/
+cp -p ../50-xkeys.rules xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/
+cp -p application/xkeys-server xkeys-server-${VERSION}_${PKG_ARCH}/usr/bin/
+chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system/*
+chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/*
+chmod -R 0755 xkeys-server-${VERSION}_${PKG_ARCH}/usr
+cp -p ../deb/copyright xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/
+gzip -9 -n -c ../deb/changelog > xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/changelog.gz
+chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/*
+
+sed -e "s/%VERSION%/${VERSION}/g" -e "s/%ARCH%/${PKG_ARCH}/" control.template >xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/control
+cp -p postinst xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/
+chmod 0755 xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/postinst
+cat <<EOF > xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/prerm
+#!/bin/sh
+systemctl stop xkeys-server
+systemctl disable xkeys-server
+systemctl daemon-reload
+exit 0
+EOF
+chmod 0755 xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/prerm
+cat <<EOF > xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/postrm
+#!/bin/sh
+udevadm control --reload-rules
+udevadm trigger
+exit 0
+EOF
+chmod 0755 xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/postrm
+
+# Insert size
+pkg_size=$(du -sk xkeys-server-${VERSION}_${PKG_ARCH} | cut -f1)
+sed -i -e "s/%SIZE%/${pkg_size}/g" xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/control
+
+
+# Create the .deb package
+dpkg-deb --build --root-owner-group xkeys-server-${VERSION}_${PKG_ARCH}
+
+echo "The package is at ${CWD}/xkeys-server-${VERSION}_${PKG_ARCH}.deb"
+

@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Set device permissions
+#
+udevadm control --reload-rules
+udevadm trigger
+
+## Clear previous installation remnants (for builds using vercel/pkg)
+#hash=$(ls -1 /tmp/pkg/ 2>/dev/null)
+#[ -n "$hash" ] && {
+#  echo "Cleaning previous $(ls -ld /tmp/pkg/$hash)"
+#  rm -rf /tmp/pkg/$hash
+#  chmod a+wt /tmp/pkg
+#}
+
+# Start running as a service
+#
+chmod a+x /usr/bin/xkeys-server
+systemctl daemon-reload
+systemctl enable xkeys-server
+systemctl start xkeys-server
+
+exit 0
+
