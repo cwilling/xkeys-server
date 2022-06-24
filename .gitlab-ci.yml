@@ -39,7 +39,7 @@ stages:
   - package
   - upload
 
-do_nothing:
+.do_nothing:
   stage: nothing
   script:
     echo
