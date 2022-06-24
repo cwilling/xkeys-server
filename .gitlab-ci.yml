@@ -39,7 +39,7 @@ stages:
   - package
   - upload
 
-do_nothing:
+.do_nothing:
   stage: nothing
   script:
     echo
@@ -70,7 +70,7 @@ do_nothing:
     - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
 
 # Docker container for RASPI 32bit packaging
-.docker_build_arm32v7:
+docker_build_bbblack_arm32v7:
   stage: docker_build
   image: docker:20.10.11
   services:
@@ -78,8 +78,8 @@ do_nothing:
   script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-    - cat build/raspi/Dockerfile.arm32v7 | docker build -t registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32 -
-    - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
+    - cat build/bbblack/Dockerfile | docker build -t registry.gitlab.com/chris.willing/xkeys-server:buster-arm32 -
+    - docker push registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
 
 # Docker container for Beaglebone Black 32bit packaging
 # (using default Debian buster base)
