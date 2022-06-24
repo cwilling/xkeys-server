@@ -70,7 +70,20 @@ stages:
     - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
 
 # Docker container for RASPI 32bit packaging
-docker_build_bbblack_arm32v7:
+.docker_build_arm32v7:
+  stage: docker_build
+  image: docker:20.10.11
+  services:
+    - docker:dind
+  script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+    - cat build/raspi/Dockerfile.arm32v7 | docker build -t registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32 -
+    - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
+
+# Docker container for Beaglebone Black 32bit packaging
+# (using default Debian buster base)
+.docker_build_bbblack_arm32v7:
   stage: docker_build
   image: docker:20.10.11
   services:
@@ -80,19 +93,6 @@ docker_build_bbblack_arm32v7:
     - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
     - cat build/bbblack/Dockerfile | docker build -t registry.gitlab.com/chris.willing/xkeys-server:buster-arm32 -
     - docker push registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
-
-# Docker container for Beaglebone Black 32bit packaging
-# (using default Debian buster base)
-.docker_build_arm32v7:
-  stage: docker_build
-  image: docker:20.10.11
-  services:
-    - docker:dind
-  script:
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
-    - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-    - cat build/raspi/Dockerfile | docker build -t registry.gitlab.com/chris.willing/xkeys-server:buster-arm32 -
-    - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
 
 
 # Generic test LTS nodejs
@@ -181,7 +181,7 @@ docker_build_bbblack_arm32v7:
       - build/raspi/${RASPI_32_INSTALLER}
 
 # Package 32bit Beaglebone Black
-.package_beaglebone_black:
+package_beaglebone_black:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
   script:
@@ -191,8 +191,8 @@ docker_build_bbblack_arm32v7:
     - ls -l
     - cd -
     - npm install --save-dev pkg@4.5.1
-    - cd build/raspi
-    - ./make-raspi
+    - cd build/bbblack
+    - ./make-beagleboneblack
     - ls -l ${BEAGLEBONE_BLACK_INSTALLER}
   interruptible: true
   artifacts:
