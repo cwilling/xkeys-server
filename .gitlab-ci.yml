@@ -190,7 +190,7 @@ package_beaglebone_black:
     - wget https://github.com/yao-pkg/pkg-binaries/releases/download/v1.0.0/fetched-v10.15.3-linux-armv7
     - ls -l
     - cd -
-    - npm config set registry http://registry.npmjs.org/
+    - npm config set strict-ssl false
     - npm install --save-dev pkg@4.5.1
     - cd build/bbblack
     - ./make-beagleboneblack
