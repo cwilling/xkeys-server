@@ -19,6 +19,7 @@ CWD=$(pwd)
 
 #	Step 1 - create an executable in the "application" directory
 #
+npm config set strict-ssl false
 npx pkg -t node10-linux-$BUILD_ARCH --out-path application ../..
 echo "Added: $(file application/*)"
 
