@@ -4,7 +4,7 @@
 
 Although not mandatory, experience has shown that setting the TERM variable in the user environment can be beneficial. Using _vi_ or _nano_, edit the _.profile_ file (in the home directory) and add the line `TERM=xterm` or `TERM=xterm-color` somewhere in that file. Now log out and log in again for the setting to take effect.
 
-Since the onboard memory of these boards is extemely limited, it is essential to boot using an addon SD card - 16G should be sufficient. Once the Ubuntu port has been installed, it is assumed these instructions will be implemented via ssh as the default user _ubuntu_. To fully utilise the available space of the SD card being used, it is important to [expand the filesystem partition](https://elinux.org/Beagleboard:Expanding_File_System_Partition_On_A_microSD) of the initial installer.
+Since the onboard memory of these boards is extemely limited, it is essential to boot using an addon SD card - 16G should be the minimum size. Once the Ubuntu port has been installed, it is assumed these instructions will be implemented via ssh as the default user _ubuntu_. To fully utilise the available space of the SD card being used, it is important to [expand the filesystem partition](https://elinux.org/Beagleboard:Expanding_File_System_Partition_On_A_microSD) of the initial installer. After rebooting following filesystem expansion, confirm the newly available disk space with the command `df -kh` (and check the result's Size entry for /dev/mmcblk0p1). 
 
 Before installing anything new, ensure that all existing software is up to date with the following commands:
 ```
