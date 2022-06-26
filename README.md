@@ -14,6 +14,8 @@ Being a NodeJS application, _xkeys-server_ is able to be run on ***Linux*** (inc
 
 _Xkeys-server_ package installers for end users will be available for Linux, Raspberry Pi, MacOS & Windows. Prerelease installers are available for testing at the [Releases page](https://gitlab.com/chris.willing/xkeys-server/-/releases/0.9.10).
 
+Additionally, instructions are available for [manual installation on BeagleBone Black boards](./beagleboneblack.md) for which no package installer is currently available. Those instructions may assist in installation on other platforms.
+
 ## Development
 
 Rather than running a prebuilt installer package, developers should fork this repository and run the following commands to implement a basic setup on any of the supported platforms (assuming _NodeJS_ and _git_ are already installed):
