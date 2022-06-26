@@ -59,7 +59,7 @@ Now set it up with:
 
 There are several ways to now run the xkeys-server. To run _xkeys-server_ immediately, use the command (while still in the _xkeys-server_ directory):
 ```
-    ./scripts/xkeys-server
+    ./scripts/xkeys-server.js
 ```
 It may be stopped by typing Ctrl-C in the same terminal. The advantage of running _xkeys-server_ in this way is that there is some progress feedback in the terminal e.g. notification about devices being plugged or removed. This is a good method to initially check that everything is working as expected. A disadvantage is that it requires the user to remain logged in while the _xkeys-server_ is running.
 
