@@ -50,7 +50,7 @@ If curious, run `nvm list-remote` to see an exhaustive list of all available Nod
 
 The installation of _xkey_server_ requires building of some components so install the necessary tools with:
 ```
-    sudo apt install -y build-essential libudev-dev libusb-1.0-0-dev
+    sudo apt install -y build-essential libudev-dev libusb-1.0-0-dev pkg-config
 ```
 At runtime, _xeys-server_ will require the user to have access to USB devices. Enable this by creating the file _/etc/udev/rules.d/50-xkeys.rules_ with the following content:
 ```
