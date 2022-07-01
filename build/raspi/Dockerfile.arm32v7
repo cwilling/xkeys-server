@@ -2,10 +2,10 @@ FROM arm32v7/debian:bullseye-slim
 MAINTAINER Christoph Willing chris.willing@linux.com
 
 RUN apt-get update && apt-get upgrade -y
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 RUN apt-get install -y \
-		build-essential git pkg-config file wget \
-		nodejs npm libuv1-dev libudev-dev libfuse-dev libusb-1.0-0-dev
+		build-essential git pkg-config file curl wget \
+		libuv1-dev libudev-dev libfuse-dev libusb-1.0-0-dev
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
 RUN node --version
 
 WORKDIR /
