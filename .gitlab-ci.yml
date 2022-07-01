@@ -39,7 +39,7 @@ stages:
   - package
   - upload
 
-do_nothing:
+.do_nothing:
   stage: nothing
   script:
     echo
@@ -70,7 +70,7 @@ do_nothing:
     - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
 
 # Docker container for RASPI 32bit packaging
-.docker_build_arm32v7:
+docker_build_arm32v7:
   stage: docker_build
   image: docker:20.10.11
   services:
