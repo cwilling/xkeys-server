@@ -39,7 +39,7 @@ stages:
   - package
   - upload
 
-do_nothing:
+.do_nothing:
   stage: nothing
   script:
     echo
@@ -162,7 +162,7 @@ do_nothing:
       - build/raspi/${RASPI_64_INSTALLER}
 
 # Package 32bit RasPi
-.package_raspi_32:
+package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
   script:
