@@ -162,7 +162,7 @@ stages:
       - build/raspi/${RASPI_64_INSTALLER}
 
 # Package 32bit RasPi
-package_raspi_32:
+.package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
   script:
@@ -298,7 +298,7 @@ package_raspi_32:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_64_INSTALLER}
 
-.upload_raspi_32:
+upload_raspi_32:
   stage: upload
   image: curlimages/curl:latest
   rules:
