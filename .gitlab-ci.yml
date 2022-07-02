@@ -173,6 +173,7 @@ do_nothing:
     - cd -
     - npm install --save-dev pkg@5.7.0
     - cd build/raspi
+	- ./update-pkg-fetch
     - ./make-raspi
     - ls -l ${RASPI_32_INSTALLER}
   interruptible: true

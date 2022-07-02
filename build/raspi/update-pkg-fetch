@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Start from the correct directory
+cd $(dirname $0)
+CWD=$(pwd)
+
+cd ../../node_modules/pkg-fetch
+pwd
+
+cat > patches/patches.json <<EOF
+{
+  "v16.15.1": ["node.v16.15.1.cpp.patch"]
+}
+EOF
+
+sed -i -e "/};/i'node-v16.15.1-linux-armv7': 'ffe33f6549b4db156dc7dbd28fda082cee99bd55849c6b6b29c346f3cf047a3e'," lib-es5/expected.js
+
