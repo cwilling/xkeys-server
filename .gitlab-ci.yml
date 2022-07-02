@@ -39,7 +39,7 @@ stages:
   - package
   - upload
 
-.do_nothing:
+do_nothing:
   stage: nothing
   script:
     echo
@@ -70,7 +70,7 @@ stages:
     - docker push registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
 
 # Docker container for RASPI 32bit packaging
-docker_build_arm32v7:
+.docker_build_arm32v7:
   stage: docker_build
   image: docker:20.10.11
   services:
@@ -166,12 +166,12 @@ docker_build_arm32v7:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
   script:
-    - mkdir -p ~/.pkg-cache/v2.6
-    - cd ~/.pkg-cache/v2.6
-    - wget https://github.com/yao-pkg/pkg-binaries/releases/download/node12/fetched-v12.18.1-linux-armv7
+    - mkdir -p ~/.pkg-cache/v3.4
+    - cd ~/.pkg-cache/v3.4
+    - wget https://chriswilling.com/pkg-fetch/node16/node-v16.15.1-linux-armv7
     - ls -l
     - cd -
-    - npm install --save-dev pkg@4.5.1
+    - npm install --save-dev pkg@5.7.0
     - cd build/raspi
     - ./make-raspi
     - ls -l ${RASPI_32_INSTALLER}
