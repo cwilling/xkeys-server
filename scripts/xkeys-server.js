@@ -19,6 +19,7 @@ const default_config = {
 }
 const ServerVersion = require('../package.json').version;
 console.log(`Server version = ${ServerVersion}`);
+console.log(`NodeJS version = ${process.version}`);
 
 /*	Load config file or create one from defaults
 */
