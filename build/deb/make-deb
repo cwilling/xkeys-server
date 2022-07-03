@@ -17,7 +17,7 @@ CWD=$(pwd)
 
 # Use pkg to generate single executable into the "application" directory
 #
-npx pkg -t node12-linux-$BUILD_ARCH --out-path application ../..
+npx pkg -t node16-linux-$BUILD_ARCH --out-path application ../..
 echo "Added: $(file application/*)"
 
 # Create the package shell
