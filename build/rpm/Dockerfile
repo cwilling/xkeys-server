@@ -6,7 +6,7 @@ RUN yum install -y \
 	pkg-config file curl wget git python3 \
 	systemd-devel libuv fuse-devel libusbx-devel
 RUN curl -fsSL https://rpm.nodesource.com/setup_16.x | bash -
-RUN apt install nodejs
+RUN yum install -y nodejs
 RUN node --version
 
 WORKDIR /
