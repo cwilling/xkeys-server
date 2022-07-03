@@ -17,7 +17,7 @@ CWD=$(pwd)
 
 #       Step 1 - create an executable in the "application" directory
 #
-npx pkg -t node12-linux-$BUILD_ARCH --out-path application ../..
+npx pkg -t node16-linux-$BUILD_ARCH --out-path application ../..
 echo "Added: $(file application/*)"
 
 rm -rf xkeys-server-${VERSION}*
