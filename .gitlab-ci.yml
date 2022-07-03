@@ -58,7 +58,7 @@ stages:
     - docker push registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
 
 # Docker container image for RasPi 64bit packaging
-docker_build_arm64v8:
+.docker_build_arm64v8:
   stage: docker_build
   image: docker:20.10.11
   services:
@@ -147,13 +147,19 @@ docker_build_arm64v8:
       - build/rpm/${LINUX_RPM_INSTALLER}
 
 
-# Package RasPi
-.package_raspi:
+# Package 64bit RasPi
+package_raspi:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
   script:
-    - npm install
+    - mkdir -p ~/.pkg-cache/v3.4
+    - cd ~/.pkg-cache/v3.4
+    - wget -O fetched-v16.15.1-linux-arm64 https://chriswilling.com/pkg-fetch/node16/node-v16.15.1-linux-arm64
+    - ls -l
+    - cd -
+    - npm install --save-dev pkg@5.7.0
     - cd build/raspi
+    - ./update-pkg-fetch
     - ./make-raspi
     - ls -l ${RASPI_64_INSTALLER}
   interruptible: true
@@ -289,7 +295,7 @@ docker_build_arm64v8:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/rpm/${LINUX_RPM_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_RPM_INSTALLER}
 
-.upload_raspi:
+upload_raspi:
   stage: upload
   image: curlimages/curl:latest
   rules:
