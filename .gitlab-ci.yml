@@ -115,7 +115,7 @@ stages:
 
 
 # Package with LTS nodejs
-package_deb_lts:
+.package_deb_lts:
   stage: package
   image: node:lts
   before_script:
@@ -168,7 +168,7 @@ package_deb_lts:
       - build/raspi/${RASPI_64_INSTALLER}
 
 # Package 32bit RasPi
-.package_raspi_32:
+package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
   script:
@@ -277,7 +277,7 @@ package_deb_lts:
 #    - ./scripts/xkeys-server.js test
 #  interruptible: true
 
-upload_deb:
+.upload_deb:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -304,7 +304,7 @@ upload_deb:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_64_INSTALLER}
 
-.upload_raspi_32:
+upload_raspi_32:
   stage: upload
   image: curlimages/curl:latest
   rules:
