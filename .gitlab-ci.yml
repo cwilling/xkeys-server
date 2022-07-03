@@ -39,7 +39,7 @@ stages:
   - package
   - upload
 
-do_nothing:
+.do_nothing:
   stage: nothing
   script:
     echo
@@ -58,7 +58,7 @@ do_nothing:
     - docker push registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
 
 # Docker container image for RasPi 64bit packaging
-.docker_build_arm64v8:
+docker_build_arm64v8:
   stage: docker_build
   image: docker:20.10.11
   services:
