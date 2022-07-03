@@ -132,7 +132,7 @@ stages:
       - build/deb/${LINUX_AMD64_INSTALLER}
 
 # Package rpm
-package_rpm:
+.package_rpm:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
   script:
@@ -244,7 +244,7 @@ package_rpm:
 
 # We can't build macos packages here yet
 # so fetch and upload a package we prepared manually
-.upload_remotes:
+upload_remotes:
   image: curlimages/curl:latest
   stage: upload
   rules:
@@ -286,7 +286,7 @@ package_rpm:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-upload_rpm:
+.upload_rpm:
   stage: upload
   image: curlimages/curl:latest
   rules:
