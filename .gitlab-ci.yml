@@ -192,14 +192,15 @@ do_nothing:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
   script:
-    - mkdir -p ~/.pkg-cache/v2.6
-    - cd ~/.pkg-cache/v2.6
-    - wget https://github.com/yao-pkg/pkg-binaries/releases/download/v1.0.0/fetched-v10.15.3-linux-armv7
+    - mkdir -p ~/.pkg-cache/v3.4
+    - cd ~/.pkg-cache/v3.4
+    - wget -O fetched-v16.15.1-bbb_linux-armv7 https://chriswilling.com/pkg-fetch/node16/node-v16.15.1-bbb_linux-armv7
     - ls -l
     - cd -
     - npm config set strict-ssl false
-    - npm install --save-dev pkg@4.5.1
+    - npm install --save-dev pkg@5.7.0
     - cd build/bbblack
+    - ./update-pkg-fetch
     - ./make-beagleboneblack
     - ls -l ${BEAGLEBONE_BLACK_INSTALLER}
   interruptible: true

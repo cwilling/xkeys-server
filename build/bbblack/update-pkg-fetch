@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# vercel/pkg no longer make updated nodejs packages for armv7.
+# This matters because SFTV now requires nodejs > v12.x and
+# there are no such usable prebuilt versions available.
+#
+# Since patches are available for v14 & v16 at:
+# 	https://github.com/vercel/pkg-fetch/tree/main/patches
+# we build & host our own modified nodejs packages (v16).
+# They are used by preloading them into PKG_CACHE_PATH.
+# However, to have them recognised there, the pkg-fetch module
+# needs to be updated. We make the necessary changes here.
+
+
+# Start from the correct directory
+cd $(dirname $0)
+CWD=$(pwd)
+
+cd ../../node_modules/pkg-fetch
+echo "Updating module: $(pwd)"
+
+cat > patches/patches.json <<EOF
+{
+  "v16.15.1": ["node.v16.15.1.cpp.patch"]
+}
+EOF
+
+sed -i -e "/};/i'node-v16.15.1-bbb_linux-armv7': '32e93774bc9f84583fa79effea95a59424ea6faf86546010c851475dda6b2771'," lib-es5/expected.js
+
