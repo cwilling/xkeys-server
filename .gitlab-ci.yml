@@ -39,7 +39,7 @@ stages:
   - package
   - upload
 
-do_nothing:
+.do_nothing:
   stage: nothing
   script:
     echo
@@ -83,7 +83,7 @@ do_nothing:
 
 # Docker container for Beaglebone Black 32bit packaging
 # (using default Debian buster base)
-.docker_build_bbblack_arm32v7:
+docker_build_bbblack_arm32v7:
   stage: docker_build
   image: docker:20.10.11
   services:
