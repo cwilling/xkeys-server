@@ -25,5 +25,5 @@ cat > patches/patches.json <<EOF
 }
 EOF
 
-sed -i -e "/};/i'node-v16.15.1-bbb_linux-armv7': '32e93774bc9f84583fa79effea95a59424ea6faf86546010c851475dda6b2771'," lib-es5/expected.js
+sed -i -e "/};/i'node-v16.15.1-linux-armv7': '32e93774bc9f84583fa79effea95a59424ea6faf86546010c851475dda6b2771'," lib-es5/expected.js
 

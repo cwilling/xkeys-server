@@ -194,7 +194,7 @@ package_beaglebone_black:
   script:
     - mkdir -p ~/.pkg-cache/v3.4
     - cd ~/.pkg-cache/v3.4
-    - wget -O fetched-v16.15.1-bbb_linux-armv7 https://chriswilling.com/pkg-fetch/node16/node-v16.15.1-bbb_linux-armv7
+    - wget -O fetched-v16.15.1-linux-armv7 https://chriswilling.com/pkg-fetch/node16/node-v16.15.1-bbb_linux-armv7
     - ls -l
     - cd -
     - npm config set strict-ssl false
