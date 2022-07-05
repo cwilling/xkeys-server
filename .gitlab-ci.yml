@@ -321,7 +321,7 @@ upload_beaglebone_black:
     - if: $CI_DEPLOY_FREEZE == null
   script:
     - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/bbb/${BEAGLEBONE_BLACK_INSTALLER} ${PACKAGE_REGISTRY_URL}/${BEAGLEBONE_BLACK_INSTALLER}
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/bbblack/${BEAGLEBONE_BLACK_INSTALLER} ${PACKAGE_REGISTRY_URL}/${BEAGLEBONE_BLACK_INSTALLER}
 
 
 .upload_windows:
