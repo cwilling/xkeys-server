@@ -25,51 +25,51 @@ echo "Added: $(file application/*)"
 
 #	Step 2 - package the executable into an installer
 #
-rm -rf xkeys-server-${VERSION}_${PKG_ARCH}
-mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system
-mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d
-chmod -R 0755 xkeys-server-${VERSION}_${PKG_ARCH}/lib
-mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/usr/bin
-mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server
-mkdir -p xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN
+rm -rf xkeys-server-bbb-${VERSION}_${PKG_ARCH}
+mkdir -p xkeys-server-bbb-${VERSION}_${PKG_ARCH}/lib/systemd/system
+mkdir -p xkeys-server-bbb-${VERSION}_${PKG_ARCH}/lib/udev/rules.d
+chmod -R 0755 xkeys-server-bbb-${VERSION}_${PKG_ARCH}/lib
+mkdir -p xkeys-server-bbb-${VERSION}_${PKG_ARCH}/usr/bin
+mkdir -p xkeys-server-bbb-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server
+mkdir -p xkeys-server-bbb-${VERSION}_${PKG_ARCH}/DEBIAN
 
-cp -p ../xkeys-server.service xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system/
-cp -p ../50-elgato.rules xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/
-cp -p ../50-xkeys.rules xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/
-cp -p application/xkeys-server xkeys-server-${VERSION}_${PKG_ARCH}/usr/bin/
-chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/lib/systemd/system/*
-chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/*
-chmod -R 0755 xkeys-server-${VERSION}_${PKG_ARCH}/usr
-cp -p ../deb/copyright xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/
-gzip -9 -n -c ../deb/changelog > xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/changelog.gz
-chmod 0644 xkeys-server-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/*
+cp -p ../xkeys-server.service xkeys-server-bbb-${VERSION}_${PKG_ARCH}/lib/systemd/system/
+cp -p ../50-elgato.rules xkeys-server-bbb-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/
+cp -p ../50-xkeys.rules xkeys-server-bbb-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/
+cp -p application/xkeys-server xkeys-server-bbb-${VERSION}_${PKG_ARCH}/usr/bin/
+chmod 0644 xkeys-server-bbb-${VERSION}_${PKG_ARCH}/lib/systemd/system/*
+chmod 0644 xkeys-server-bbb-${VERSION}_${PKG_ARCH}/lib/udev/rules.d/*
+chmod -R 0755 xkeys-server-bbb-${VERSION}_${PKG_ARCH}/usr
+cp -p ../deb/copyright xkeys-server-bbb-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/
+gzip -9 -n -c ../deb/changelog > xkeys-server-bbb-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/changelog.gz
+chmod 0644 xkeys-server-bbb-${VERSION}_${PKG_ARCH}/usr/share/doc/xkeys-server/*
 
-sed -e "s/%VERSION%/${VERSION}/g" -e "s/%ARCH%/${PKG_ARCH}/" control.template >xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/control
-cp -p postinst xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/
-chmod 0755 xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/postinst
-cat <<EOF > xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/prerm
+sed -e "s/%VERSION%/${VERSION}/g" -e "s/%ARCH%/${PKG_ARCH}/" control.template >xkeys-server-bbb-${VERSION}_${PKG_ARCH}/DEBIAN/control
+cp -p postinst xkeys-server-bbb-${VERSION}_${PKG_ARCH}/DEBIAN/
+chmod 0755 xkeys-server-bbb-${VERSION}_${PKG_ARCH}/DEBIAN/postinst
+cat <<EOF > xkeys-server-bbb-${VERSION}_${PKG_ARCH}/DEBIAN/prerm
 #!/bin/sh
 systemctl stop xkeys-server
 systemctl disable xkeys-server
 systemctl daemon-reload
 exit 0
 EOF
-chmod 0755 xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/prerm
-cat <<EOF > xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/postrm
+chmod 0755 xkeys-server-bbb-${VERSION}_${PKG_ARCH}/DEBIAN/prerm
+cat <<EOF > xkeys-server-bbb-${VERSION}_${PKG_ARCH}/DEBIAN/postrm
 #!/bin/sh
 udevadm control --reload-rules
 udevadm trigger
 exit 0
 EOF
-chmod 0755 xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/postrm
+chmod 0755 xkeys-server-bbb-${VERSION}_${PKG_ARCH}/DEBIAN/postrm
 
 # Insert size
-pkg_size=$(du -sk xkeys-server-${VERSION}_${PKG_ARCH} | cut -f1)
-sed -i -e "s/%SIZE%/${pkg_size}/g" xkeys-server-${VERSION}_${PKG_ARCH}/DEBIAN/control
+pkg_size=$(du -sk xkeys-server-bbb-${VERSION}_${PKG_ARCH} | cut -f1)
+sed -i -e "s/%SIZE%/${pkg_size}/g" xkeys-server-bbb-${VERSION}_${PKG_ARCH}/DEBIAN/control
 
 
 # Create the .deb package
-dpkg-deb --build --root-owner-group xkeys-server-${VERSION}_${PKG_ARCH}
+dpkg-deb --build --root-owner-group xkeys-server-bbb-${VERSION}_${PKG_ARCH}
 
-echo "The package is at ${CWD}/xkeys-server-${VERSION}_${PKG_ARCH}.deb"
+echo "The package is at ${CWD}/xkeys-server-bbb-${VERSION}_${PKG_ARCH}.deb"
 
