@@ -314,6 +314,15 @@ docker_build_bbblack_arm32v7:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
+upload_beaglebone_black:
+  stage: upload
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_DEPLOY_FREEZE == null
+  script:
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/bbb/${BEAGLEBONE_BLACK_INSTALLER} ${PACKAGE_REGISTRY_URL}/${BEAGLEBONE_BLACK_INSTALLER}
+
 
 .upload_windows:
   stage: upload
