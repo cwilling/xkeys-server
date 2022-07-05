@@ -206,7 +206,7 @@ package_beaglebone_black:
   interruptible: true
   artifacts:
     paths:
-      - build/raspi/${BEAGLEBONE_BLACK_INSTALLER}
+      - build/bbblack/${BEAGLEBONE_BLACK_INSTALLER}
 
 
 
