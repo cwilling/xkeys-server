@@ -7,9 +7,7 @@ RUN apt-get install -y \
 		libuv1-dev libudev-dev libfuse-dev libusb-1.0-0-dev
 RUN curl -kfsSL https://deb.nodesource.com/setup_16.x >setup_16.x
 RUN sed -i -e 's/curl -sLf/curl -ksLf/' -e 's/curl -s /curl -ks /' setup_16.x
-RUN bash ./setup_16.x
-RUN apt-get install -y install nodejs
-RUN node --version
+RUN bash ./setup_16.x && apt-get install -y install nodejs && node --version
 
 WORKDIR /
 
