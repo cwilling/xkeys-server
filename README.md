@@ -1,6 +1,6 @@
 # xkeys-server
 
-The _xkeys-server_ is a ***cross platform***, stand alone ***NodeJS*** application, using [SuperFlyTV's library (SFTV)](https://github.com/SuperFlyTV/xkeys) to interact with [***X-keys devices***](https://xkeys.com/). In addition, [***Elgato Streamdeck devices***](https://www.elgato.com/en/stream-deck) are also supported, using [Julusian's library for Elgato devices](https://www.npmjs.com/package/@elgato-stream-deck/node). User applications wishing to access X-keys or Streamdeck devices could easily do so directly by using the appropriate SFTV or Julusian NodeJS library. The advantage of accessing these devices via the _xkeys-server_ is the elimination of contention between multiple client applications which may simultaneously wish to control these devices.
+The _xkeys-server_ is a ***cross platform***, stand alone ***NodeJS*** application, using [SuperFlyTV's library (SFTV)](https://github.com/SuperFlyTV/xkeys) to interact with [***X-keys devices***](https://xkeys.com/). In addition, [***Elgato Streamdeck devices***](https://www.elgato.com/en/stream-deck) are also supported, using [Julusian's library for Elgato devices](https://www.npmjs.com/package/@elgato-stream-deck/node). User applications wishing to access X-keys or Streamdeck devices could easily do so directly by using the appropriate SFTV or Julusian NodeJS library; the advantage of accessing these devices via the _xkeys-server_ is the elimination of contention between multiple client applications which may simultaneously wish to control these devices.
 
 Communication between applications and the _xkeys-server_ may be via UDP or MQTT protocol. Client applicatons using UDP are restricted to the local network and may use a simple discovery mechanism to automagically connect to a local _xkeys-server_. UDP clients use the publicly available (soon to be released) **Dynamic Control Data (DCD)** protocol, allowing them to access any other manufacturers' devices which are acccessible (either directly or through some library) via the DCD protocol.
 
@@ -8,13 +8,12 @@ MQTT clients will typically use an MQTT broker e.g. [mosquitto](https://mosquitt
 
 Since communication is via established networking protocols, clients may be written in any desired progamming language - not restricted to NodeJS/Javascript/Typescript when using the SFTV or Julusian libraries directly.
 
-Being a NodeJS application, _xkeys-server_ is able to be run on ***Linux*** (including Raspberry Pi), ***MacOS*** (x86_64 or arm64) or ***Windows*** machines. Client applications may run on any system capable of UDP and/or MQTT.
+Being a NodeJS application, _xkeys-server_ is able to be run on ***Linux*** (including Raspberry Pi & Beaglebone Black platforms), ***MacOS*** (x86_64 or arm64) or ***Windows*** machines. Client applications may use any preferred language and run on any system capable of UDP and/or MQTT.
 
 ## Installation
 
-_Xkeys-server_ package installers for end users will be available for Linux, Raspberry Pi, MacOS & Windows. Prerelease installers are available for testing at the [Releases page](https://gitlab.com/chris.willing/xkeys-server/-/releases/0.9.11).
+_Xkeys-server_ package installers for end users will be available for Linux, Raspberry Pi, Beaglebone Black, MacOS & Windows. Prerelease installers are available for testing at the [Releases page](https://gitlab.com/chris.willing/xkeys-server/-/releases/0.9.11).
 
-Additionally, instructions are available for [manual installation on BeagleBone Black boards](./beagleboneblack.md) for which no package installer is currently available. Those instructions may assist in installation on other platforms.
 
 ## Development
 
