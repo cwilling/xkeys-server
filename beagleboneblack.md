@@ -1,3 +1,7 @@
+## Please NOTE!
+
+Since the availability of a dedicated [installer for the Beaglebone Black](https://gitlab.com/chris.willing/xkeys-server/-/releases), this document is redundant. It remains here as an example of how to install and run _xkeys-server_ on an otherwise unsupported system.
+
 ## Installing _xkeys-server_ on the BeagleBone Black
 
 [BeagleBone Black](https://beagleboard.org/black) is a low-cost, community-supported development platform for developers and hobbyists. The instructions here are specific to the unofficial Ubuntu version ([from latest available directory here](https://rcn-ee.com/rootfs/ubuntu-armhf/)), although other similar ports e.g. the official Debian installation, should be similar. The Ubuntu release for the Beaglebone is currently 20.04 and the version of NodeJS is too old for _xkeys_server_ so the third-party [NodeSource PPA](https://github.com/nodesource/distributions) will be used to install a more recent version.
