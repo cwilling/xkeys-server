@@ -1,10 +1,39 @@
-## Please NOTE!
+## Installing _xkeys-server_ on the BeagleBone Black using the dedicated installer
 
-Since the availability of a dedicated [installer for the Beaglebone Black](https://gitlab.com/chris.willing/xkeys-server/-/releases), this document is redundant. It remains here as an example of how to install and run _xkeys-server_ on an otherwise unsupported system.
+[BeagleBone Black](https://beagleboard.org/black) is a low-cost, community-supported development platform for developers and hobbyists. Using the dedicated installer is the recommended way to install _xkeys-server_ on the BeagleBone Black. It is tested with boards booted from the official Debian boot image and the unofficial Ubuntu boot image. The steps suggested here assume that command line access via ssh is available to the board and will be used to execute the various commands.
 
-## Installing _xkeys-server_ on the BeagleBone Black
+When installing on a new board or a newly reimaged board, it's important that the system software and ca-certificates are up to date:
+```
+    sudo apt update
+    sudo apt upgrade -y
+    update-ca-certificates --fresh
+```
+This may take some time - depending on how much needs to be updated.
 
-[BeagleBone Black](https://beagleboard.org/black) is a low-cost, community-supported development platform for developers and hobbyists. The instructions here are specific to the unofficial Ubuntu version ([from latest available directory here](https://rcn-ee.com/rootfs/ubuntu-armhf/)), although other similar ports e.g. the official Debian installation, should be similar. The Ubuntu release for the Beaglebone is currently 20.04 and the version of NodeJS is too old for _xkeys_server_ so the third-party [NodeSource PPA](https://github.com/nodesource/distributions) will be used to install a more recent version.
+Now download and install _xkeys-server_. Version 0.9.11 is used in this example but use the latest available version from the [_xkeys-server_ releases](https://gitlab.com/chris.willing/xkeys-server/-/releases) list:
+```
+    wget --content-disposition https://gitlab.com/chris.willing/xkeys-server/-/package_files/44833002/download
+    sudo apt install ./xkeys-server-bbb-0.9.11_armhf.deb
+```
+
+Check that the installation process has started the _xkeys-server_ by using the _ps_ command; the result should look something like:
+```
+    debian@beaglebone:~$ ps -ef|grep xkeys
+    root       607     1 10 10:36 ?        00:00:35 /usr/bin/xkeys-server
+    debian    1269  1090  0 10:42 pts/0    00:00:00 grep xkeys
+    debian@beaglebone:~$
+```
+
+The disk space consumed by _xkeys-server_, along with any additional dependencies, is around 100MB. On a fresh systems without additional software installed, the disk space used increases from 2.1GB to 2.2GB, out of the available 3.5GB on the eMMC device.
+
+
+
+
+## Installing _xkeys-server_ on the BeagleBone Black from the development GIT repository
+
+Since the availability of a dedicated [installer for the Beaglebone Black](https://gitlab.com/chris.willing/xkeys-server/-/releases), this following section is largely redundant. It remains here as an example of how to install and run _xkeys-server_ on an otherwise unsupported system.
+
+The instructions here are specific to the unofficial Ubuntu version ([from latest available directory here](https://rcn-ee.com/rootfs/ubuntu-armhf/)), although other similar ports e.g. the official Debian installation, should be similar. The Ubuntu release for the Beaglebone is currently 20.04 and the version of NodeJS is too old for _xkeys_server_ so the third-party [NodeSource PPA](https://github.com/nodesource/distributions) will be used to install a more recent version.
 
 Although not mandatory, experience has shown that setting the TERM variable in the user environment can be beneficial. Using _vi_ or _nano_, edit the _.profile_ file (in the home directory) and add the line `TERM=xterm` or `TERM=xterm-color` somewhere in that file. Now log out and log in again for the setting to take effect.
 
@@ -29,9 +58,9 @@ Now install the NodeJS version that was enabled:
 ```
 
 
-**Preparation for _xeys-server_**
+**Preparation for _xkeys-server_**
 
-The installation of _xkey_server_ requires building of some components so install the necessary tools with:
+The installation of _xkeys_server_ requires building of some components so install the necessary tools with:
 ```
     sudo apt install -y build-essential libudev-dev libusb-1.0-0-dev pkg-config
 ```
