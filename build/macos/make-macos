@@ -30,7 +30,12 @@ mkdir application
 # Use pkg to generate single executable into the "application" directory
 # First clean out node_modules to ensure they're refreshed when running pkg command below
 #
-rm -rf ../../node_modules/*
+(
+cd ../..
+rm -rf ./node_modules/*
+npm install
+chmod a+x node_modules/pkg/lib-es5/bin.js
+)
 npx pkg -t node16-macos-$PKG_ARCH --out-path application ../..
 echo "Added: $(file application/*)"
 
