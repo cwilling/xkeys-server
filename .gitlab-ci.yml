@@ -39,7 +39,7 @@ stages:
   - package
   - upload
 
-do_nothing:
+.do_nothing:
   stage: nothing
   script:
     echo
@@ -245,7 +245,7 @@ do_nothing:
 
 # We can't build macos packages here yet
 # so fetch and upload a package we prepared manually
-.upload_remotes:
+upload_remotes:
   image: curlimages/curl:latest
   stage: upload
   rules:
