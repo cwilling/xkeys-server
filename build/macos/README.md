@@ -8,7 +8,7 @@ To create a package, run the _make-macos_ script here on a macOS machine i.e.
 ```
 This will create a new target directory with a number of subdirectories. The installable package will be found in _target/pkg-signed_ e.g.
 ```
-    target/pkg-signed/xkeys-server-macos-installer-0.9.11-x86_64.pkg
+    target/pkg-signed/xkeys-server-macos-installer-0.9.12-x86_64.pkg
 ``` 
 The package may be distributed by any desired means for end users to install in the usual manner. However, a signed and _Apple notarized_ package is required for recent macOS systems which employ _Gatekeeper_ technology to prevent downloaded packages being installed unless they have been signed and notarized in the Apple approved manner.
 
