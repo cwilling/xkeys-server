@@ -524,7 +524,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					if (msg.event_type == "button_event") {
 						var msg_udp = {"msg_type":"button_event", "server_id":ServerID, "device":device,
 										"vendor_id":vendor_id, "product_id":product_id,"unit_id":unit_id,"duplicate_id":duplicate_id,
-										"control_id":msg.control_id, "row":msg.row,"col":msg.col, "value":msg.value,"timestamp":msg.timestamp};
+										"control_id":msg.control_id, "row":msg.row,"col":msg.col, "value":msg.value, "timestamp":msg.timestamp};
 
 						//	NodeRED
 						msg["type"] = msg.value==1?"down":"up";
@@ -536,7 +536,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					else if (msg.event_type == "tbar_event") {
 						var msg_udp = {"msg_type":"tbar_event", "server_id":ServerID, "device":device,
 										"vendor_id":vendor_id, "product_id":product_id,"unit_id":unit_id,"duplicate_id":duplicate_id,
-										"control_id":msg.control_id, "value":msg.value,"timestamp":msg.timestamp};
+										"control_id":msg.control_id, "value":msg.value, "timestamp":msg.timestamp};
 
 						//	NodeRED
 						msg["type"] = "tbar"
@@ -549,7 +549,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					else if (msg.event_type == "jog_event") {
 						var msg_udp = {"msg_type":"jog_event", "server_id":ServerID, "device":device,
 										"vendor_id":vendor_id, "product_id":product_id,"unit_id":unit_id,"duplicate_id":duplicate_id,
-										"control_id":msg.control_id, "value":msg.value,"timestamp":msg.timestamp};
+										"control_id":msg.control_id, "value":msg.value, "timestamp":msg.timestamp};
 
 						//	NodeRED
 						msg["type"] = "jog"
@@ -562,7 +562,7 @@ request_message_process = (type, message, ...moreArgs) => {
 					else if (msg.event_type == "shuttle_event") {
 						var msg_udp = {"msg_type":"shuttle_event", "server_id":ServerID, "device":device,
 										"vendor_id":vendor_id, "product_id":product_id,"unit_id":unit_id,"duplicate_id":duplicate_id,
-										"control_id":msg.control_id, "value":msg.value,"timestamp":msg.timestamp};
+										"control_id":msg.control_id, "value":msg.value, "timestamp":msg.timestamp};
 
 						//	NodeRED
 						msg["type"] = "shuttle"
@@ -583,6 +583,32 @@ request_message_process = (type, message, ...moreArgs) => {
 						if (! msg.hasOwnProperty("position")) { msg["position"] = {"x":msg.x,"y":msg.y,"z":msg.z,"deltaZ":msg.deltaZ}; }
 						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
 						var msg_topic = '/xkeys/server/joystick_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":msg};
+					}
+					else if (msg.event_type == "rotary_event") {
+						var msg_udp = {"msg_type":"rotary_event", "server_id":ServerID, "device":device,
+										"vendor_id":vendor_id, "product_id":product_id,"unit_id":unit_id,"duplicate_id":duplicate_id,
+										"control_id":msg.control_id, "value":msg.value, "timestamp":msg.timestamp};
+
+						//	NodeRED
+						msg["type"] = "rotary"
+						//console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						if (! msg.hasOwnProperty("position")) { msg["position"] = msg.value; }
+						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
+						var msg_topic = '/xkeys/server/rotary_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
+						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":msg};
+					}
+					else if (msg.event_type == "trackball_event") {
+						var msg_udp = {"msg_type":"trackball_event", "server_id":ServerID, "device":device,
+										"vendor_id":vendor_id, "product_id":product_id,"unit_id":unit_id,"duplicate_id":duplicate_id,
+										"control_id":msg.control_id, "x":msg.x,"y":msg.y, "timestamp":msg.timestamp};
+
+						//	NodeRED
+						msg["type"] = "trackball"
+						//console.log(`${msg.type.toUpperCase()} event from ${device}`);
+						if (! msg.hasOwnProperty("position")) { msg["position"] = {"x":msg.x,"y":msg.y}; }
+						if (! msg.hasOwnProperty("timestamp")) { msg["timestamp"] = -1; }
+						var msg_topic = '/xkeys/server/trackball_event/' + product_id + '/' + unit_id + '/' + duplicate_id + '/' + msg.control_id;
 						var msg_pload = {"server_id":ServerID,"request":"device_event", "data":msg};
 					}
 					else {
@@ -1582,7 +1608,7 @@ function startWatcher () {
 					send_udp_message(JSON.stringify(msg_udp));
 				})
 			}
-		})
+		})	// END shuttle event
 		xkeysPanel.on('joystick', (index, position, metadata) => {
 			//console.log(`X-keys panel ${xkeysPanel.info.name} joystick (${index})`)
 			position["x"] = norm.normalize(position["x"], "joyx");
@@ -1634,7 +1660,7 @@ function startWatcher () {
 					send_udp_message(JSON.stringify(msg_udp));
 				})
 			}
-		})
+		})	// END joystick event
 		xkeysPanel.on('tbar', (index, position, metadata) => {
 			//console.log(`X-keys panel ${xkeysPanel.info.name} tbar (${index})`)
 			var temp_id = xkeysPanel.vendorId + '-' + xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
@@ -1680,7 +1706,101 @@ function startWatcher () {
 					send_udp_message(JSON.stringify(msg_udp));
 				})
 			}
-		})
+		})	// END tbar event
+		xkeysPanel.on('rotary', (index, position, metadata) => {
+			//console.log(`X-keys panel ${xkeysPanel.info.name} rotary (${index}, ${position})`)
+			var temp_id = xkeysPanel.vendorId + '-' + xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
+			if (Object.keys(xkeys_devices).includes(temp_id)) {
+				var product_id = xkeys_devices[temp_id].device.info.productId;
+				var unit_id = xkeys_devices[temp_id].device.info.unitId;
+				//console.log("ROTARY event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+				if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
+				metadata["type"] = "rotary";
+				metadata["position"] = norm.normalize(position, "rotary");
+				metadata["shortnam"] = xkeys_products[product_id.toString()];
+				var msg_topic = '/xkeys/server/rotary_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
+				var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
+				client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+				// This is the 2.0.0 format
+				var msg_udp = {"msg_type":"rotary_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+								"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+								"control_id":index, "value":norm.normalize(position, "rotary"),"timestamp":metadata.timestamp};
+				send_udp_message(JSON.stringify(msg_udp));
+			} else {
+				add_unknown_xkeys_device(xkeysPanel)
+				.then(data => {
+					console.log("XXXXX " + data);
+					update_client_device_list("");
+					console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
+
+					var product_id = xkeys_devices[temp_id].device.info.productId;
+					var unit_id = xkeys_devices[temp_id].device.info.unitId;
+					//console.log("ROTARY event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
+					metadata["type"] = "rotary";
+					metadata["position"] = norm.normalize(position, "rotary");
+					metadata["shortnam"] = xkeys_products[product_id.toString()];
+					var msg_topic = '/xkeys/server/rotary_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
+					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
+					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+					// This is the 2.0.0 format
+					var msg_udp = {"msg_type":"rotary_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+									"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+									"control_id":index, "value":norm.normalize(position, "rotary"),"timestamp":metadata.timestamp};
+					send_udp_message(JSON.stringify(msg_udp));
+				})
+			}
+		})	// END rotary event
+		xkeysPanel.on('trackball', (index, position, metadata) => {
+			//console.log(`X-keys panel ${xkeysPanel.info.name} trackball (${index})`)
+			position["x"] = norm.normalize(position["x"], "tballx");
+			position["y"] = norm.normalize(position["y"], "tbally");
+			var temp_id = xkeysPanel.vendorId + '-' + xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
+			if (Object.keys(xkeys_devices).includes(temp_id)) {
+				var product_id = xkeys_devices[temp_id].device.info.productId;
+				var unit_id = xkeys_devices[temp_id].device.info.unitId;
+				//console.log("TRACKBALL event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+				if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
+				metadata["type"] = "trackball";
+				metadata["position"] = position;
+				metadata["shortnam"] = xkeys_products[product_id.toString()];
+				var msg_topic = '/xkeys/server/trackball_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + "/" + index;
+				var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
+				client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+				// This is the v2.0.0 format
+				var msg_udp = {"msg_type":"trackball_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+								"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+								"control_id":index, "x":position.x, "y":position.y, "timestamp":metadata.timestamp};
+				send_udp_message(JSON.stringify(msg_udp));
+			} else {
+				add_unknown_xkeys_device(xkeysPanel)
+				.then(data => {
+					console.log("XXXXX " + data);
+					update_client_device_list("");
+					console.log("updated: " + JSON.stringify(Object.keys(xkeys_devices)));
+
+					var product_id = xkeys_devices[temp_id].device.info.productId;
+					var unit_id = xkeys_devices[temp_id].device.info.unitId;
+					//console.log("TRACKBALL event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
+					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
+					metadata["type"] = "trackball";
+					metadata["position"] = position;
+					metadata["shortnam"] = xkeys_products[product_id.toString()];
+					var msg_topic = '/xkeys/server/trackball_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + "/" + index;
+					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
+					client.publish(msg_topic, JSON.stringify(msg_pload), {qos:qos,retain:false});
+
+					// This is the v2.0.0 format
+					var msg_udp = {"msg_type":"trackball_event", "server_id":ServerID, "device":xkeysPanel.info.name,
+									"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
+									"control_id":index, "x":position.x, "y":position.y, "timestamp":metadata.timestamp};
+					send_udp_message(JSON.stringify(msg_udp));
+				})
+			}
+		})	// END trackball event
 	})
 }	//	END function startWatcher()
 
