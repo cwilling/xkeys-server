@@ -39,7 +39,7 @@ stages:
   - package
   - upload
 
-.do_nothing:
+do_nothing:
   stage: nothing
   script:
     echo
@@ -226,7 +226,7 @@ stages:
     - node .\scripts\xkeys-server.js test
   interruptible: true
 
-package_windows:
+.package_windows:
   extends:
   - .shared_windows_runners
   stage: package
@@ -324,7 +324,7 @@ package_windows:
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/bbblack/${BEAGLEBONE_BLACK_INSTALLER} ${PACKAGE_REGISTRY_URL}/${BEAGLEBONE_BLACK_INSTALLER}
 
 
-upload_windows:
+.upload_windows:
   stage: upload
   image: curlimages/curl:latest
   rules:
