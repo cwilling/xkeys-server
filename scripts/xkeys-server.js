@@ -131,7 +131,7 @@ const { XKeysWatcher } = require('xkeys');
 const XKeys = require('xkeys');
 const { PRODUCTS, XKEYS_VENDOR_ID } = require('@xkeys-lib/core/dist/products');
 /*	Add Elgato products */
-elgato.products(PRODUCTS);
+//elgato.products(PRODUCTS);
 
 /*	An XKeysWatcher */
 const USE_POLLING = true;
