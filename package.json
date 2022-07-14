@@ -1,6 +1,6 @@
 {
   "name": "xkeys-server",
-  "version": "0.9.12",
+  "version": "0.9.13",
   "description": "UDP/MQTT service for SuperFlyTv's xkeys library",
   "main": "scripts/xkeys-server.js",
   "scripts": {
