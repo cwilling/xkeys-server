@@ -148,7 +148,7 @@ stages:
 
 
 # Package 64bit RasPi
-package_raspi:
+.package_raspi:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
   script:
@@ -168,7 +168,7 @@ package_raspi:
       - build/raspi/${RASPI_64_INSTALLER}
 
 # Package 32bit RasPi
-package_raspi_32:
+.package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
   script:
@@ -188,7 +188,7 @@ package_raspi_32:
       - build/raspi/${RASPI_32_INSTALLER}
 
 # Package 32bit Beaglebone Black
-package_beaglebone_black:
+.package_beaglebone_black:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
   script:
@@ -245,7 +245,7 @@ package_beaglebone_black:
 
 # We can't build macos packages here yet
 # so fetch and upload a package we prepared manually
-.upload_remotes:
+upload_remotes:
   image: curlimages/curl:latest
   stage: upload
   rules:
@@ -296,7 +296,7 @@ package_beaglebone_black:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/rpm/${LINUX_RPM_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_RPM_INSTALLER}
 
-upload_raspi:
+.upload_raspi:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -305,7 +305,7 @@ upload_raspi:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_64_INSTALLER}
 
-upload_raspi_32:
+.upload_raspi_32:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -314,7 +314,7 @@ upload_raspi_32:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
-upload_beaglebone_black:
+.upload_beaglebone_black:
   stage: upload
   image: curlimages/curl:latest
   rules:
