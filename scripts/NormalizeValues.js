@@ -1,6 +1,6 @@
 
 const devices = {
-	"0"    : {"jog":1, "shuttle":7, "rotary":255, "tbar":255, "trackball":127, "joyx":127, "joyy":127, "joyz":255, "deltaZ":255},
+	"0"    : {"jog":1, "shuttle":7, "rotary":255, "tbar":255, "tballx":127, "tbally":127, "joyx":127, "joyy":127, "joyz":255, "deltaZ":255},
 	"210"  : {"rotary":255, "tbar":255},
 	"1062" : {"jog":1, "shuttle":7},
 	"1065" : {"joyx":127, "joyy":127, "joyz":255, "deltaZ":255},
