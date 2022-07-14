@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const xdgBasedir = require('xdg-basedir');
 const xlate = require('./xkeys-xlate');
 const norm = require('./NormalizeValues.js');
-const elgato = require('./elgato-plugin')
+//const elgato = require('./elgato-plugin')
 
 const default_config = {
 	"hostname"		: require('os').hostname().split('.')[0],
@@ -103,7 +103,7 @@ process.on('SIGINT', () => {
 	udp_server.close();
 	client.end();
 	watcher.stop();
-	elgato.stop();
+	//elgato.stop();
 
 	process.exit();
 });
@@ -113,7 +113,7 @@ process.on('SIGTERM', () => {
 	udp_server.close();
 	client.end();
 	watcher.stop();
-	elgato.stop();
+	//elgato.stop();
 
 	process.exit();
 });
@@ -1378,7 +1378,7 @@ this_is_a_test = () => {
 	if (args.length > 0) {
 		if (args[0] == "test") {
 			console.log(`This is a test`);
-			elgato.stop();
+			//elgato.stop();
 			udp_server.close();
 			client.end();
 			watcher.stop();
@@ -1908,7 +1908,7 @@ are_we_there_yet = () => {
 
 	/*	 Start the elgato plugin
 	*/
-	elgato.start(xkeys_devices, ServerID);
+	//elgato.start(xkeys_devices, ServerID);
 }
 setTimeout(are_we_there_yet, 1000);
 
