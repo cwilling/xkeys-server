@@ -17,8 +17,8 @@
   ],
   "dependencies": {
     "@elgato-stream-deck/node": "^5.4.0",
-    "mqtt": "^4.2.8",
-    "usb-detection": "^4.13.0",
+    "mqtt": "^4.3.7",
+    "usb-detection": "^4.14.1",
     "xdg-basedir": "^4.0.0",
     "xkeys": "^3.0.0-alpha.0"
   },
