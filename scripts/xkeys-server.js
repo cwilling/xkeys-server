@@ -1753,10 +1753,9 @@ function startWatcher () {
 				})
 			}
 		})	// END rotary event
+		/* !!! No normalization for trackball data !!! */
 		xkeysPanel.on('trackball', (index, position, metadata) => {
 			//console.log(`X-keys panel ${xkeysPanel.info.name} trackball (${index})`)
-			position["x"] = norm.normalize(position["x"], "tballx");
-			position["y"] = norm.normalize(position["y"], "tbally");
 			var temp_id = xkeysPanel.vendorId + '-' + xkeysPanel.uniqueId.replace(/_/g, "-") + "-" + xkeysPanel.duplicate_id;
 			if (Object.keys(xkeys_devices).includes(temp_id)) {
 				var product_id = xkeys_devices[temp_id].device.info.productId;
