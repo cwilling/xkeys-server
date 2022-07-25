@@ -84,6 +84,7 @@ var XkeysJoystickDemo = GObject.registerClass({
 	*/
 	set_joystate(msg) {
 		// Should check that msg data is valid
+		//log('msg: ' + JSON.stringify(msg));
 
 		this.joystate['xpos'] = msg.x;
 		this.joystate['ypos'] = msg.y;
