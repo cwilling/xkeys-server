@@ -35,8 +35,13 @@ var UdpNet = GObject.registerClass ({
 
 				// Now read the data
 				const bytes = this.socket_source_stream.read_bytes(8192, null).toArray();
-				const decoder = new TextDecoder();
-				let message = decoder.decode(bytes);
+				let message;
+				if ('TextDecoder' in window) {
+					const decoder = new TextDecoder();
+					message = decoder.decode(bytes);
+				} else {
+					message = bytes.toString();
+				}
 				//log(`Received: ${message} length ${message.length}`);
 
 				const msg = JSON.parse(message);
@@ -114,25 +119,35 @@ var UdpNet = GObject.registerClass ({
 		try {
 			const discover_message = JSON.stringify(discover_msg);	// Just checking message is legal JSON
 			this.socket.set_broadcast(true);
-			const encoder = new TextEncoder();
-			this.socket.send_to(Gio.InetSocketAddress.new(Gio.InetAddress.new_from_string('255.255.255.255'), this.service_port),
+			if ('TextEncoder' in window ) {
+				const encoder = new TextEncoder();
+				this.socket.send_to(Gio.InetSocketAddress.new(Gio.InetAddress.new_from_string('255.255.255.255'), this.service_port),
 								encoder.encode(discover_message), null);
+			} else {
+				const ByteArray = imports.byteArray;
+				this.socket.send_to(Gio.InetSocketAddress.new(Gio.InetAddress.new_from_string('255.255.255.255'), this.service_port), ByteArray.fromString(discover_message), null);
+			}
 			this.socket.set_broadcast(false);
 		}
 		catch (err) {
 			log(`XXX send_udp_message XXX: ${err}`);
 		}
 
-		const encoder = new TextEncoder();
+		//const encoder = new TextEncoder();
 	}
 
 	send_udp_message (message, rinfo) {
 		log(`Sending: ${message}`);
 		try {
 			const msg = JSON.parse(message);	// Just checking message is legal JSON
-			const encoder = new TextEncoder();
-			this.socket.send_to(Gio.InetSocketAddress.new(Gio.InetAddress.new_from_string(rinfo.address), rinfo.port),
+			if ('TextEncoder' in window ) {
+				const encoder = new TextEncoder();
+				this.socket.send_to(Gio.InetSocketAddress.new(Gio.InetAddress.new_from_string(rinfo.address), rinfo.port),
 							encoder.encode(message), null);
+			} else {
+				const ByteArray = imports.byteArray;
+				this.socket.send_to(Gio.InetSocketAddress.new(Gio.InetAddress.new_from_string(rinfo.address), rinfo.port), ByteArray.fromString(message), null);
+			}
 
 		}
 		catch (err) {
