@@ -29,7 +29,7 @@ var JoystickClientDevice = GObject.registerClass({
 		*		this._drawing_area.visible = true;
 		*/
 
-		this._drawing_area.add_events(Gdk.EventMask.BUTTON1_MOTION_MASK|Gdk.EventMask.BUTTON_PRESS_MASK);
+		this._drawing_area.add_events(Gdk.EventMask.BUTTON1_MOTION_MASK|Gdk.EventMask.BUTTON_PRESS_MASK|Gdk.EventMask.SCROLL_MASK|Gdk.EventMask.SMOOTH_SCROLL_MASK);
 
 		this.joystate = {};
 		this.joystate['xpos'] = 0.0;
@@ -58,6 +58,22 @@ var JoystickClientDevice = GObject.registerClass({
 	/*	The signal handlers bound in the UI file
 	*/
 
+	on_drawing_area_scroll_event(widget, event) {
+		var direction = event.get_scroll_deltas()[2];
+		let deltaZ;
+		if (direction > 0 ) {
+			this.joystate['zpos'] += 4;
+			deltaZ = 0.04;
+		} else {
+			this.joystate['zpos'] -= 4;
+			deltaZ = -0.04;
+		}
+		this.queue_draw();
+
+		var data_msg = {"msg_type":"device_data", "event_type":"joystick_event", "control_id":0, "x":this.joystate.xpos, "y":this.joystate.ypos, "z":0.0,"deltaZ":deltaZ, "timestamp":Number.parseInt(GLib.get_monotonic_time()/1000) };
+		this.udpnet.send_client_udp_message(JSON.stringify(data_msg));
+	}
+
 	on_drawing_area_button_press_event(widget) {
 		var position= widget.get_pointer();
 		var width = widget.get_allocated_width();
@@ -67,7 +83,7 @@ var JoystickClientDevice = GObject.registerClass({
 		this.joystate['ypos'] = -((position[1] - height/2)/(height/2));
 		this.queue_draw();
 
-		var data_msg = {"msg_type":"device_data", "event_type":"joystick_event", "control_id":0, "x":this.joystate.xpos, "y":this.joystate.ypos, "z":0.0,"deltaZ":0.0, "timestamp":Number.parseInt(GLib.get_monotonic_time()/1000) };
+		var data_msg = {"msg_type":"device_data", "event_type":"joystick_event", "control_id":0, "x":this.joystate.xpos, "y":this.joystate.ypos, "z":this.joystate.zpos, "deltaZ":0.0, "timestamp":Number.parseInt(GLib.get_monotonic_time()/1000) };
 		this.udpnet.send_client_udp_message(JSON.stringify(data_msg));
 	}
 	on_drawing_area_motion_notify_event(widget) {

@@ -213,6 +213,7 @@ Author: Christoph Willing
             <signal name="button-press-event" handler="on_drawing_area_button_press_event" swapped="no"/>
             <signal name="draw" handler="on_drawing_area_draw" swapped="no"/>
             <signal name="motion-notify-event" handler="on_drawing_area_motion_notify_event" swapped="no"/>
+            <signal name="scroll-event" handler="on_drawing_area_scroll_event" swapped="no"/>
             <style>
               <class name="drawing_area"/>
             </style>
