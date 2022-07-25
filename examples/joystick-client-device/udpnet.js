@@ -1,6 +1,5 @@
 
 const {GObject, Gio, GLib } = imports.gi;
-const ByteArray = imports.byteArray;
 
 var UdpNet = GObject.registerClass ({
 	GTypeName: 'UdpNet',
@@ -158,7 +157,7 @@ var UdpNet = GObject.registerClass ({
 							encoder.encode(message), null);
 			} else {
 				const ByteArray = imports.byteArray;
-				this.socket.send_to(Gio.InetSocketAddress.new(Gio.InetAddress.new_from_string('255.255.255.255'), this.service_port), ByteArray.fromString(message), null);
+				this.socket.send_to(Gio.InetSocketAddress.new(Gio.InetAddress.new_from_string(rinfo.address), rinfo.port), ByteArray.fromString(message), null);
 			}
 		}
 		catch (err) {
