@@ -43,7 +43,7 @@ var UdpNet = GObject.registerClass ({
 				// Now read the data
 				let message;
 				const bytes = this.socket_source_stream.read_bytes(8192, null).toArray();
-				if ('TextDecoder' in window) {
+				if ('TextDecoder' in window) {	// Older cjs versions don't have Text{En,De}coder
 					const decoder = new TextDecoder();
 					message = decoder.decode(bytes);
 				} else {
@@ -132,7 +132,7 @@ var UdpNet = GObject.registerClass ({
 		try {
 			const discover_message = JSON.stringify(discover_msg);	// Just checking message is legal JSON
 			this.socket.set_broadcast(true);
-			if ('TextEncoder' in window) {
+			if ('TextEncoder' in window) {	// Older cjs versions don't have Text{En,De}coder
 				const encoder = new TextEncoder();
 				this.socket.send_to(Gio.InetSocketAddress.new(Gio.InetAddress.new_from_string('255.255.255.255'), this.service_port), encoder.encode(discover_message), null);
 			} else {
@@ -144,15 +144,13 @@ var UdpNet = GObject.registerClass ({
 		catch (err) {
 			log(`XXX send_discover_message XXX: ${err}`);
 		}
-
-		//const encoder = new TextEncoder();
 	}
 
 	send_udp_message (message, rinfo) {
 		//log(`Sending: ${message}`);
 		try {
 			const msg = JSON.parse(message);	// Just checking message is legal JSON
-			if ('TextEncoder' in window) {
+			if ('TextEncoder' in window) {	// Older cjs versions don't have Text{En,De}coder
 				const encoder = new TextEncoder();
 				this.socket.send_to(Gio.InetSocketAddress.new(Gio.InetAddress.new_from_string(rinfo.address), rinfo.port),
 							encoder.encode(message), null);
