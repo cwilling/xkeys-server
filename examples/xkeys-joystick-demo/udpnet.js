@@ -40,7 +40,8 @@ var UdpNet = GObject.registerClass ({
 					const decoder = new TextDecoder();
 					message = decoder.decode(bytes);
 				} else {
-					message = bytes.toString();
+					const ByteArray = imports.byteArray;
+					message = ByteArray.toString(bytes);
 				}
 				//log(`Received: ${message} length ${message.length}`);
 
