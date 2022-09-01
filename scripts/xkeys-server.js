@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const xdgBasedir = require('xdg-basedir');
 const xlate = require('./xkeys-xlate');
 const norm = require('./NormalizeValues.js');
-//const elgato = require('./elgato-plugin')
+const elgato = require('./elgato-plugin')
 
 const default_config = {
 	"hostname"		: require('os').hostname().split('.')[0],
@@ -103,7 +103,7 @@ process.on('SIGINT', () => {
 	udp_server.close();
 	client.end();
 	watcher.stop();
-	//elgato.stop();
+	elgato.stop();
 
 	process.exit();
 });
@@ -113,7 +113,7 @@ process.on('SIGTERM', () => {
 	udp_server.close();
 	client.end();
 	watcher.stop();
-	//elgato.stop();
+	elgato.stop();
 
 	process.exit();
 });
@@ -131,7 +131,7 @@ const { XKeysWatcher } = require('xkeys');
 const XKeys = require('xkeys');
 const { PRODUCTS, XKEYS_VENDOR_ID } = require('@xkeys-lib/core/dist/products');
 /*	Add Elgato products */
-//elgato.products(PRODUCTS);
+elgato.products(PRODUCTS);
 
 /*	An XKeysWatcher */
 const USE_POLLING = true;
@@ -1378,7 +1378,7 @@ this_is_a_test = () => {
 	if (args.length > 0) {
 		if (args[0] == "test") {
 			console.log(`This is a test`);
-			//elgato.stop();
+			elgato.stop();
 			udp_server.close();
 			client.end();
 			watcher.stop();
@@ -1572,7 +1572,8 @@ function startWatcher () {
 				//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 				if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 				metadata["type"] = "shuttle";
-				metadata["shuttlePos"] = norm.normalize(shuttlePos, metadata["type"]);
+				//metadata["shuttlePos"] = norm.normalize(shuttlePos, metadata["type"]);
+				metadata["shuttlePos"] = shuttlePos;
 				metadata["shortnam"] = xkeys_products[product_id.toString()];
 				var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 				var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
@@ -1581,7 +1582,8 @@ function startWatcher () {
 				// This is the v2.0.0 format
 				var msg_udp = {"msg_type":"shuttle_event", "server_id":ServerID, "device":xkeysPanel.info.name,
 								"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
-								"control_id":index, "value":norm.normalize(shuttlePos,metadata["type"]), "timestamp":metadata.timestamp};
+								//"control_id":index, "value":norm.normalize(shuttlePos,metadata["type"]), "timestamp":metadata.timestamp};
+								"control_id":index, "value":shuttlePos, "timestamp":metadata.timestamp};
 				send_udp_message(JSON.stringify(msg_udp));
 			} else {
 				add_unknown_xkeys_device(xkeysPanel)
@@ -1595,7 +1597,8 @@ function startWatcher () {
 					//console.log("SHUTTLE event from " + JSON.stringify(xkeys_devices[temp_id].device.info));
 					if (! metadata.hasOwnProperty("timestamp")) { metadata["timestamp"] = -1; }
 					metadata["type"] = "shuttle";
-					metadata["shuttlePos"] = norm.normalize(shuttlePos, metadata["type"]);
+					//metadata["shuttlePos"] = norm.normalize(shuttlePos, metadata["type"]);
+					metadata["shuttlePos"] = shuttlePos;
 					metadata["shortnam"] = xkeys_products[product_id.toString()];
 					var msg_topic = '/xkeys/server/shuttle_event/' + product_id + '/' + unit_id + '/' + xkeysPanel.duplicate_id + '/' + index;
 					var msg_pload = {"server_id":ServerID,"request":"device_event", "data":metadata};
@@ -1604,7 +1607,7 @@ function startWatcher () {
 					// This is the v2.0.0 format
 					var msg_udp = {"msg_type":"shuttle_event", "server_id":ServerID, "device":xkeysPanel.info.name,
 									"vendor_id":xkeysPanel.vendorId, "product_id":product_id, "unit_id":unit_id, "duplicate_id":xkeysPanel.duplicate_id,
-									"control_id":index, "value":norm.normalize(shuttlePos, metadata["type"]), "timestamp":metadata.timestamp};
+									"control_id":index, "value":shuttlePos, "timestamp":metadata.timestamp};
 					send_udp_message(JSON.stringify(msg_udp));
 				})
 			}
@@ -1907,7 +1910,7 @@ are_we_there_yet = () => {
 
 	/*	 Start the elgato plugin
 	*/
-	//elgato.start(xkeys_devices, ServerID);
+	elgato.start(xkeys_devices, ServerID);
 }
 setTimeout(are_we_there_yet, 1000);
 
