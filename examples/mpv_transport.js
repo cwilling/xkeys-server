@@ -106,9 +106,10 @@ client.on('message', (message, remote) => {
 				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key BackSpace');
 			}
 		} else if (msg[msg_type] == "shuttle_event") {
-			console.log(`Received shuttle event: ${JSON.stringify(msg)}`);
-			console.log(`Received shuttle value: ${msg.value}`);
-			const shuttlePos = msg.value
+			//console.log(`Received shuttle event: ${JSON.stringify(msg)}`);
+
+			//	Denormalise back to discreet shuttle values 0->7
+			const shuttlePos = Math.round(msg.value * 7);
 			if (shuttlePos == 0 ) {
 				//	Set forward direction and set pause yes
 				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key alt+KP_0 key question');
