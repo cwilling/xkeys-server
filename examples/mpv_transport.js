@@ -149,7 +149,7 @@ client.on('message', (message, remote) => {
 			}
 			else {
 				//	Set speed to preset assigned to shuttle position (2-7)
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key shift+KP_' + Math.abs(shuttlePos));
+				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key Shift+KP_' + Math.abs(shuttlePos));
 			}
 		} else if (msg[msg_type] == "jog_event") {
 			console.log(`Received jog event: ${JSON.stringify(msg)}`);
