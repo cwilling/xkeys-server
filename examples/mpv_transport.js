@@ -13,18 +13,38 @@
 */
 
 
+const { exec } = require('child_process');
+
 let target_device;
 const myArgs = process.argv.slice(2);
 if (myArgs.length > 0) {
    target_device = myArgs[0];
 } else {
-   target_device = "1523-1062-";	// XK12 Jog/Shuttle
+   target_device = "1523-1062-";	// XK-12 Jog-Shuttle
+   //target_device = "1523-1388-";	// X-blox XBA-4x3 Jog-Shuttle Module
+   //target_device = "1523-1325-";	// XKE-64 Jog T-bar
+   //target_device = "1523-1114-";	// XK-68 Jog-Shuttle
 }
+
+/*	For this example we use only the 4 buttons immediately
+*	above the shuttle wheel:
+*	- first is to halve current speed 
+*	- second is to change speed to 1.0
+*	- third is start/stop toggle
+*	- fourth is to double speed
+*
+*	Different shuttle devices will emit different keyIndex
+*	according to button layout so we track those in this
+*	transport_buttons object.
+*/
+const transport_buttons = {};
+transport_buttons["1523-1062-"] = [3,6,9,12];
+transport_buttons["1523-1388-"] = [3,6,9,12];
+transport_buttons["1523-1325-"] = [5,13,21,29];
+transport_buttons["1523-1114-"] = [29,37,45,53];
 
 var PLAYER = "mpv";
 if (process.env.mpvname) { PLAYER = process.env.mpvname };
-
-const { exec } = require('child_process');
 
 const server_port = 48895;
 let server_addr;
@@ -86,24 +106,29 @@ client.on('message', (message, remote) => {
 				//	We're only interested in DOWN events
 				return;
 			}
-			console.log(`Received button event: ${JSON.stringify(msg)}`);
-			console.log(`Received button index: ${msg.control_id}`);
+			//console.log(`Received button event: ${JSON.stringify(msg)}`);
+			//console.log(`Received button index: ${msg.control_id}`);
 			const keyIndex = msg.control_id
-			if (keyIndex == 9) {
-				console.log(`Have space`);
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key space');
-			}
-			else if (keyIndex == 3) {
-				console.log(`Have speed decrease`);
+
+			if (keyIndex == transport_buttons[target_device][0]) {
+				/*	First button (halve current speed) */
+				//console.log(`Halve speed`);
 				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key braceleft');
 			}
-			else if (keyIndex == 12) {
-				console.log(`Have speed increase`);
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key braceright');
-			}
-			else if (keyIndex == 6 ) {
-				console.log(`Have Backspace`);
+			else if (keyIndex == transport_buttons[target_device][1]) {
+				/*	Second button (set speed to 1.0) */
+				//console.log(`Have Backspace (reset speed to 1.0)`);
 				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key BackSpace');
+			}
+			else if (keyIndex == transport_buttons[target_device][2]) {
+				/*	Third button (start/stop toggle) */
+				//console.log(`Have space`);
+				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key space');
+			}
+			else if (keyIndex == transport_buttons[target_device][3]) {
+				/*	Fourth button (double current speed) */
+				//console.log(`Have speed increase`);
+				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key braceright');
 			}
 		} else if (msg[msg_type] == "shuttle_event") {
 			//console.log(`Received shuttle event: ${JSON.stringify(msg)}`);
