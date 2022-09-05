@@ -3,7 +3,7 @@
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 ;
-SetTitleMatchMode, 1 ; Partial match starts with
+SetTitleMatchMode, 2 ; Partial match - contained anywhere in WinTitle
 
 
 if (A_Args.length() == 2) {
@@ -25,5 +25,5 @@ if (A_Args.length() == 2) {
 	Send %4%
 	return
 }
-return
+Exit
 
