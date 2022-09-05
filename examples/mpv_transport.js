@@ -113,22 +113,42 @@ client.on('message', (message, remote) => {
 			if (keyIndex == transport_buttons[target_device][0]) {
 				/*	First button (halve current speed) */
 				//console.log(`Halve speed`);
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key braceleft');
+				if ( process.platform == "linux") {
+					exec('xdotool search --onlyvisible --name ' + PLAYER + ' key braceleft');
+				}
+				else if ( process.platform == "win32") {
+					exec('AutoHotkey.exe ' + PLAYER + ' "{{}"');
+				}
 			}
 			else if (keyIndex == transport_buttons[target_device][1]) {
 				/*	Second button (set speed to 1.0) */
 				//console.log(`Have Backspace (reset speed to 1.0)`);
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key BackSpace');
+				if ( process.platform == "linux") {
+					exec('xdotool search --onlyvisible --name ' + PLAYER + ' key BackSpace');
+				}
+				else if ( process.platform == "win32") {
+					exec('AutoHotkey.exe ' + PLAYER + ' "{BackSpace}"');
+				}
 			}
 			else if (keyIndex == transport_buttons[target_device][2]) {
 				/*	Third button (start/stop toggle) */
 				//console.log(`Have space`);
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key space');
+				if ( process.platform == "linux") {
+					exec('xdotool search --onlyvisible --name ' + PLAYER + ' key space');
+				}
+				else if ( process.platform == "win32") {
+					exec('AutoHotkey.exe ' + PLAYER + ' "{Space}"');
+				}
 			}
 			else if (keyIndex == transport_buttons[target_device][3]) {
 				/*	Fourth button (double current speed) */
 				//console.log(`Have speed increase`);
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key braceright');
+				if ( process.platform == "linux") {
+					exec('xdotool search --onlyvisible --name ' + PLAYER + ' key braceright');
+				}
+				else if ( process.platform == "win32") {
+					exec('AutoHotkey.exe ' + PLAYER + ' "{}}"');
+				}
 			}
 		} else if (msg[msg_type] == "shuttle_event") {
 			//console.log(`Received shuttle event: ${JSON.stringify(msg)}`);
@@ -137,26 +157,57 @@ client.on('message', (message, remote) => {
 			const shuttlePos = Math.round(msg.value * 7);
 			if (shuttlePos == 0 ) {
 				//	Set forward direction and set pause yes
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key alt+KP_0 key question');
+				if ( process.platform == "linux") {
+					exec('xdotool search --onlyvisible --name ' + PLAYER + ' key alt+KP_0 key question');
+				}
+				else if ( process.platform == "win32") {
+					exec('AutoHotkey.exe ' + PLAYER + ' "!{Numpad0}" "{?}"');
+				}
 			}
 			else if (shuttlePos == -1 ) {
 				//	Set reverse direction, set speed to preset 1 and set pause no
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key ctrl+KP_0 key Shift+KP_1 key ctrl+slash');
+				if ( process.platform == "linux") {
+					exec('xdotool search --onlyvisible --name ' + PLAYER + ' key ctrl+KP_0 key Ctrl+KP_1 key ctrl+slash');
+				}
+				else if ( process.platform == "win32") {
+					exec('AutoHotkey.exe ' + PLAYER + ' "^{Numpad0}" "^{Numpad1}" "^{/}"');
+				}
 			}
 			else if (shuttlePos == 1 ) {
 				//	Set forward direction, set speed to preset 1 and set pause no
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key alt+KP_0 key Shift+KP_1 key ctrl+slash');
+				if ( process.platform == "linux") {
+					exec('xdotool search --onlyvisible --name ' + PLAYER + ' key alt+KP_0 key Ctrl+KP_1 key ctrl+slash');
+				}
+				else if ( process.platform == "win32") {
+					exec('AutoHotkey.exe ' + PLAYER + ' "!{Numpad0}" "^{Numpad1}" "^{/}"');
+				}
 			}
 			else {
 				//	Set speed to preset assigned to shuttle position (2-7)
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key Shift+KP_' + Math.abs(shuttlePos));
+				if ( process.platform == "linux") {
+					exec('xdotool search --onlyvisible --name ' + PLAYER + ' key Ctrl+KP_' + Math.abs(shuttlePos));
+				}
+				else if ( process.platform == "win32") {
+					const numpadX = "Numpad" + Math.abs(shuttlePos).toString();
+					exec('AutoHotkey.exe ' + PLAYER + ' "{' + numpadX + ' }"');
+				}
 			}
 		} else if (msg[msg_type] == "jog_event") {
-			console.log(`Received jog event: ${JSON.stringify(msg)}`);
+			//console.log(`Received jog event: ${JSON.stringify(msg)}`);
 			if (msg.value > 0) {
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key period');
+				if ( process.platform == "linux") {
+					exec('xdotool search --onlyvisible --name ' + PLAYER + ' key period');
+				}
+				else if ( process.platform == "win32") {
+					exec('AutoHotkey.exe ' + PLAYER + ' "{.}"');
+				}
 			} else {
-				exec('xdotool search --onlyvisible --name ' + PLAYER + ' key comma');
+				if ( process.platform == "linux") {
+					exec('xdotool search --onlyvisible --name ' + PLAYER + ' key comma');
+				}
+				else if ( process.platform == "win32") {
+					exec('AutoHotkey.exe ' + PLAYER + ' "{,}"');
+				}
 			}
 		} else if (/.*_event/.exec(msg[msg_type])) {
 			/*	See all events */
