@@ -189,7 +189,7 @@ client.on('message', (message, remote) => {
 				}
 				else if ( process.platform == "win32") {
 					const numpadX = "Numpad" + Math.abs(shuttlePos).toString();
-					exec('AutoHotkey.exe ' + PLAYER + ' "{' + numpadX + ' }"');
+					exec('AutoHotkey.exe ' + PLAYER + ' "^{' + numpadX + ' }"');
 				}
 			}
 		} else if (msg[msg_type] == "jog_event") {
