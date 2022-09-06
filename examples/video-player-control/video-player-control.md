@@ -16,9 +16,9 @@ For the video replay machine:
 ### Procedure
 First, keybindings must be provided for _mpv_ to enable the desired jog & shuttle functionality. These keybindings are contained in the [_input.conf_](examples/input.conf) file which can either be copied, as is, to the correct location or its contents may be merged with any already existing input.conf file. On Linux machines, the location is in the ~/.conf/mpv directory (which should be created when _mpv_ is run for the first time). On Windows, the _input.conf_ should be in the _C:\users\USERNAME\AppData\Roaming\mpv_ directory.
 
-On Windows machines only, compile the [_AutoHotkey.ahk_](examples/AutoHotkey.ahk) in this directory to generate an _AutoHotkey.exe_ file (select AutoHotkey.ahk in the file browser, right click on it and select _Compile_ from the context menu).
+On Windows machines only, compile the [_AutoHotkey.ahk_](examples/video-player-control/AutoHotkey.ahk) in this directory to generate an _AutoHotkey.exe_ file (select AutoHotkey.ahk in the file browser, right click on it and select _Compile_ from the context menu).
 
-Next, run a video file with _mpv_. Then run the [mpv_transport.js](examples/mpv_transport.js) script in this directory from a command prompt with something like:
+Next, run a video file with _mpv_. Then run the [mpv_transport.js](examples/video-player-control/mpv_transport.js) script in this directory from a command prompt with something like:
 ```
     node ./mpv_transport.js
 ```
