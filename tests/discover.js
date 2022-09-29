@@ -14,7 +14,7 @@
 *	discovery attempt, repeating every 2 seconds indefinitely
 *	until a server replies.
 *
-*	It is possible the multiple servers respond, requiring a
+*	It is possible that multiple servers respond, requiring a
 *	decision about which one to use. In this example, the
 *	server found in discovered_hosts[] is chosen unless
 *	the desired server Id is known and passed to discover.js
@@ -70,6 +70,9 @@ choose_server = (server_id) => {
 		setTimeout(choose_server, 1000, server_id);
 	} else {
 		console.log(`discovered_hosts: ${JSON.stringify(discovered_hosts)}`);
+		discovered_hosts.forEach( (server) => {
+			console.log(`server: ${server.xk_server_address}`);
+		});
 		/*	Choose which of the servers that replied to use.
 		*	For brevity/convenience, we choose the first server we received a reply from.
 		*	A normal app may have a more sophisticated way to choose e.g. user input.
