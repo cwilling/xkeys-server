@@ -33,6 +33,7 @@
   "pkg": {
     "scripts": "scripts/*",
     "assets": [
+      "./node_modules/mdns/**/**/*",
       "./node_modules/node-hid/**/**/*",
       "./node_modules/usb-detection/**/**/*"
     ],
