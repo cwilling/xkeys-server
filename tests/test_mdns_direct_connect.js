@@ -89,6 +89,7 @@ client.on("message", (message, rinfo) => {
 });
 
 send_udp_message = (message, rinfo) => {
+	//console.log(`Sending message: ${message}`);
 	client.send(message, 0, message.length, rinfo.port, rinfo.address, (err, bytes) => {
 		if (err) {
 			throw err;
