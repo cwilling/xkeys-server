@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 
+const os = require('os');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -8,9 +9,10 @@ const xdgBasedir = require('xdg-basedir');
 const xlate = require('./xkeys-xlate');
 const norm = require('./NormalizeValues.js');
 //const elgato = require('./elgato-plugin')
+const mdns = require('mdns');
 
 const default_config = {
-	"hostname"		: require('os').hostname().split('.')[0],
+	"hostname"		: os.hostname().split('.')[0],
 	"host_address"	: "0.0.0.0",
 	"host_port"		: 48895,
 	"timeout_client_ttl"	: 600000,
@@ -97,6 +99,20 @@ const udp_server = dgram.createSocket('udp4');
 const udp_host = config.host_address;
 const udp_port = config.host_port;
 const udp_clients = [];
+
+/*   Advertise the service */
+//const ad = mdns.createAdvertisement(mdns.udp('dcdp'), config.host_port);
+
+//const addresses = find_local_addresses();
+find_local_addresses().forEach( (address) => {
+	console.log(`Advertise local address: ${address}`);
+    const ad = new mdns.Advertisement('_dcdp._udp', config.host_port, {
+        name: 'X-keys server at ' + address
+        , networkInterface: address
+        , txtRecord: {oaddr: address, oid: ServerID, oport: udp_port}
+    });
+    ad.start();
+});
 
 process.on('SIGINT', () => {
 	console.log(`Shutting down (SIGINT)`);
@@ -2096,4 +2112,28 @@ show_udp_clients = () => {
 		console.log(`show_udp_clients(): ${JSON.stringify(client_display)}`);
 	}
 }
+
+function find_local_addresses () {
+	var addresses = [];
+	const ifaces = os.networkInterfaces();
+	Object.keys(ifaces).forEach( (iface) => {
+		//console.log(`${JSON.stringify(ifaces)}`);
+		/*	Don't list loopback interface.
+		*	"lo" for linux
+		*	"lo0" for MacOS (maybe lo1, lo2 etc., for others)
+		*	"Loopback Pseudo-Interface ..." for Windows
+		*/
+		if (iface == "lo" || iface.match(/lo[0-9]/) || iface.match(/Loop/)) { return; }
+
+		for (var i=0;i<ifaces[iface].length;i++) {
+			if (ifaces[iface][i].family == "IPv4") {
+				//console.log(`${JSON.stringify(ifaces[iface][i])}`);
+				//console.log(`${JSON.stringify(ifaces[iface][i].address)}`);
+				addresses.push(ifaces[iface][i].address);
+			}
+		}
+	});
+	return addresses;
+}
+
 
