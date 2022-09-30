@@ -149,7 +149,7 @@ stages:
 
 
 # Package 64bit RasPi
-.package_raspi:
+package_raspi:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
   script:
@@ -169,7 +169,7 @@ stages:
       - build/raspi/${RASPI_64_INSTALLER}
 
 # Package 32bit RasPi
-.package_raspi_32:
+package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
   script:
@@ -189,7 +189,7 @@ stages:
       - build/raspi/${RASPI_32_INSTALLER}
 
 # Package 32bit Beaglebone Black
-.package_beaglebone_black:
+package_beaglebone_black:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
   script:
@@ -246,7 +246,8 @@ stages:
 
 # We can't build macos packages here yet
 # so fetch and upload a package we prepared manually
-upload_remotes:
+# (also windows since 0.10.00 until we find a way to include Bonjour SDK for Windows)
+.upload_remotes:
   image: curlimages/curl:latest
   stage: upload
   rules:
