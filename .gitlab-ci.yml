@@ -149,7 +149,7 @@ stages:
 
 
 # Package 64bit RasPi
-package_raspi:
+.package_raspi:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
   script:
@@ -172,6 +172,8 @@ package_raspi:
 package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0-dev libavahi-compat-libdnssd-dev
   script:
     - mkdir -p ~/.pkg-cache/v3.4
     - cd ~/.pkg-cache/v3.4
@@ -189,7 +191,7 @@ package_raspi_32:
       - build/raspi/${RASPI_32_INSTALLER}
 
 # Package 32bit Beaglebone Black
-package_beaglebone_black:
+.package_beaglebone_black:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
   script:
