@@ -2118,7 +2118,12 @@ function find_local_addresses () {
 	const ifaces = os.networkInterfaces();
 	Object.keys(ifaces).forEach( (iface) => {
 		//console.log(`${JSON.stringify(ifaces)}`);
-		if (iface == "lo" || iface.match(/lo[0-9]/)) { return; }
+		/*	Don't list loopback interface.
+		*	"lo" for linux
+		*	"lo0" for MacOS (maybe lo1, lo2 etc., for others)
+		*	"Loopback Pseudo-Interface ..." for Windows
+		*/
+		if (iface == "lo" || iface.match(/lo[0-9]/) || iface.match(/Loop/)) { return; }
 
 		for (var i=0;i<ifaces[iface].length;i++) {
 			if (ifaces[iface][i].family == "IPv4") {
