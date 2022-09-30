@@ -105,7 +105,7 @@ const udp_clients = [];
 
 //const addresses = find_local_addresses();
 find_local_addresses().forEach( (address) => {
-	console.log(address);
+	console.log(`Advertise local address: ${address}`);
     const ad = new mdns.Advertisement('_dcdp._udp', config.host_port, {
         name: 'X-keys server at ' + address
         , networkInterface: address
@@ -2118,7 +2118,7 @@ function find_local_addresses () {
 	const ifaces = os.networkInterfaces();
 	Object.keys(ifaces).forEach( (iface) => {
 		//console.log(`${JSON.stringify(ifaces)}`);
-		if (iface == "lo") { return; }
+		if (iface == "lo" || iface.match(/lo[0-9]/)) { return; }
 
 		for (var i=0;i<ifaces[iface].length;i++) {
 			if (ifaces[iface][i].family == "IPv4") {
