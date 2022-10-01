@@ -149,7 +149,7 @@ stages:
 
 
 # Package 64bit RasPi
-package_raspi:
+.package_raspi:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
   before_script:
