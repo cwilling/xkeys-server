@@ -84,7 +84,7 @@ stages:
 
 # Docker container for Beaglebone Black 32bit packaging
 # (using default Debian buster base)
-docker_build_bbblack_arm32v7:
+.docker_build_bbblack_arm32v7:
   stage: docker_build
   image: docker:20.10.11
   services:
@@ -191,7 +191,7 @@ docker_build_bbblack_arm32v7:
       - build/raspi/${RASPI_32_INSTALLER}
 
 # Package 32bit Beaglebone Black
-.package_beaglebone_black:
+package_beaglebone_black:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
   before_script:
@@ -325,7 +325,7 @@ docker_build_bbblack_arm32v7:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
-.upload_beaglebone_black:
+upload_beaglebone_black:
   stage: upload
   image: curlimages/curl:latest
   rules:
