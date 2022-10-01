@@ -48,7 +48,7 @@ stages:
 
 
 # Docker container for packaging RPMs.
-docker_build_rpm:
+.docker_build_rpm:
   stage: docker_build
   image: docker:20.10.11
   services:
@@ -133,7 +133,7 @@ docker_build_rpm:
       - build/deb/${LINUX_AMD64_INSTALLER}
 
 # Package rpm
-.package_rpm:
+package_rpm:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
   script:
@@ -298,7 +298,7 @@ docker_build_rpm:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-.upload_rpm:
+upload_rpm:
   stage: upload
   image: curlimages/curl:latest
   rules:
