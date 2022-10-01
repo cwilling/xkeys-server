@@ -3,7 +3,7 @@ Version: %VERSION%
 Priority: optional
 Architecture: %ARCH%
 Installed-Size: %SIZE%
-Depends: libc6, libfuse2, mosquitto
+Depends: libc6, libfuse2, mosquitto, libavahi-compat-libdnssd-dev
 Section: misc
 Maintainer: Christoph Willing <chris.willing@linux.com>
 Description: Service providing access to XKeys devices.
