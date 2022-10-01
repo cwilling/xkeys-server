@@ -7,7 +7,7 @@ License:        MIT
 URL:            https://gitlab.com/chris.willing/xkeys-server
 Source0:        %{name}-%{version}.tar.gz
 
-Requires:       fuse-libs,mosquitto
+Requires:       fuse-libs,mosquitto,avahi-compat-libdns_sd-devel
 
 # Don't allow compression of the xkeys-server file
 %define __compress /bin/true
