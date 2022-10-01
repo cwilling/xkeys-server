@@ -133,7 +133,7 @@ stages:
       - build/deb/${LINUX_AMD64_INSTALLER}
 
 # Package rpm
-package_rpm:
+.package_rpm:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
   script:
@@ -191,7 +191,7 @@ package_rpm:
       - build/raspi/${RASPI_32_INSTALLER}
 
 # Package 32bit Beaglebone Black
-.package_beaglebone_black:
+package_beaglebone_black:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
   before_script:
@@ -298,7 +298,7 @@ package_rpm:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-upload_rpm:
+.upload_rpm:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -325,7 +325,7 @@ upload_rpm:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
-.upload_beaglebone_black:
+upload_beaglebone_black:
   stage: upload
   image: curlimages/curl:latest
   rules:
