@@ -40,7 +40,7 @@ stages:
   - package
   - upload
 
-.do_nothing:
+do_nothing:
   stage: nothing
   script:
     echo
@@ -116,7 +116,7 @@ stages:
 
 
 # Package with LTS nodejs
-package_deb_lts:
+.package_deb_lts:
   stage: package
   image: node:lts
   before_script:
@@ -289,7 +289,7 @@ package_deb_lts:
 #    - ./scripts/xkeys-server.js test
 #  interruptible: true
 
-upload_deb:
+.upload_deb:
   stage: upload
   image: curlimages/curl:latest
   rules:
