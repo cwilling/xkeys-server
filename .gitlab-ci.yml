@@ -116,7 +116,7 @@ stages:
 
 
 # Package with LTS nodejs
-.package_deb_lts:
+package_deb_lts:
   stage: package
   image: node:lts
   before_script:
@@ -191,7 +191,7 @@ stages:
       - build/raspi/${RASPI_32_INSTALLER}
 
 # Package 32bit Beaglebone Black
-package_beaglebone_black:
+.package_beaglebone_black:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
   before_script:
@@ -289,7 +289,7 @@ package_beaglebone_black:
 #    - ./scripts/xkeys-server.js test
 #  interruptible: true
 
-.upload_deb:
+upload_deb:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -325,7 +325,7 @@ package_beaglebone_black:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
-upload_beaglebone_black:
+.upload_beaglebone_black:
   stage: upload
   image: curlimages/curl:latest
   rules:
