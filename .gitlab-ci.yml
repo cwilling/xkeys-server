@@ -40,7 +40,7 @@ stages:
   - package
   - upload
 
-do_nothing:
+.do_nothing:
   stage: nothing
   script:
     echo
@@ -59,7 +59,7 @@ do_nothing:
     - docker push registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
 
 # Docker container image for RasPi 64bit packaging
-docker_build_arm64v8:
+.docker_build_arm64v8:
   stage: docker_build
   image: docker:20.10.11
   services:
@@ -149,11 +149,9 @@ docker_build_arm64v8:
 
 
 # Package 64bit RasPi
-.package_raspi:
+package_raspi:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
-  before_script:
-    - apt-get update -qq && apt-get install -y -qq libudev-dev libusb-1.0-0-dev libavahi-compat-libdnssd-dev
   script:
     - mkdir -p ~/.pkg-cache/v3.4
     - cd ~/.pkg-cache/v3.4
@@ -309,7 +307,7 @@ docker_build_arm64v8:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/rpm/${LINUX_RPM_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_RPM_INSTALLER}
 
-.upload_raspi:
+upload_raspi:
   stage: upload
   image: curlimages/curl:latest
   rules:
