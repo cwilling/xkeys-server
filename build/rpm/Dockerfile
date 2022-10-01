@@ -1,10 +1,10 @@
 FROM rockylinux:8.5
 MAINTAINER Christoph Willing chris.willing@linux.com
 
-RUN dnf install dnf-plugins-core
-RUN dnf install epel-release
+RUN dnf install dnf-plugins-core -y
+RUN dnf install epel-release -y
 RUN dnf config-manager --set-enabled powertools
-RUN dnf update
+RUN dnf update -y
 RUN yum makecache && yum upgrade -y && yum groupinstall "Development Tools" -y
 RUN yum install -y \
 	pkg-config file curl wget git python3 \
