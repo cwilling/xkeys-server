@@ -4,9 +4,10 @@ MAINTAINER Christoph Willing chris.willing@linux.com
 RUN apt update && apt upgrade -y
 RUN apt install -y \
 		build-essential git pkg-config file curl wget \
-		libuv1-dev libudev-dev libfuse-dev libusb-1.0-0-dev
+		libuv1-dev libudev-dev libfuse-dev libusb-1.0-0-dev \
+		libavahi-compat-libdnssd-dev
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt install nodejs
+RUN apt install -y nodejs
 RUN node --version
 
 WORKDIR /
