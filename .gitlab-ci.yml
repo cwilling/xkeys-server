@@ -40,7 +40,7 @@ stages:
   - package
   - upload
 
-do_nothing:
+.do_nothing:
   stage: nothing
   script:
     echo
@@ -48,7 +48,7 @@ do_nothing:
 
 
 # Docker container for packaging RPMs.
-.docker_build_rpm:
+docker_build_rpm:
   stage: docker_build
   image: docker:20.10.11
   services:
