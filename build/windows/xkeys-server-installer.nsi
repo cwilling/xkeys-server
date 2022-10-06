@@ -3,7 +3,7 @@
 !define APPNAME "Xkeys Server"
 !define ServiceName "XkeysServer"
 !define DESCRIPTION "Xkeys Server"
-!define XKEYS_SERVER_VERSION "0.10.00"
+!define XKEYS_SERVER_VERSION "0.10.1"
 
 # The name of the installer
 Name "Xkeys-Server Installer"

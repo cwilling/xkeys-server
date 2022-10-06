@@ -4,7 +4,7 @@ default:
   image: node:lts
 
 variables:
-  PACKAGE_VERSION: "0.10.00"
+  PACKAGE_VERSION: "0.10.1"
   LINUX_AMD64_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_amd64.deb"
   LINUX_RPM_INSTALLER: "xkeys-server-${PACKAGE_VERSION}-1.x86_64.rpm"
   MACOS_INSTALLER: "xkeys-server-macos-installer-${PACKAGE_VERSION}-x86_64.pkg"
@@ -250,7 +250,7 @@ package_rpm:
 
 # We can't build macos packages here yet
 # so fetch and upload a package we prepared manually
-# (also windows since 0.10.00 until we find a way to include Bonjour SDK for Windows)
+# (also windows since 0.10.1 until we find a way to include Bonjour SDK for Windows)
 .upload_remotes:
   image: curlimages/curl:latest
   stage: upload
