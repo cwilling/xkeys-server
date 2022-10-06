@@ -40,7 +40,7 @@ stages:
   - package
   - upload
 
-do_nothing:
+.do_nothing:
   stage: nothing
   script:
     echo
@@ -133,7 +133,7 @@ do_nothing:
       - build/deb/${LINUX_AMD64_INSTALLER}
 
 # Package rpm
-.package_rpm:
+package_rpm:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
   script:
@@ -298,7 +298,7 @@ do_nothing:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-.upload_rpm:
+upload_rpm:
   stage: upload
   image: curlimages/curl:latest
   rules:
