@@ -100,19 +100,50 @@ const udp_host = config.host_address;
 const udp_port = config.host_port;
 const udp_clients = [];
 
-/*   Advertise the service */
-//const ad = mdns.createAdvertisement(mdns.udp('dcdp'), config.host_port);
-
-//const addresses = find_local_addresses();
-find_local_addresses().forEach( (address) => {
-	console.log(`Advertise local address: ${address}`);
-    const ad = new mdns.Advertisement('_dcdp._udp', config.host_port, {
-        name: 'X-keys server at ' + address
-        , networkInterface: address
-        , txtRecord: {oaddr: address, oid: ServerID, oport: udp_port}
-    });
-    ad.start();
-});
+/*	advertise_dcdp_server()
+*
+*	Advertise the DCDP service on each network interface.
+*	In case advertising has been interrupted, we check
+*	every 5 seconds whether mdns_needs_restart is true,
+*	in which case a restart is attempted.
+*/
+var mdns_needs_restart = true;
+function advertise_dcdp_server () {
+	//console.log(`advertise_dcdp_server()`);
+	setTimeout(advertise_dcdp_server, 5000);
+	/*
+	//	Test whether advertising is possible
+	try {
+		const ad_test = new mdns.Advertisement('_dcdptest._udp', config.host_port);
+	} catch (err) {
+		console.log(`ERROR! mdns problem - is avahidaemon running? ERROR is: ${err}`);
+		return;	// Try again after timeout
+	}
+	*/
+	if (mdns_needs_restart) {
+		console.log(`advertise_dcdp_server() attempting to start mdns advertisement`);
+		find_local_addresses().forEach( (address) => {
+			try {
+				console.log(`Advertise local address: ${address}`);
+				const ad = new mdns.Advertisement('_dcdp._udp', config.host_port, {
+					name: 'X-keys server at ' + address
+					, networkInterface: address
+					, txtRecord: {oaddr: address, oid: ServerID, oport: udp_port}
+				});
+				ad.start();
+				mdns_needs_restart = false;
+				ad.on('error', exception => {
+					console.log(`have mdns Advertisement ERROR: ${exception.toString()}`);
+					mdns_needs_restart = true;
+				});
+			} catch (err) {
+				console.log(`ERROR!!! mdns problem - has avahidaemon stopped? ERROR is: ${err}`);
+				mdns_needs_restart = true;
+			}
+		});
+	}
+}
+advertise_dcdp_server();
 
 process.on('SIGINT', () => {
 	console.log(`Shutting down (SIGINT)`);
