@@ -32,5 +32,11 @@ Many sites may already have established workflows for generating application ins
 ```
     winget install NSIS.NSIS --source winget
 ```
-Run the _NSIS_ executable and load & compile the _xkeys-server-installer.nsi_ file in this directory. The resulting installer _xkeys-server-installer.exe_ can be distributed for end users to install _xkeys-server_ in a familiar way. On installation using this installer, _xkeys-server_ is started immediately and is configured to run automatically if the system is rebooted.
+Compile the _xkeys-server-installer.nsi_ file in this directory from a command prompt with:
+```
+    makensis .\xkeys-server-installer.nsi
+```
+Alternatively, the NSIS gui can be used to load and compile the _xkeys-server-installer.nsi_ file.
+
+The resulting installer _xkeys-server-installer.exe_ can be distributed for end users to install _xkeys-server_ in a familiar way. On installation using this installer, _xkeys-server_ is started immediately and is configured to run automatically if the system is rebooted.
 
