@@ -40,7 +40,7 @@ stages:
   - package
   - upload
 
-.do_nothing:
+do_nothing:
   stage: nothing
   script:
     echo
@@ -251,7 +251,7 @@ package_rpm:
 # We can't build macos packages here yet
 # so fetch and upload a package we prepared manually
 # (also windows since 0.10.1 until we find a way to include Bonjour SDK for Windows)
-.upload_remotes:
+upload_remotes:
   image: curlimages/curl:latest
   stage: upload
   rules:
