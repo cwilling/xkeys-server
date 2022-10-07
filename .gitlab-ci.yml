@@ -298,7 +298,7 @@ upload_remotes:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-upload_rpm:
+.upload_rpm:
   stage: upload
   image: curlimages/curl:latest
   rules:
