@@ -116,7 +116,7 @@ stages:
 
 
 # Package with LTS nodejs
-.package_deb_lts:
+package_deb_lts:
   stage: package
   image: node:lts
   before_script:
@@ -133,7 +133,7 @@ stages:
       - build/deb/${LINUX_AMD64_INSTALLER}
 
 # Package rpm
-.package_rpm:
+package_rpm:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
   script:
@@ -149,7 +149,7 @@ stages:
 
 
 # Package 64bit RasPi
-.package_raspi:
+package_raspi:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm64
   script:
@@ -169,7 +169,7 @@ stages:
       - build/raspi/${RASPI_64_INSTALLER}
 
 # Package 32bit RasPi
-.package_raspi_32:
+package_raspi_32:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:bullseye-arm32
   before_script:
@@ -191,7 +191,7 @@ stages:
       - build/raspi/${RASPI_32_INSTALLER}
 
 # Package 32bit Beaglebone Black
-.package_beaglebone_black:
+package_beaglebone_black:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:buster-arm32
   before_script:
@@ -251,7 +251,7 @@ stages:
 # We can't build macos packages here yet
 # so fetch and upload a package we prepared manually
 # (also windows since 0.10.2 until we find a way to include Bonjour SDK for Windows)
-upload_remotes:
+.upload_remotes:
   image: curlimages/curl:latest
   stage: upload
   rules:
@@ -289,7 +289,7 @@ upload_remotes:
 #    - ./scripts/xkeys-server.js test
 #  interruptible: true
 
-.upload_deb:
+upload_deb:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -298,7 +298,7 @@ upload_remotes:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-.upload_rpm:
+upload_rpm:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -307,7 +307,7 @@ upload_remotes:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/rpm/${LINUX_RPM_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_RPM_INSTALLER}
 
-.upload_raspi:
+upload_raspi:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -316,7 +316,7 @@ upload_remotes:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_64_INSTALLER}
 
-.upload_raspi_32:
+upload_raspi_32:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -325,7 +325,7 @@ upload_remotes:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
-.upload_beaglebone_black:
+upload_beaglebone_black:
   stage: upload
   image: curlimages/curl:latest
   rules:
