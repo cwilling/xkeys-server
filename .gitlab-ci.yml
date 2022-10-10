@@ -4,7 +4,7 @@ default:
   image: node:lts
 
 variables:
-  PACKAGE_VERSION: "0.10.1"
+  PACKAGE_VERSION: "0.10.2"
   LINUX_AMD64_INSTALLER: "xkeys-server-${PACKAGE_VERSION}_amd64.deb"
   LINUX_RPM_INSTALLER: "xkeys-server-${PACKAGE_VERSION}-1.x86_64.rpm"
   MACOS_INSTALLER: "xkeys-server-macos-installer-${PACKAGE_VERSION}-x86_64.pkg"
@@ -50,7 +50,7 @@ stages:
 # Docker container for packaging RPMs.
 .docker_build_rpm:
   stage: docker_build
-  image: docker:20.10.11
+  image: docker:20.10.21
   services:
     - docker:dind
   script:
@@ -61,7 +61,7 @@ stages:
 # Docker container image for RasPi 64bit packaging
 .docker_build_arm64v8:
   stage: docker_build
-  image: docker:20.10.11
+  image: docker:20.10.21
   services:
     - docker:dind
   script:
@@ -73,7 +73,7 @@ stages:
 # Docker container for RASPI 32bit packaging
 .docker_build_arm32v7:
   stage: docker_build
-  image: docker:20.10.11
+  image: docker:20.10.21
   services:
     - docker:dind
   script:
@@ -86,7 +86,7 @@ stages:
 # (using default Debian buster base)
 .docker_build_bbblack_arm32v7:
   stage: docker_build
-  image: docker:20.10.11
+  image: docker:20.10.21
   services:
     - docker:dind
   script:
@@ -250,7 +250,7 @@ package_beaglebone_black:
 
 # We can't build macos packages here yet
 # so fetch and upload a package we prepared manually
-# (also windows since 0.10.1 until we find a way to include Bonjour SDK for Windows)
+# (also windows since 0.10.2 until we find a way to include Bonjour SDK for Windows)
 .upload_remotes:
   image: curlimages/curl:latest
   stage: upload
