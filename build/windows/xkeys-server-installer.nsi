@@ -14,12 +14,48 @@ OutFile "xkeys-server-installer-${XKEYS_SERVER_VERSION}.exe"
 # Where to install files
 InstallDir "$PROGRAMFILES\${APPNAME}"
 
+# Bonjour installed location
+!define BonjourDir "$PROGRAMFILES\Bonjour"
+
+
 ShowInstDetails show
 
 # Request application privileges
 RequestExecutionLevel admin
 
-!include LogicLib.nsh
+!include LogicLib.nsh		; Library for logical statements
+!include "x64.nsh"			; Macros for x64 machines
+
+# A way to detect whether a service is running e.g. Bonjour
+# Not used at present (in favour of detecting whether Bonjour
+# is installed) but keeping around just in case needed later.
+#
+##= 
+#= Service::State
+#
+# USAGE:
+# ${Service::State} "NAME" /DISABLEFSR $0 $1
+#
+#    ::State     = The service's status is returned. 
+#    NAME        = The Service name
+#    /DISABLEFSR = Disables redirection if x64. Use "" to skip.
+#    $0          = Return after call | 1 = success
+#    $1          =   ''    ''    ''  | 1 = running
+#
+# $1 will now hold "1" if running or "0" if not
+#
+!define Service::State `!insertmacro _Service::State`
+!macro _Service::State _SVC _FSR _ERR1 _ERR2
+	ReadEnvStr $R0 COMSPEC
+	StrCmpS $Bit 64 0 +4
+	StrCmp "${_FSR}" /DISABLEFSR 0 +3
+	ExecDos::Exec /TOSTACK /DISABLEFSR `"$R0" /c "${SC} query "${_SVC}" | find /C "RUNNING""`
+	Goto +2
+	ExecDos::Exec /TOSTACK `"$R0" /c "${SC} query "${_SVC}" | find /C "RUNNING""`
+	Pop ${_ERR1}
+	Pop ${_ERR2}
+!macroend
+
 #--------------------------------
 
 # Pages
@@ -59,10 +95,21 @@ function .onInit
   setShellVarContext all
   !insertmacro VerifyUserIsAdmin
 
+  IfFileExists  ${BonjourDir}\mDNSResponder.exe bonjourthere bonjournotthere
+	bonjourthere:
+		MessageBox MB_OK "Bonjour already installed"
+		Goto check_xkeys_installation
+	bonjournotthere:
+		MessageBox MB_YESNO|MB_ICONQUESTION "Bonjour not found - install it now?" /SD IDYES IDYES install_bonjour
+		  Goto check_xkeys_installation
+		install_bonjour:
+		  call InstallBonjour
+
   # Check if already installed (assumes location hasn't changed since installed version)
+  check_xkeys_installation:
   IfFileExists  $INSTDIR\run-app.vbs askdelete nothingthere
     askdelete:
-      MessageBox MB_YESNO|MB_ICONQUESTION "Uninstall existing version?" /SD IDYES IDYES deleteexisting
+      MessageBox MB_YESNO|MB_ICONQUESTION "Uninstall existing xkeys-server installation?" /SD IDYES IDYES deleteexisting
         abort
       deleteexisting:
         # First try to kill any running instance
@@ -76,6 +123,17 @@ function .onInit
         delete $INSTDIR\*
         rmDir $INSTDIR
     nothingthere:
+functionEnd
+
+function InstallBonjour
+	File "Bonjour.msi"
+	File "Bonjour64.msi"
+	${If} ${RunningX64}
+		ExecWait '"msiexec" /i "Bonjour64.msi"'
+	${Else}
+		ExecWait '"msiexec" /i "Bonjour.msi"'
+	${Endif}
+
 functionEnd
 
 function LaunchApp
