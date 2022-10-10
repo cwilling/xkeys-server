@@ -40,3 +40,21 @@ Alternatively, the NSIS gui can be used to load and compile the _xkeys-server-in
 
 The resulting installer _xkeys-server-installer.exe_ can be distributed for end users to install _xkeys-server_ in a familiar way. On installation using this installer, _xkeys-server_ is started immediately and is configured to run automatically if the system is rebooted.
 
+
+#### Notes on Bonjour
+
+We include Bonjour.msi & Bonjour64.msi in the Windows installer on the basis of:
+    https://developer.apple.com/licensing-trademarks/bonjour/
+
+which contains the sentence (note point 2):
+```
+This page contains agreements allowing you to:
+    - Use the Bonjour logo with your application (on macOS and non-Windows platforms).
+    - Redistribute the Bonjour for Windows installer as part of your Windows application.
+    - Download and use the Bonjour for Windows SDK to develop Bonjour-enabled applications on Windows.
+    - Download and run the Bonjour Conformance Test.
+```
+
+Bonjour.msi & Bonjour64.msi were obtained by extraction from BonjourPSSetup.exe,
+obtained from:
+    https://support.apple.com/kb/dl999?locale=en_US
