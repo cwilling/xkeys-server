@@ -298,7 +298,7 @@ stages:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/deb/${LINUX_AMD64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_INSTALLER}
 
-.upload_rpm:
+upload_rpm:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -307,7 +307,7 @@ stages:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/rpm/${LINUX_RPM_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_RPM_INSTALLER}
 
-.upload_raspi:
+upload_raspi:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -316,7 +316,7 @@ stages:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_64_INSTALLER}
 
-.upload_raspi_32:
+upload_raspi_32:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -325,7 +325,7 @@ stages:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
-.upload_beaglebone_black:
+upload_beaglebone_black:
   stage: upload
   image: curlimages/curl:latest
   rules:
