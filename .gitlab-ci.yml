@@ -116,7 +116,7 @@ stages:
 
 
 # Package with LTS nodejs
-.package_deb_lts:
+package_deb_lts:
   stage: package
   image: node:lts
   before_script:
@@ -133,7 +133,7 @@ stages:
       - build/deb/${LINUX_AMD64_INSTALLER}
 
 # Package rpm
-.package_rpm:
+package_rpm:
   stage: package
   image: registry.gitlab.com/chris.willing/xkeys-server:rocky8.5
   script:
@@ -307,7 +307,7 @@ package_beaglebone_black:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/rpm/${LINUX_RPM_INSTALLER} ${PACKAGE_REGISTRY_URL}/${LINUX_RPM_INSTALLER}
 
-upload_raspi:
+.upload_raspi:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -316,7 +316,7 @@ upload_raspi:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_64_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_64_INSTALLER}
 
-upload_raspi_32:
+.upload_raspi_32:
   stage: upload
   image: curlimages/curl:latest
   rules:
@@ -325,7 +325,7 @@ upload_raspi_32:
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build/raspi/${RASPI_32_INSTALLER} ${PACKAGE_REGISTRY_URL}/${RASPI_32_INSTALLER}
 
-upload_beaglebone_black:
+.upload_beaglebone_black:
   stage: upload
   image: curlimages/curl:latest
   rules:
